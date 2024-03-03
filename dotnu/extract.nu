@@ -1,13 +1,13 @@
 # extract a command from a module and save it as a file, that can be sourced
 export def main [
     $file: path # a file of a module to extract a command from
-    $function: string@nu-completion-command-name # the name of the command to extract
+    $command: string@nu-completion-command-name # the name of the command to extract
     --output: path # a file path to save extracted command script
 ] {
     let dummy_closure = {|function| # closure is used as the constructor for the command for `nu -c` highlighted in an editor
-        let $flags = (
+        let $params = (
             scope commands
-            | where name == $function
+            | where name == $command
             | get signatures.0
             | values
             | get 0
@@ -33,22 +33,22 @@ export def main [
             | str join "\n"
         )
 
-        let $main = (view source $function | lines | upsert 0 {|i| '# ' + $i} | drop | str join "\n")
+        let $main = (view source $command | lines | upsert 0 {|i| '# ' + $i} | drop | str join "\n")
 
-        "source '$file'\n\n" + $flags + "\n\n" + $main
+        "source '$file'\n\n" + $params + "\n\n" + $main
     }
 
     let $command_to_extract_the_command = ($"source ($file)\n\n" +
         (
             view source $dummy_closure
             | lines | skip | drop | str join "\n"
-            | str replace -a '$function' $function | str replace -a '$file' $file
+            | str replace -a '$command' $command | str replace -a '$file' $file
         )
     )
 
     let $extracted_command = (nu -n -c $command_to_extract_the_command)
 
-    let $filename = $output | default $'($function)(date now | format date "%s").nu'
+    let $filename = $output | default $'($command)(date now | format date "%s").nu'
 
     $extracted_command | save -f $filename
 
