@@ -7,7 +7,7 @@
 extract a command from a module and save it as a file, that can be sourced
 
 Usage:
-  > intermid.nu {flags} <$file> <$command>
+  > intermid.nu {flags} <$file> <$command> 
 
 Flags:
   --output <Filepath> - a file path to save extracted command script
@@ -29,13 +29,33 @@ create a file that will print and execute all the commands by blocks.
 Blocks are separated by empty lines between commands.
 
 Usage:
-  > intermid.nu <file>
+  > intermid.nu <file> 
 
 Flags:
   -h, --help - Display the help message for this command
 
 Parameters:
   file <path>: path to `.nu` file
+
+Input/output types:
+  ╭───┬───────┬────────╮
+  │ # │ input │ output │
+  ├───┼───────┼────────┤
+  │ 0 │ any   │ any    │
+  ╰───┴───────┴────────╯
+
+> dependencies -h
+Check .nu module file for which commands use other commands
+
+Usage:
+  > intermid.nu {flags} <path> 
+
+Flags:
+  --keep_builtins - keep builtin commands in the result page
+  -h, --help - Display the help message for this command
+
+Parameters:
+  path <path>: path to a .nu module file.
 
 Input/output types:
   ╭───┬───────┬────────╮
