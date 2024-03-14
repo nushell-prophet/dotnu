@@ -1,5 +1,5 @@
 # create a file that will print and execute all the commands by blocks.
-# Blocks are made by empty lines between commands.
+# Blocks are separated by empty lines between commands.
 export def main [
     file: path # path to `.nu` file
 ] {
@@ -14,7 +14,7 @@ export def main [
     }
     | prepend 'mut $prev_ts = (date now)'
     | save -f $out_file
-    
+
 
     print $'the file ($out_file) is produced. Source it'
 
