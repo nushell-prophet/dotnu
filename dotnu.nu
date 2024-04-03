@@ -151,3 +151,30 @@ export def dependencies [
     let $89_res = (generate ($90_childs_to_merge | insert step 0) {|i| if not ($i | is-empty) {{out: $i, next: ($i | join-next)}}} | flatten | uniq-by parent child);
     $89_res
 }
+
+# open a `.nu` file with blocks of tests divided by double new lines, execute each, report problems
+export def test [
+    file: path # path to `.nu` file
+] {
+    let $blocks = open $file
+        | split row -r "\n+\n"
+
+    $blocks
+    | skip
+    | length
+    | $"Number of tests to execute ($in)"
+    | print
+
+    # the first block is to be repeated in every other block exectuion
+    let $common = $blocks.0
+
+    $blocks
+    | skip
+    | par-each {|i|
+        nu --no-config-file -c $"($common)\n($i)"
+        | complete
+        | if $in.exit_code != 0 {
+            insert command $i
+        }
+    }
+}
