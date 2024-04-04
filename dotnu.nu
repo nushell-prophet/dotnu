@@ -79,17 +79,14 @@ export def extract [
         "source '$file'\n\n" + $params + "\n\n" + $main
     }
 
-    let $command_to_extract_the_command = ($"source ($file)\n\n" +
-        (
-            view source $dummy_closure
-            | lines | skip | drop | str join "\n"
-            | str replace -a '$command' $command
-            | str replace -a '$file' $file
-            | str replace -a '$dotnu_vars_string' $"'($dotnu_vars_string)'"
-        )
-    )
+    let $command_to_extract_the_command = view source $dummy_closure
+        | lines | skip | drop | str join "\n"
+        | str replace -a '$command' $command
+        | str replace -a '$file' $file
+        | str replace -a '$dotnu_vars_string' $"'($dotnu_vars_string)'"
+        | $"source ($file)\n\n($in)"
 
-    let $extracted_command = (nu -n -c $command_to_extract_the_command)
+    let $extracted_command = nu -n -c $command_to_extract_the_command
 
     let $filename = $output | default $'($command).nu'
 
