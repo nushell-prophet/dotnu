@@ -5,7 +5,7 @@ use std iter scan
 export def set-x [
     file: path # path to `.nu` file
 ] {
-    let $out_file = ($file + 'setx.nu')
+    let $out_file = $file + 'setx.nu'
 
     open $file
     | str trim --char (char nl)
@@ -33,8 +33,7 @@ export def extract [
     let $dotnu_vars_string = '#dotnu-vars-end'
 
     let dummy_closure = {|function| # closure is used as the constructor for the command for `nu -c` highlighted in an editor
-        let $params = (
-            scope commands
+        let $params = scope commands
             | where name == $command
             | get signatures.0
             | values
@@ -64,17 +63,14 @@ export def extract [
                 | into string
             )"}
             | str join "\n"
-        )
 
-        let $main = (
-            view source $command
+        let $main = view source $command
             | lines
             | upsert 0 {|i| '# ' + $i}
             | drop
             | append '# }'
             | prepend $dotnu_vars_string
             | str join "\n"
-        )
 
         "source '$file'\n\n" + $params + "\n\n" + $main
     }
@@ -126,31 +122,54 @@ export def dependencies [
     --keep_builtins # keep builtin commands in the result page
     --definitions_only
 ] {
-    let $raw_script = (open $path -r);
-    let $table = ($raw_script | lines | enumerate | rename row_number line | where line =~ '^(export )?def.*\[' | insert command_name {|i| $i.line | str replace -r ' \[.*' '' | split row ' ' | last | str trim -c "'"} )
+    let $raw_script = open $path -r
+    let $table = $raw_script
+        | lines
+        | enumerate
+        | rename row_number line
+        | where line =~ '^(export )?def.*\['
+        | insert command_name {|i|
+            $i.line | str replace -r ' \[.*' '' | split row ' ' | last | str trim -c "'"
+        }
 
     if $definitions_only {return $table}
 
-    let $with_index = ($table | insert start {|i| $raw_script | str index-of $i.line})
-    let $ast = (nu --ide-ast $path | from json | flatten span)
-    let $join = ($ast | join $with_index start -l)
-    let $scanned = ($join | merge ($in.command_name | scan null {|prev curr| if ($curr == null) {$prev} else {$curr} } | wrap command_name | roll up));
+    let $with_index = $table | insert start {|i| $raw_script | str index-of $i.line}
+    let $ast = nu --ide-ast $path | from json | flatten span
+    let $join = $ast | join $with_index start -l
+    let $scanned = $join | merge (
+        $in.command_name
+        | scan null {|prev curr| if ($curr == null) {$prev} else {$curr} }
+        | wrap command_name
+        | roll up
+    )
 
-    let $not_built_in_commands = (
-        $scanned
+    let $not_built_in_commands = $scanned
         | where shape in [shape_internalcall]
         | if $keep_builtins {} else {
             where content not-in (
                 help commands | where command_type in ['builtin' 'keyword'] | get name
             )
         }
-    );
-    let $childs_to_merge = ($not_built_in_commands | select command_name content | rename parent child | where parent != null);
 
-    def 'join-next' [] {join -l $childs_to_merge child parent | select parent child_ step | rename parent child | upsert step {|i| $i.step + 1} | where child != null}
+    let $childs_to_merge = $not_built_in_commands
+        | select command_name content
+        | rename parent child
+        | where parent != null
 
-    let $res = (generate ($childs_to_merge | insert step 0) {|i| if not ($i | is-empty) {{out: $i, next: ($i | join-next)}}} | flatten | uniq-by parent child);
-    $res
+    def 'join-next' [] {
+        join -l $childs_to_merge child parent
+        | select parent child_ step
+        | rename parent child
+        | upsert step {|i| $i.step + 1}
+        | where child != null
+    }
+
+    generate ($childs_to_merge | insert step 0) {|i|
+        if not ($i | is-empty) {{out: $i, next: ($i | join-next)}}
+    }
+    | flatten
+    | uniq-by parent child
 }
 
 # open a `.nu` file with blocks of tests divided by double new lines, execute each, report problems
