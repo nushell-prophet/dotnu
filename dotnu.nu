@@ -124,9 +124,13 @@ def nu-completion-command-name [
 export def dependencies [
     path: path # path to a .nu module file.
     --keep_builtins # keep builtin commands in the result page
+    --definitions_only
 ] {
     let $97_raw_script = (open $path -r);
     let $98_table = ($97_raw_script | lines | enumerate | rename row_number line | where line =~ '^(export )?def.*\[' | insert command_name {|i| $i.line | str replace -r ' \[.*' '' | split row ' ' | last | str trim -c "'"} )
+
+    if $definitions_only {return $98_table}
+
     let $96_with_index = ($98_table | insert start {|i| $97_raw_script | str index-of $i.line})
     let $95_ast = (nu --ide-ast $path | from json | flatten span)
     let $94_join = ($95_ast | join $96_with_index start -l)
