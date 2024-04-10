@@ -126,18 +126,18 @@ export def dependencies [
     --keep_builtins # keep builtin commands in the result page
     --definitions_only
 ] {
-    let $97_raw_script = (open $path -r);
-    let $98_table = ($97_raw_script | lines | enumerate | rename row_number line | where line =~ '^(export )?def.*\[' | insert command_name {|i| $i.line | str replace -r ' \[.*' '' | split row ' ' | last | str trim -c "'"} )
+    let $raw_script = (open $path -r);
+    let $table = ($raw_script | lines | enumerate | rename row_number line | where line =~ '^(export )?def.*\[' | insert command_name {|i| $i.line | str replace -r ' \[.*' '' | split row ' ' | last | str trim -c "'"} )
 
-    if $definitions_only {return $98_table}
+    if $definitions_only {return $table}
 
-    let $96_with_index = ($98_table | insert start {|i| $97_raw_script | str index-of $i.line})
-    let $95_ast = (nu --ide-ast $path | from json | flatten span)
-    let $94_join = ($95_ast | join $96_with_index start -l)
-    let $93_scanned = ($94_join | merge ($in.command_name | scan null {|prev curr| if ($curr == null) {$prev} else {$curr} } | wrap command_name | roll up));
+    let $with_index = ($table | insert start {|i| $raw_script | str index-of $i.line})
+    let $ast = (nu --ide-ast $path | from json | flatten span)
+    let $join = ($ast | join $with_index start -l)
+    let $scanned = ($join | merge ($in.command_name | scan null {|prev curr| if ($curr == null) {$prev} else {$curr} } | wrap command_name | roll up));
 
-    let $91_not_built_in_commands = (
-        $93_scanned
+    let $not_built_in_commands = (
+        $scanned
         | where shape in [shape_internalcall]
         | if $keep_builtins {} else {
             where content not-in (
@@ -145,12 +145,12 @@ export def dependencies [
             )
         }
     );
-    let $90_childs_to_merge = ($91_not_built_in_commands | select command_name content | rename parent child | where parent != null);
+    let $childs_to_merge = ($not_built_in_commands | select command_name content | rename parent child | where parent != null);
 
-    def 'join-next' [] {join -l $90_childs_to_merge child parent | select parent child_ step | rename parent child | upsert step {|i| $i.step + 1} | where child != null}
+    def 'join-next' [] {join -l $childs_to_merge child parent | select parent child_ step | rename parent child | upsert step {|i| $i.step + 1} | where child != null}
 
-    let $89_res = (generate ($90_childs_to_merge | insert step 0) {|i| if not ($i | is-empty) {{out: $i, next: ($i | join-next)}}} | flatten | uniq-by parent child);
-    $89_res
+    let $res = (generate ($childs_to_merge | insert step 0) {|i| if not ($i | is-empty) {{out: $i, next: ($i | join-next)}}} | flatten | uniq-by parent child);
+    $res
 }
 
 # open a `.nu` file with blocks of tests divided by double new lines, execute each, report problems
