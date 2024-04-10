@@ -29,10 +29,11 @@ export def extract [
     $command: string@nu-completion-command-name # the name of the command to extract
     --output: path # a file path to save extracted command script
     --clear_vars # clear variables previously set in the extracted .nu file
+    --echo # output the command to the terminal
 ] {
     let $dotnu_vars_string = '#dotnu-vars-end'
 
-    let dummy_closure = {|function| # closure is used as the constructor for the command for `nu -c` highlighted in an editor
+    let $dummy_closure = {|function| # closure is used as the constructor for the command for `nu -c` highlighted in an editor
         let $params = scope commands
             | where name == $command
             | get signatures.0
@@ -83,6 +84,7 @@ export def extract [
         | $"source ($file)\n\n($in)"
 
     let $extracted_command = nu -n -c $command_to_extract_the_command
+        if $echo {return $in} else {}
 
     let $filename = $output | default $'($command).nu'
 
