@@ -130,6 +130,11 @@ export def dependencies [
     --definitions_only # output only commands' names definitions
 ] {
     let $raw_script = open $path -r
+
+    if not ($raw_script | nu-check) {
+        error make {msg: $"the script ($path) failed `nu-check`"}
+    }
+
     let $table = $raw_script
         | lines
         | enumerate
