@@ -4,6 +4,7 @@ use std iter scan
 # Blocks are separated by empty lines between commands.
 export def set-x [
     file: path # path to `.nu` file
+    --echo # output script to terminal
 ] {
     let $out_file = $file + 'setx.nu'
 
@@ -15,7 +16,12 @@ export def set-x [
         + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
     }
     | prepend 'mut $prev_ts = date now'
-    | save -f $out_file
+    | if $echo {
+        str join (char nl)
+        | return $in
+    } else {
+        save -f $out_file
+    }
 
     print $'the file ($out_file) is produced. Source it'
 
