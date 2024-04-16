@@ -186,6 +186,7 @@ export def dependencies [
     }
     | flatten
     | uniq-by parent child
+    | sort-by parent step child
 }
 
 # open a `.nu` file with blocks of tests divided by double new lines, execute each, report problems
