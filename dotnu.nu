@@ -130,7 +130,11 @@ export def dependencies [
         | rename row_number line
         | where line =~ '^(export )?def.*\['
         | insert command_name {|i|
-            $i.line | str replace -r ' \[.*' '' | split row ' ' | last | str trim -c "'"
+            $i.line
+            | str replace -r '^(export )?def( --(env|wrapped))* (?<command>.*?) \[.*' '$command'
+            | str trim -c "\""
+            | str trim -c "'"
+            | str trim -c "`"
         }
 
     if $definitions_only {return ($table | get command_name)}
