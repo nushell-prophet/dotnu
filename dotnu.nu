@@ -121,7 +121,7 @@ def nu-completion-command-name [
 export def dependencies [
     path: path # path to a .nu module file.
     --keep_builtins # keep builtin commands in the result page
-    --definitions_only
+    --definitions_only # output only commands' names definitions
 ] {
     let $raw_script = open $path -r
     let $table = $raw_script
@@ -133,7 +133,7 @@ export def dependencies [
             $i.line | str replace -r ' \[.*' '' | split row ' ' | last | str trim -c "'"
         }
 
-    if $definitions_only {return $table}
+    if $definitions_only {return ($table | get command_name)}
 
     let $with_index = $table | insert start {|i| $raw_script | str index-of $i.line}
     let $ast = nu --ide-ast $path | from json | flatten span
