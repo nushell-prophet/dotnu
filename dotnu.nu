@@ -14,9 +14,8 @@ export def set-x [
         ($"print `> ($block | str replace -ar '([^\\]?)"' '$1\"' | nu-highlight)`\n($block)"
         + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
     }
-    | prepend 'mut $prev_ts = (date now)'
+    | prepend 'mut $prev_ts = date now'
     | save -f $out_file
-
 
     print $'the file ($out_file) is produced. Source it'
 
