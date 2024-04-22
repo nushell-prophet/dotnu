@@ -55,21 +55,25 @@ export def extract [
                 } else {}
             }
             | where parameter_name != null
-            | each {|i| $"let $($i.parameter_name | str replace -a '-' '_' | str replace '$' '') = (
-                $i.parameter_default?
-                | if $in == null {} else {
-                    if $i.syntax_shape in ['string' 'path'] {
-                        $"'($in)'"
-                    } else {}
-                }
-                | default (
-                    if $i.parameter_type == 'switch' { false }
-                        else if $i.is_optional { 'null' }
-                        else { $i.syntax_shape }
-                )
-                | if $in == '' {"''"} else {}
-                | into string
-            )"}
+            | each {|i|
+                let $param = $i.parameter_name | str replace -a '-' '_' | str replace '$' ''
+
+                let $value = $i.parameter_default?
+                    | if $in == null {} else {
+                        if $i.syntax_shape in ['string' 'path'] {
+                            $"'($in)'"
+                        } else {}
+                    }
+                    | default (
+                        if $i.parameter_type == 'switch' { false }
+                            else if $i.is_optional { 'null' }
+                            else { $i.syntax_shape }
+                    )
+                    | if $in == '' {"''"} else {}
+                    | into string
+
+                $"let $($param) = ($value)"
+            }
             | str join "\n"
 
         let $main = view source $command
