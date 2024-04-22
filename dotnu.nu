@@ -89,7 +89,7 @@ export def extract [
         | $"source ($file)\n\n($in)"
 
     let $extracted_command = nu -n -c $command_to_extract_the_command
-        if $echo {return $in} else {}
+        | if $echo {return $in} else {}
 
     let $filename = $output | default $'($command).nu'
 
