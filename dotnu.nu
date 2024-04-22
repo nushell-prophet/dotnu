@@ -36,7 +36,7 @@ export def extract [
     --clear_vars # clear variables previously set in the extracted .nu file
     --echo # output the command to the terminal
 ] {
-    let $dotnu_vars_string = '#dotnu-vars-end'
+    let $dotnu_vars_delim = '#dotnu-vars-end'
 
     let $dummy_closure = {|function| # closure is used as the constructor for the command for `nu -c` highlighted in an editor
         let $params = scope commands
@@ -75,7 +75,7 @@ export def extract [
             | upsert 0 {|i| '# ' + $i}
             | drop
             | append '# }'
-            | prepend $dotnu_vars_string
+            | prepend $dotnu_vars_delim
             | str join "\n"
 
         "source '$file'\n\n" + $params + "\n\n" + $main
@@ -85,7 +85,7 @@ export def extract [
         | lines | skip | drop | str join "\n"
         | str replace -a '$command' $command
         | str replace -a '$file' $file
-        | str replace -a '$dotnu_vars_string' $"'($dotnu_vars_string)'"
+        | str replace -a '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
         | $"source ($file)\n\n($in)"
 
     let $extracted_command = nu -n -c $command_to_extract_the_command
@@ -95,11 +95,11 @@ export def extract [
 
     if ($filename | path exists) and not $clear_vars {
         open $filename
-        | split row $dotnu_vars_string
+        | split row $dotnu_vars_delim
         | get 0
-        | $in + $dotnu_vars_string + (
+        | $in + $dotnu_vars_delim + (
             $extracted_command
-            | split row $dotnu_vars_string
+            | split row $dotnu_vars_delim
             | get 1
         )
     } else {$extracted_command}
