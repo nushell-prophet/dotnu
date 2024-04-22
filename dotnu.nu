@@ -35,6 +35,8 @@ export def extract [
     --output: path # a file path to save extracted command script
     --clear_vars # clear variables previously set in the extracted .nu file
     --echo # output the command to the terminal
+    --set_vars: record # set variables for a command
+    --code_editor = 'code' # code is my editor of choice to open the result file
 ] {
     let $dotnu_vars_delim = '#dotnu-vars-end'
 
@@ -89,24 +91,30 @@ export def extract [
         | $"source ($file)\n\n($in)"
 
     let $extracted_command = nu -n -c $command_to_extract_the_command
-        | if $echo {return $in} else {}
+        | split row $dotnu_vars_delim
 
     let $filename = $output | default $'($command).nu'
 
-    if ($filename | path exists) and not $clear_vars {
+    if $set_vars != null {
+        $set_vars
+        | items {|k v| $'let $($k) = ($v)'}
+        | append (char nl)
+        | str join (char nl)
+    } else if ($filename | path exists) and not $clear_vars {
         open $filename
         | split row $dotnu_vars_delim
         | get 0
-        | $in + $dotnu_vars_delim + (
-            $extracted_command
-            | split row $dotnu_vars_delim
-            | get 1
-        )
-    } else {$extracted_command}
-    | save -f $filename
+    } else {
+        $extracted_command.0
+    }
+    | $in + $dotnu_vars_delim + $extracted_command.1
+    | if $echo {
+        return $in
+    } else {
+        save -f $filename
 
-    # code is my editor of choice here
-    commandline edit --replace $"code ($filename); commandline edit --replace 'source ($filename)'"
+        commandline edit --replace $"^($code_editor) ($filename); commandline edit --replace 'source ($filename)'"
+    }
 }
 
 def nu-completion-command-name [
