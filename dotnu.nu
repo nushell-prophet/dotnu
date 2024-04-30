@@ -99,18 +99,22 @@ export def extract [
 
     let $filename = $output | default $'($command).nu'
 
-    if $set_vars != null {
-        $set_vars
-        | items {|k v| $'let $($k) = ($v)'}
-        | append (char nl)
-        | str join (char nl)
-    } else if ($filename | path exists) and not $clear_vars {
-        open $filename
-        | split row $dotnu_vars_delim
-        | get 0
-    } else {
-        $extracted_command.0
-    }
+    $extracted_command.0
+    | variables_definitions_to_record
+    | if ($filename | path exists) and not $clear_vars {
+        merge (
+            open $filename
+            | split row $dotnu_vars_delim
+            | get 0
+            | variables_definitions_to_record
+        )
+    } else {}
+    | if $set_vars != null {
+        merge $set_vars
+    } else {}
+    | items {|k v| $'let $($k) = ($v)'}
+    | append (char nl)
+    | str join (char nl)
     | $in + $dotnu_vars_delim + $extracted_command.1
     | if $echo {
         return $in
