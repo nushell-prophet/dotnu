@@ -135,6 +135,13 @@ def nu-completion-command-name [
     }
 }
 
+def variables_definitions_to_record []: string -> record {
+    str replace -ar '#.*?(\n|$)' ''
+    | parse -r 'let (?:\$)*(?<var>.*) = (?s)(?<val>.*?)(?=let|\n\n|$)'
+    | update val {|i| $i.val | str replace -ar "(\n| )+" ' ' | str trim}
+    | transpose --ignore-titles --as-record --header-row
+}
+
 # Check .nu module file for which commands use other commands
 export def dependencies [
     path: path # path to a .nu module file.
