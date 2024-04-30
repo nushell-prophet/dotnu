@@ -25,7 +25,7 @@ export def set-x [
 
     print $'the file ($out_file) is produced. Source it'
 
-    commandline $'source ($out_file)'
+    commandline edit -r $'source ($out_file)'
 }
 
 # extract a command from a module and save it as a file, that can be sourced
