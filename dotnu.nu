@@ -238,7 +238,7 @@ export def test [
 export def extract-docstrings [
 
 ] {
-    parse -r "\n(?<whole_comments># (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)*)\nexport def(?: --(?:env|wrapped))* '(?<command>.*)'"
+    parse -r "\n(?<whole_comments># (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
     | update examples {|i|
         $i.examples
         | str replace -ram '^# ?' ''
