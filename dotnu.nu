@@ -236,9 +236,12 @@ export def test [
 }
 
 export def extract-docstrings [
-
+    command_name_filter?: string
 ] {
     parse -r "\n(?<whole_comments># (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
+    | if $command_name_filter == null {} else {
+        where command_name =~ $command_name_filter
+    }
     | update examples {|i|
         $i.examples
         | str replace -ram '^# ?' ''
