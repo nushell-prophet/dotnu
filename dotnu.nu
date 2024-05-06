@@ -249,3 +249,30 @@ export def extract-docstrings [
         | parse -r '(?<annotation>^.+\n)??> (?<command>.*(?:\n\|.+)*)'
     }
 }
+
+export def execute-examples [
+    module_file: path
+    --prefix
+] {
+    par-each {
+        insert examples_res {
+            get examples
+            | each {|e|
+                let $use_statement = if $prefix {
+                    $'use ($module_file)'
+                } else {
+                    $'use ($module_file) *'
+                }
+                let $res = nu --no-newline -c $"($use_statement); ($e.command)"
+                    | complete
+                    | if $in.exit_code == 0 {get stdout} else {get stderr}
+                    | ansi strip
+
+                $e.annotation + "\n" + "> " + $e.command + "\n" + $res
+            }
+            | str trim -c "\n"
+            | str join "\n\n"
+            | lines | each {|i| '# ' + $i} | str join "\n"
+        }
+    }
+}
