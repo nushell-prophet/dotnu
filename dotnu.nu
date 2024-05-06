@@ -242,7 +242,7 @@ export def extract-docstrings [
     | update examples {|i|
         $i.examples
         | str replace -ram '^# ?' ''
-        | split row "\n\n"
+        | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
         | parse -r '(?<annotation>^.+\n)??> (?<command>.*(?:\n\|.+)*)'
     }
 }
