@@ -238,11 +238,11 @@ export def test [
 export def extract-docstrings [
     command_name_filter?: string
 ] {
-    parse -r "\n(?<whole_comments># (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
+    parse -r "\n\n# (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
     | if $command_name_filter == null {} else {
         where command_name =~ $command_name_filter
     }
-    | update examples {|i|
+    | insert examples_parsed {|i|
         $i.examples
         | str replace -ram '^# ?' ''
         | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
@@ -256,7 +256,7 @@ export def execute-examples [
 ] {
     par-each {
         insert examples_res {
-            get examples
+            get examples_parsed
             | each {|e|
                 # I guess it is possible to get rid of the --prefix flag and deduce it's need from given example
                 let $use_statement = if $prefix {
