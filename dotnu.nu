@@ -286,14 +286,17 @@ export def update-docstring-examples [
     --command_name_filter: string
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be ommited to try to deduce automatically
     --echo # output script
+    --no_git_check # don't check for emptyness of working tree
 ] {
     let pwd = pwd
 
     cd ($module_file | path dirname)
 
-    git status --short
-    | if not ($in | lines | parse '{s} {m} {f}' | is-empty) {
-        error make {msg: $"Working tree isn't empty. Please commit or stash all changed files.\n($in)"}
+    if not $no_git_check {
+        git status --short
+        | if not ($in | lines | parse '{s} {m} {f}' | is-empty) {
+            error make {msg: $"Working tree isn't empty. Please commit or stash all changed files.\n($in)"}
+        }
     }
 
     let $raw_module = open $module_file
