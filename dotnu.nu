@@ -287,6 +287,36 @@ export def execute-examples [
     }
 }
 
+export def update-docstring-examples [
+    module_file: path
+    --command_name_filter: string
+    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be ommited to try to deduce automatically
+    --echo # output script
+] {
+    let pwd = pwd
+
+    cd ($module_file | path dirname)
+
+    git status --short
+    | if not ($in | lines | parse '{s} {m} {f}' | is-empty) {
+        error make {msg: $"Working tree isn't empty. Please commit or stash all changed files.\n($in)"}
+    }
+
+    let $raw_module = open $module_file
+
+    cd $pwd
+
+    $raw_module
+    | extract-docstrings $command_name_filter
+    | execute-examples $module_file --use_statement=$use_statement
+    | reduce --fold $raw_module {|i acc|
+        $acc | str replace $i.examples $i.examples_res
+    }
+    | if $echo {} else {
+        save $module_file --force
+    }
+}
+
 export def generate-numd [] {
     split row -r "\n+\n"
     | each {|i| $"```nu\n($i)\n```\n"}
