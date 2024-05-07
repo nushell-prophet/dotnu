@@ -1,8 +1,7 @@
 # > "let $quiet = false; let $no_timestamp = false" | variables_definitions_to_record
-# ╭──────────────┬───────╮
-# │ quiet        │ false │
-# │ no_timestamp │ false │
-# ╰──────────────┴───────╯
+#
+# > let multiline_vars = "let $a = 'a'\nlet $b = 'b'\n\n#comment"
+# > $multiline_vars | variables_definitions_to_record
 export def variables_definitions_to_record []: string -> record {
     str replace -a ";" "\n"
     | str replace -ar '#.*?(\n|$)' ''
