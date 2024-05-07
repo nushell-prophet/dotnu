@@ -1,4 +1,5 @@
 use std iter scan
+use dotnu-internals.nu variables_definitions_to_record
 
 # create a file that will print and execute all the commands by blocks.
 # Blocks are separated by empty lines between commands.
@@ -137,13 +138,6 @@ def nu-completion-command-name [
         | last
         | str trim -c "'"
     }
-}
-
-def variables_definitions_to_record []: string -> record {
-    str replace -ar '#.*?(\n|$)' ''
-    | parse -r 'let (?:\$)*(?<var>.*) = (?s)(?<val>.*?)(?=let|\n\n|$)'
-    | update val {|i| $i.val | str replace -ar "(\n| )+" ' ' | str trim}
-    | transpose --ignore-titles --as-record --header-row
 }
 
 # Check .nu module file for which commands use other commands
