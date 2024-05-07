@@ -258,11 +258,13 @@ export def execute-examples [
         insert examples_res {
             get examples
             | each {|e|
+                # I guess it is possible to get rid of the --prefix flag and deduce it's need from given example
                 let $use_statement = if $prefix {
-                    $'use ($module_file)'
-                } else {
-                    $'use ($module_file) *'
-                }
+                        $'use ($module_file)'
+                    } else {
+                        $'use ($module_file) *'
+                    }
+
                 let $res = nu --no-newline -c $"($use_statement); ($e.command)"
                     | complete
                     | if $in.exit_code == 0 {get stdout} else {get stderr}
@@ -275,4 +277,10 @@ export def execute-examples [
             | lines | each {|i| '# ' + $i} | str join "\n"
         }
     }
+}
+
+export def generate-numd [] {
+    split row -r "\n+\n"
+    | each {|i| $"```nu\n($i)\n```\n"}
+    | str join (char nl)
 }
