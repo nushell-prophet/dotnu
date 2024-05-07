@@ -232,7 +232,7 @@ export def test [
 export def extract-docstrings [
     command_name_filter: string = ''
 ] {
-    parse -r "\n\n# (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
+    parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
     | if $command_name_filter == '' {} else {
         where command_name =~ $command_name_filter
     }
