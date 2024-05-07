@@ -230,10 +230,10 @@ export def test [
 }
 
 export def extract-docstrings [
-    command_name_filter?: string
+    command_name_filter: string = ''
 ] {
     parse -r "\n\n# (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
-    | if $command_name_filter == null {} else {
+    | if $command_name_filter == '' {} else {
         where command_name =~ $command_name_filter
     }
     | insert examples_parsed {|i|
@@ -283,7 +283,7 @@ export def execute-examples [
 
 export def update-docstring-examples [
     module_file: path
-    --command_name_filter: string
+    --command_name_filter: string = ''
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be ommited to try to deduce automatically
     --echo # output script
     --no_git_check # don't check for emptyness of working tree
