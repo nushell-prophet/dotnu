@@ -263,7 +263,8 @@ export def execute-examples [
                         $'use ($module_file) *'
                     } else {
                         error make {
-                            msg: $"Can't deduce use statement for example ($e.command). Check if example correct or provide `--use_statement` param."
+                            msg: ($"Can't deduce use statement for example ($e.command). " +
+                                "Check if your example is correct or provide `--use_statement` param.")
                         }
                     }
 
