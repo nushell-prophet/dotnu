@@ -30,7 +30,7 @@ export def set-x [
 }
 
 # extract a command from a module and save it as a file, that can be sourced
-export def extract [
+export def extract-command [
     $file: path # a file of a module to extract a command from
     $command: string@nu-completion-command-name # the name of the command to extract
     --output: path # a file path to save extracted command script
