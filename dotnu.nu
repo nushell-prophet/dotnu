@@ -230,9 +230,14 @@ export def test [
 }
 
 export def extract-docstrings [
-    command_name_filter: string = ''
+    file?: path
+    --command_name_filter: string = ''
 ] {
-    parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
+    if $file == null {} else {
+        open $file
+    }
+    | collect # http://www.nushell.sh/blog/2024-05-28-nushell_0_94_0.html#parse-toc
+    | parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
     | if $command_name_filter == '' {} else {
         where command_name =~ $command_name_filter
     }
@@ -305,7 +310,7 @@ export def update-docstring-examples [
     cd $pwd
 
     $raw_module
-    | extract-docstrings $command_name_filter
+    | extract-docstrings --command_name_filter=$command_name_filter
     | execute-examples $module_file --use_statement=$use_statement
     | reduce --fold $raw_module {|i acc|
         $acc | str replace $i.examples $i.examples_res
