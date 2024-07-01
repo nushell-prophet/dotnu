@@ -3,7 +3,7 @@
 > let yaml_file = (['tests-related' 'numd-internals-parse-docstrings.yaml'] | path join)
 > open tests-related/numd-internals.nu | collect | dotnu parse-docstrings | save -f $yaml_file
 
-> open -r $yaml_file
+> open -r $yaml_file | insert examples_parsed {|i| $i.examples | parse-examples}
 - desc: Generates code for execution in the intermediate script within a given code fence.
   examples: '# > ''ls | sort-by modified -r'' | gen-execute-code --whole_block --fence ''```nu indent-output'' | save z_examples/999_numd_internals/gen-execute-code_0.nu -f'
   command_name: gen-execute-code
