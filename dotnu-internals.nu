@@ -29,3 +29,25 @@ export def parse-examples [] {
     | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
     | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
 }
+
+export def gen-example-exec-command [
+    example_command
+    command_name
+    use_statement
+    module_file
+] {
+    if $use_statement != '' {
+        $use_statement
+    } else if ($example_command | str contains $'($module_file | path parse | get stem) ($command_name)') {
+        $'use ($module_file)'
+    } else if ($example_command | str contains $'($command_name)') {
+        # I use asterisk for importing all the commands because the example might contain other commands from the module
+        $'use ($module_file) *'
+    } else {
+        error make {
+            msg: ($"Can't deduce use statement for example ($example_command). " +
+                "Check if your example is correct or provide `--use_statement` param.")
+        }
+    }
+    | $"($in); ($example_command)"
+}

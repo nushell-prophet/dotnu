@@ -1,6 +1,6 @@
 use std iter scan
 use dotnu-internals.nu [
-    variables_definitions_to_record parse-examples parse-docstrings
+    variables_definitions_to_record parse-examples parse-docstrings gen-example-exec-command
 ]
 
 # create a file that will print and execute all the commands by blocks.
@@ -258,27 +258,12 @@ export def execute-examples [
         | insert examples_res {
             get examples_parsed
             | each {|e|
-                # I guess it is possible to get rid of the --prefix flag and deduce it's need from given example
-                let $use_statement1 = if $use_statement != '' {
-                        $use_statement
-                    } else if ($e.command | str contains $'($module_file | path parse | get stem) ($row.command_name)') {
-                        $'use ($module_file)'
-                    } else if ($e.command | str contains $'($row.command_name)') {
-                        # I use asterisk for importing all the commands because the example might contain other commands from the module
-                        $'use ($module_file) *'
-                    } else {
-                        error make {
-                            msg: ($"Can't deduce use statement for example ($e.command). " +
-                                "Check if your example is correct or provide `--use_statement` param.")
-                        }
-                    }
-
-                let $res = nu --no-newline -c $"($use_statement1); ($e.command)"
-                    | complete
-                    | if $in.exit_code == 0 {get stdout} else {get stderr}
-                    | ansi strip
-
-                $e.annotation + "\n" + "> " + $e.command + "\n" + $res
+                gen-example-exec-command $e.command $row.command_name $use_statement $module_file
+                | nu --no-newline -c $in
+                | complete
+                | if $in.exit_code == 0 {get stdout} else {get stderr}
+                | ansi strip
+                | $e.annotation + "\n" + "> " + $e.command + "\n" + $in
             }
             | str trim -c "\n"
             | str join "\n\n"
