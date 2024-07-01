@@ -323,6 +323,7 @@ export def update-docstring-examples [
     | reduce --fold $raw_module {|i acc|
         $acc | str replace $i.examples $i.examples_res
     }
+    | str replace -r '\n*$' "\n" # add ending new line
     | if $echo {} else {
         save $module_file --force
     }
