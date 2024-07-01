@@ -237,7 +237,7 @@ export def extract-docstrings [
         open $file
     }
     | collect # http://www.nushell.sh/blog/2024-05-28-nushell_0_94_0.html#parse-toc
-    | parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)?(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
+    | parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
     | if $command_name_filter == '' {} else {
         where command_name =~ $command_name_filter
     }
