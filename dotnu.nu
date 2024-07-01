@@ -290,7 +290,9 @@ export def execute-examples [
             }
             | str trim -c "\n"
             | str join "\n\n"
-            | lines | each {|i| '# ' + $i} | str join "\n"
+            | lines
+            | each {|i| '# ' + $i}
+            | str join "\n"
         }
     }
 }
