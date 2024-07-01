@@ -254,7 +254,7 @@ export def extract-docstrings [
 export def parse-examples [] {
     str replace -ram '^# ?' ''
     | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
-    | parse -r '(?<annotation>^.+\n)??> (?<command>.*(?:\n\|.+)*)'
+    | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
 }
 
 export def execute-examples [
