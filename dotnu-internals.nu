@@ -19,3 +19,13 @@ export def variables_definitions_to_record []: string -> record {
     | update val {|i| $i.val | str replace -ar "(\n| )+" ' ' | str trim}
     | transpose --ignore-titles --as-record --header-row
 }
+
+export def parse-docstrings [] {
+    parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
+}
+
+export def parse-examples [] {
+    str replace -ram '^# ?' ''
+    | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
+    | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
+}

@@ -1,5 +1,7 @@
 use std iter scan
-use dotnu-internals.nu variables_definitions_to_record
+use dotnu-internals.nu [
+    variables_definitions_to_record parse-examples parse-docstrings
+]
 
 # create a file that will print and execute all the commands by blocks.
 # Blocks are separated by empty lines between commands.
@@ -229,10 +231,6 @@ export def test [
     }
 }
 
-export def parse-docstrings [] {
-    parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
-}
-
 export def extract-docstrings [
     file?: path
     --command_name_filter: string = ''
@@ -249,12 +247,6 @@ export def extract-docstrings [
         $i.examples
         | parse-examples
     }
-}
-
-export def parse-examples [] {
-    str replace -ram '^# ?' ''
-    | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
-    | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
 }
 
 export def execute-examples [
