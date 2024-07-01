@@ -292,6 +292,7 @@ export def execute-examples [
             | str join "\n\n"
             | lines
             | each {|i| '# ' + $i}
+            | str trim
             | str join "\n"
         }
     }
