@@ -245,7 +245,11 @@ export def extract-docstrings [
     | if $command_name_filter == '' {} else {
         where command_name =~ $command_name_filter
     }
-    | insert examples_parsed {|i|
+    | parse-examples
+}
+
+export def parse-examples [] {
+    insert examples_parsed {|i|
         $i.examples
         | str replace -ram '^# ?' ''
         | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
