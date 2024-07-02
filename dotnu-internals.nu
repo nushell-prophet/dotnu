@@ -43,12 +43,7 @@ export def gen-example-exec-command [
     } else if ($example_command | str contains $'($command_name)') {
         # I use asterisk for importing all the commands because the example might contain other commands from the module
         $'use ($module_file) *'
-    } else {
-        error make {
-            msg: ($"Can't deduce use statement for example ($example_command). " +
-                "Check if your example is correct or provide `--use_statement` param.")
-        }
-    }
+    } else {}
     | $"($in); ($example_command)"
 }
 
