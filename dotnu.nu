@@ -15,20 +15,20 @@ export def set-x [
     | str trim --char (char nl)
     | split row -r "\n+\n"
     | each {|block|
-        ($"print `> ($block | str replace -ar '([^\\]?)"' '$1\"' | nu-highlight)`\n($block)"
-        + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
+        ($block | str replace -ar '([^\\]?)"' '$1\"' | nu-highlight)
+        | ($"print `> ($in)`\n($block)"
+            + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
     }
     | prepend 'mut $prev_ts = date now'
+    | str join (char nl)
     | if $echo {
-        str join (char nl)
-        | return $in
+        return $in
     } else {
         save -f $out_file
+
+        print $'the file ($out_file) is produced. Source it'
+        commandline edit -r $'source ($out_file)'
     }
-
-    print $'the file ($out_file) is produced. Source it'
-
-    commandline edit -r $'source ($out_file)'
 }
 
 # extract a command from a module and save it as a file, that can be sourced
