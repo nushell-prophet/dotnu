@@ -177,9 +177,8 @@ export def dependencies [
     let $scanned = $join
         | merge (
             $in.command_name
-            | scan null {|prev curr| if ($curr == null) {$prev} else {$curr} }
+            | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr} }
             | wrap command_name
-            | roll up
         )
 
     let $not_built_in_commands = $scanned
