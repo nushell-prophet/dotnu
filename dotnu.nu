@@ -311,6 +311,6 @@ export def update-docstring-examples [
 
 export def generate-numd [] {
     split row -r "\n+\n"
-    | each {|i| $"```nu\n($i)\n```\n"}
+    | each {$"```nu\n($in)\n```\n"}
     | str join (char nl)
 }
