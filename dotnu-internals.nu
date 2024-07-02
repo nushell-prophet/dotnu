@@ -44,7 +44,7 @@ export def gen-example-exec-command [
         # I use asterisk for importing all the commands because the example might contain other commands from the module
         $'use ($module_file) *'
     } else {}
-    | $"($in); ($example_command)"
+    | $"$env.config.table = ($env.config.table | to nuon); ($in); ($example_command)"
 }
 
 # Escapes symbols to be printed unchanged inside a `print "something"` statement.
