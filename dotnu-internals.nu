@@ -51,3 +51,11 @@ export def gen-example-exec-command [
     }
     | $"($in); ($example_command)"
 }
+
+# Escapes symbols to be printed unchanged inside a `print "something"` statement.
+#
+# > 'abcd"dfdaf" "' | escape-escapes
+# abcd\"dfdaf\" \"
+export def escape-escapes []: string -> string {
+    str replace --all --regex '(\\|\")' '\$1'
+}
