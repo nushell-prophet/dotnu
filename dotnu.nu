@@ -5,6 +5,7 @@ use dotnu-internals.nu [
     parse-docstrings
     gen-example-exec-command
     escape-escapes
+    nu-completion-command-name
 ]
 
 # create a file that will print and execute all the commands by blocks.
@@ -134,19 +135,6 @@ export def extract-command [
     }
 }
 
-def nu-completion-command-name [
-    context: string
-] {
-    $context | str replace -r '^.*? extract ' '' | str trim | split row ' ' | first
-    | path expand | open $in -r | lines
-    | where $it =~ '(^|\s)def '
-    | each {
-        str replace -r ' \[.*' ''
-        | split row ' '
-        | last
-        | str trim -c "'"
-    }
-}
 
 # Check .nu module file for which commands use other commands
 export def dependencies [

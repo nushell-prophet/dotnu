@@ -59,3 +59,17 @@ export def gen-example-exec-command [
 export def escape-escapes []: string -> string {
     str replace --all --regex '(\\|\")' '\$1'
 }
+
+export def nu-completion-command-name [
+    context: string
+] {
+    $context | str replace -r '^.*? extract ' '' | str trim | split row ' ' | first
+    | path expand | open $in -r | lines
+    | where $it =~ '(^|\s)def '
+    | each {
+        str replace -r ' \[.*' ''
+        | split row ' '
+        | last
+        | str trim -c "'"
+    }
+}
