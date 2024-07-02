@@ -174,12 +174,13 @@ export def dependencies [
     let $with_index = $table | insert start {|i| $raw_script | str index-of $i.line}
     let $ast = nu --ide-ast $path | from json | flatten span
     let $join = $ast | join $with_index start -l
-    let $scanned = $join | merge (
-        $in.command_name
-        | scan null {|prev curr| if ($curr == null) {$prev} else {$curr} }
-        | wrap command_name
-        | roll up
-    )
+    let $scanned = $join
+        | merge (
+            $in.command_name
+            | scan null {|prev curr| if ($curr == null) {$prev} else {$curr} }
+            | wrap command_name
+            | roll up
+        )
 
     let $not_built_in_commands = $scanned
         | where shape in [shape_internalcall]
