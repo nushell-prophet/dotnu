@@ -52,7 +52,7 @@ export def extract-command [
             | each {
                 if ($in.parameter_type == 'rest') {
                     if ($in.parameter_name == '') {
-                        upsert parameter_name 'rest'  # if rest paramters named $rest, in the signatures it doesn't have a name
+                        upsert parameter_name 'rest'  # if rest parameters named $rest, in the signatures it doesn't have a name
                     } else {}
                     | default [] parameter_default
                 } else {}
@@ -183,20 +183,20 @@ export def dependencies [
             )
         }
 
-    let $childs_to_merge = $not_built_in_commands
+    let $children_to_merge = $not_built_in_commands
         | select command_name content
         | rename parent child
         | where parent != null
 
     def 'join-next' [] {
-        join -l $childs_to_merge child parent
+        join -l $children_to_merge child parent
         | select parent child_ step
         | rename parent child
         | upsert step {|i| $i.step + 1}
         | where child != null
     }
 
-    generate ($childs_to_merge | insert step 0) {|i|
+    generate ($children_to_merge | insert step 0) {|i|
         if not ($i | is-empty) {{out: $i, next: ($i | join-next)}}
     }
     | flatten
@@ -217,7 +217,7 @@ export def test [
     | $"Number of tests to execute ($in)"
     | print
 
-    # the first block is to be repeated in every other block exectuion
+    # the first block is to be repeated in every other block execution
     let $common = $blocks.0
 
     $blocks
@@ -251,7 +251,7 @@ export def extract-docstrings [
 
 export def execute-examples [
     module_file: path
-    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be ommited to try to deduce automatically
+    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
 ] {
     par-each {|row|
         $row
@@ -278,7 +278,7 @@ export def execute-examples [
 export def update-docstring-examples [
     module_file: path
     --command_name_filter: string = ''
-    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be ommited to try to deduce automatically
+    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
     --echo # output script
     --no_git_check # don't check for emptyness of working tree
 ] {
