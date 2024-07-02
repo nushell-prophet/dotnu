@@ -1,16 +1,10 @@
 # make a record from code with variable definitions
 #
-# > "let $quiet = false; let $no_timestamp = false" | variables_definitions_to_record
-# ╭──────────────┬───────╮
-# │ quiet        │ false │
-# │ no_timestamp │ false │
-# ╰──────────────┴───────╯
+# > "let $quiet = false; let $no_timestamp = false" | variables_definitions_to_record | to nuon
+# {quiet: "false", no_timestamp: "false"}
 #
-# > "let $a = 'a'\nlet $b = 'b'\n\n#comment" | variables_definitions_to_record
-# ╭───┬─────╮
-# │ a │ 'a' │
-# │ b │ 'b' │
-# ╰───┴─────╯
+# > "let $a = 'a'\nlet $b = 'b'\n\n#comment" | variables_definitions_to_record | to nuon
+# {a: "'a'", b: "'b'"}
 export def variables_definitions_to_record []: string -> record {
     str replace -a ";" "\n"
     | str replace -ar '#.*?(\n|$)' ''
@@ -71,10 +65,8 @@ export def nu-completion-command-name [
 
 # helper function for use inside of generate
 #
-# > let t = [[parent child step]; [a b 0] [b c 0]]; $t | join-next $t
-# ╭parent┬child┬step╮
-# │ a    │ c   │  1 │
-# ╰──────┴─────┴────╯
+# > [[parent child step]; [a b 0] [b c 0]] | join-next $in | to nuon
+# [[parent, child, step]; [a, c, 1]]
 export def 'join-next' [
     children_to_merge
 ] {
