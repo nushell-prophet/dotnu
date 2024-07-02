@@ -38,7 +38,8 @@ export def set-x [
     }
 }
 
-# extract a command from a module and save it as a file, that can be sourced
+# extract a code of a command from a module and save it as a `.nu' file, that can be sourced
+# by executing this `.nu` file you'll have all variables in your environment for debuging or development
 export def extract-command [
     $file: path # a file of a module to extract a command from
     $command: string@nu-completion-command-name # the name of the command to extract
