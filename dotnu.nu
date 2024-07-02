@@ -19,8 +19,10 @@ export def set-x [
     | str trim --char (char nl)
     | split row -r "\n+\n"
     | each {|block|
-        ($block | str replace -ar '([^\\]?)"' '$1\"' | nu-highlight)
-        | ($"print `> ($in)`\n($block)"
+        $block
+        | escape-escapes
+        | nu-highlight
+        | ($'print "> ($in)"(char nl)($block)'
             + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
     }
     | prepend 'mut $prev_ts = date now'
