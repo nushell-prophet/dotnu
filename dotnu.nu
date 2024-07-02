@@ -1,6 +1,10 @@
 use std iter scan
 use dotnu-internals.nu [
-    variables_definitions_to_record parse-examples parse-docstrings gen-example-exec-command
+    variables_definitions_to_record
+    parse-examples
+    parse-docstrings
+    gen-example-exec-command
+    escape-escapes
 ]
 
 # create a file that will print and execute all the commands by blocks.
