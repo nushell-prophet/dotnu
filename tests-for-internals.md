@@ -1,12 +1,16 @@
 ```nushell
-> use dotnu.nu *
-> use dotnu-internals.nu *
-> let yaml_file = ['tests-related' 'numd-internals-parse-docstrings.yaml'] | path join
-> open tests-related/numd-internals.nu | collect | parse-docstrings | save -f $yaml_file
-```
+use dotnu.nu *
+use dotnu-internals.nu *
+let yaml_file = ['tests-related' 'numd-internals-parse-docstrings.yaml'] | path join
 
-```nushell
-open $yaml_file | insert examples_parsed {|i| $i.examples | parse-examples} | to yaml
+open tests-related/numd-internals.nu
+| collect
+| parse-docstrings
+| save -f $yaml_file
+
+open $yaml_file
+| insert examples_parsed {|i| $i.examples | parse-examples}
+| to yaml
 ```
 
 Output:
