@@ -6,6 +6,7 @@ use dotnu-internals.nu [
     gen-example-exec-command
     escape-escapes
     nu-completion-command-name
+    join-next
 ]
 
 # create a file that will print and execute all the commands by blocks.
@@ -183,16 +184,8 @@ export def dependencies [
         | rename parent child
         | where parent != null
 
-    def 'join-next' [] {
-        join -l $children_to_merge child parent
-        | select parent child_ step
-        | rename parent child
-        | upsert step {|i| $i.step + 1}
-        | where child != null
-    }
-
     generate ($children_to_merge | insert step 0) {|i|
-        if not ($i | is-empty) {{out: $i, next: ($i | join-next)}}
+        if not ($i | is-empty) {{out: $i, next: ($i | join-next $children_to_merge)}}
     }
     | flatten
     | uniq-by parent child

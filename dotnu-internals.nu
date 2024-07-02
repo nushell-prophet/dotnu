@@ -73,3 +73,19 @@ export def nu-completion-command-name [
         | str trim -c "'"
     }
 }
+
+# helper function for use inside of generate
+#
+# > let t = [[parent child step]; [a b 0] [b c 0]]; $t | join-next $t
+# ╭parent┬child┬step╮
+# │ a    │ c   │  1 │
+# ╰──────┴─────┴────╯
+export def 'join-next' [
+    children_to_merge
+] {
+    join -l $children_to_merge child parent
+    | select parent child_ step
+    | rename parent child
+    | upsert step {|i| $i.step + 1}
+    | where child != null
+}
