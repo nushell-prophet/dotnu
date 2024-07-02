@@ -1,7 +1,8 @@
 ```nushell
+> use dotnu.nu *
 > use dotnu-internals.nu *
 > let yaml_file = (['tests-related' 'numd-internals-parse-docstrings.yaml'] | path join)
-> open tests-related/numd-internals.nu | collect | dotnu parse-docstrings | save -f $yaml_file
+> open tests-related/numd-internals.nu | collect | parse-docstrings | save -f $yaml_file
 
 > open $yaml_file | insert examples_parsed {|i| $i.examples | parse-examples} | to yaml
 - desc: Generates code for execution in the intermediate script within a given code fence.
