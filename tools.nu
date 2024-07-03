@@ -4,6 +4,10 @@ use dotnu-internals.nu *
 def main [] {}
 
 def 'main testing' [] {
+    test-parse-docstrings
+}
+
+def 'test-parse-docstrings' [] {
     {
         [tests-related numd-internals.nu]
         | path join
