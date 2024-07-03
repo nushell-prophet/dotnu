@@ -154,7 +154,8 @@ export def extract-nu-commands [
         | where line =~ '^(export )?def.*\['
         | insert command_name {|i|
             $i.line
-            | str replace -r '^(export )?def( --(env|wrapped))* (?<command>.*?) \[.*' '$command'
+            | str replace -ra '( --(?:env|wrapped))*' ''
+            | str replace -r 'def (?<command>.*?) \[.*' '$command'
             | str trim -c "\""
             | str trim -c "'"
             | str trim -c "`"
