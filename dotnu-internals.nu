@@ -106,7 +106,7 @@ export def extract-module-commands [
     | where shape == 'shape_internalcall'
     | if $keep_builtins {} else {
         where content not-in (
-            help commands | where command_type in ['builtin' 'keyword'] | get name
+            help commands | where command_type in ['built-in' 'keyword'] | get name
         )
     }
     | select command_name content
