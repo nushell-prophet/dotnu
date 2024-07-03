@@ -99,14 +99,13 @@ export def extract-command [
         "source '$file'\n\n" + $params + "\n\n" + $main
     }
 
-    let $command_to_extract_the_command = view source $dummy_closure
+    let $extracted_command = view source $dummy_closure
         | lines | skip | drop | str join "\n"
         | str replace -a '$command' $command
         | str replace -a '$file' $file
         | str replace -a '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
         | $"source ($file)\n\n($in)"
-
-    let $extracted_command = nu -n -c $command_to_extract_the_command
+        | nu -n -c $in
         | split row $dotnu_vars_delim
 
     let $filename = $output | default $'($command).nu'
