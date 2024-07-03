@@ -69,6 +69,32 @@ export def nu-completion-command-name [
     }
 }
 
+export def execute-examples [
+    module_file: path
+    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
+] {
+    par-each {|row|
+        $row
+        | insert examples_res {
+            get examples_parsed
+            | each {|e|
+                gen-example-exec-command $e.command $row.command_name $use_statement $module_file
+                | nu --no-newline -c $in
+                | complete
+                | if $in.exit_code == 0 {get stdout} else {get stderr}
+                | ansi strip
+                | $e.annotation + "\n" + "> " + $e.command + "\n" + $in
+            }
+            | str trim -c "\n"
+            | str join "\n\n"
+            | lines
+            | each {|i| '# ' + $i}
+            | str trim
+            | str join "\n"
+        }
+    }
+}
+
 # helper function for use inside of generate
 #
 # > [[parent child step]; [a b 0] [b c 0]] | join-next $in | to nuon
