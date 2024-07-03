@@ -186,7 +186,7 @@ export def extract-nu-commands [
 }
 
 export def dependencies [
-    ...path: path # path to a .nu module file.
+    ...path: path # paths to a .nu module files
     --keep_builtins # keep builtin commands in the result page
     --definitions_only # output only commands' names definitions
 ] {
