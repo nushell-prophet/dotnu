@@ -20,10 +20,6 @@ export def variables_definitions_to_record []: string -> record {
     | from nuon
 }
 
-export def parse-docstrings [] {
-    parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
-}
-
 export def parse-examples [] {
     str replace -ram '^# ?' ''
     | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`

@@ -2,7 +2,6 @@ use std iter scan
 use dotnu-internals.nu [
     variables_definitions_to_record
     parse-examples
-    parse-docstrings
     gen-example-exec-command
     escape-escapes
     nu-completion-command-name
@@ -222,6 +221,10 @@ export def test [
             insert command $i
         }
     }
+}
+
+export def parse-docstrings [] {
+    parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
 }
 
 export def update-docstring-examples [
