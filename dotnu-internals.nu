@@ -1,3 +1,5 @@
+use std iter scan
+
 # make a record from code with variable definitions
 #
 # > "let $quiet = false; let $no_timestamp = false" | variables_definitions_to_record | to nuon

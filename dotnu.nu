@@ -1,4 +1,3 @@
-use std iter scan
 use dotnu-internals.nu [
     variables_definitions_to_record
     parse-examples
