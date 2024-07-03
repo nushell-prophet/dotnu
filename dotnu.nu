@@ -174,7 +174,7 @@ export def dependencies [
             | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr}}
             | wrap command_name
         )
-        | where shape in [shape_internalcall]
+        | where shape == 'shape_internalcall'
         | if $keep_builtins {} else {
             where content not-in (
                 help commands | where command_type in ['builtin' 'keyword'] | get name
