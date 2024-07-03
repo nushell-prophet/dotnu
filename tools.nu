@@ -5,6 +5,7 @@ def main [] {}
 
 def 'main testing' [] {
     test-parse-docstrings
+    test-parse-examples
 }
 
 def 'test-parse-docstrings' [] {
@@ -18,6 +19,20 @@ def 'test-parse-docstrings' [] {
     }
     | do_closure_save_results (
         ['tests-related' 'numd-internals-parse-docstrings1.yaml']
+        | path join
+    )
+}
+
+def 'test-parse-examples' [] {
+    {
+        ['tests-related' 'numd-internals-parse-docstrings1.yaml']
+        | path join
+        | open
+        | insert examples_parsed {|i| $i.examples | parse-examples}
+        | to yaml
+    }
+    | do_closure_save_results (
+        ['tests-related' 'numd-internals-parse-examples.yaml']
         | path join
     )
 }
