@@ -4,7 +4,7 @@ use dotnu-internals.nu [
     parse-examples
     gen-example-exec-command
     escape-escapes
-    extract-nu-commands
+    extract-module-commands
     nu-completion-command-name
     execute-examples
     join-next
@@ -147,7 +147,7 @@ export def dependencies [
 ] {
     let $children_to_merge = $paths
         | each {
-            extract-nu-commands $in --keep_builtins=$keep_builtins --definitions_only=$definitions_only
+            extract-module-commands $in --keep_builtins=$keep_builtins --definitions_only=$definitions_only
         }
         | flatten
 

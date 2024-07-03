@@ -66,7 +66,7 @@ export def nu-completion-command-name [
 }
 
 # Extract table with information on which commands use which commands
-export def extract-nu-commands [
+export def extract-module-commands [
     path: path # path to a .nu module file.
     --keep_builtins # keep builtin commands in the result page
     --definitions_only # output only commands' names definitions
