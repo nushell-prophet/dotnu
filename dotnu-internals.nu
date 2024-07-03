@@ -65,6 +65,53 @@ export def nu-completion-command-name [
     }
 }
 
+# Extract table with information on which commands use which commands
+export def extract-nu-commands [
+    path: path # path to a .nu module file.
+    --keep_builtins # keep builtin commands in the result page
+    --definitions_only # output only commands' names definitions
+] {
+    let $raw_script = open $path -r
+
+    let $table = $raw_script
+        | lines
+        | enumerate
+        | rename row_number line
+        | where line =~ '^(export )?def.*\['
+        | insert command_name {|i|
+            $i.line
+            | str replace -ra '( --(?:env|wrapped))*' ''
+            | str replace -r 'def (?<command>.*?) \[.*' '$command'
+            | str trim -c "\""
+            | str trim -c "'"
+            | str trim -c "`"
+        }
+
+    if $definitions_only {return $table.command_name}
+
+    let $with_index = $table
+        | insert start {|i| $raw_script | str index-of $i.line}
+
+    nu --ide-ast $path
+    | from json
+    | flatten span
+    | join $with_index start -l
+    | merge (
+        $in.command_name
+        | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr}}
+        | wrap command_name
+    )
+    | where shape == 'shape_internalcall'
+    | if $keep_builtins {} else {
+        where content not-in (
+            help commands | where command_type in ['builtin' 'keyword'] | get name
+        )
+    }
+    | select command_name content
+    | rename parent child
+    | where parent != null
+}
+
 export def execute-examples [
     module_file: path
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
