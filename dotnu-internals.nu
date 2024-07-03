@@ -3,8 +3,8 @@
 # > "let $quiet = false; let $no_timestamp = false" | variables_definitions_to_record | to nuon
 # {quiet: false, no_timestamp: false}
 #
-# > "let $a = 'a'\nlet $b = 'b'\n\n#comment" | variables_definitions_to_record | to nuon
-# {a: a, b: b}
+# > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variables_definitions_to_record | to nuon
+# {a: b, c: d}
 export def variables_definitions_to_record []: string -> record {
     str replace -a ';' ";\n"
     | $"($in)(char nl)(
