@@ -140,7 +140,7 @@ export def extract-command [
 
 
 # Check .nu module file for which commands use other commands
-export def dependencies [
+export def extract-nu-commands [
     path: path # path to a .nu module file.
     --keep_builtins # keep builtin commands in the result page
     --definitions_only # output only commands' names definitions
@@ -165,24 +165,38 @@ export def dependencies [
     let $with_index = $table
         | insert start {|i| $raw_script | str index-of $i.line}
 
-    let $children_to_merge = nu --ide-ast $path
-        | from json
-        | flatten span
-        | join $with_index start -l
-        | merge (
-            $in.command_name
-            | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr}}
-            | wrap command_name
+    nu --ide-ast $path
+    | from json
+    | flatten span
+    | join $with_index start -l
+    | merge (
+        $in.command_name
+        | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr}}
+        | wrap command_name
+    )
+    | where shape == 'shape_internalcall'
+    | if $keep_builtins {} else {
+        where content not-in (
+            help commands | where command_type in ['builtin' 'keyword'] | get name
         )
-        | where shape == 'shape_internalcall'
-        | if $keep_builtins {} else {
-            where content not-in (
-                help commands | where command_type in ['builtin' 'keyword'] | get name
-            )
+    }
+    | select command_name content
+    | rename parent child
+    | where parent != null
+}
+
+export def dependencies [
+    ...path: path # path to a .nu module file.
+    --keep_builtins # keep builtin commands in the result page
+    --definitions_only # output only commands' names definitions
+] {
+    let $children_to_merge = $path
+        | each {
+            extract-nu-commands $in --keep_builtins=$keep_builtins --definitions_only=$definitions_only
         }
-        | select command_name content
-        | rename parent child
-        | where parent != null
+        | flatten
+
+    if $definitions_only {return $children_to_merge.command_name}
 
     $children_to_merge
     | insert step 0
