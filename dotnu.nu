@@ -196,12 +196,13 @@ export def parse-docstrings [] {
     parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
 }
 
+# Execute examples in the docstrings of module commands and update results accordingly
 export def update-docstring-examples [
     module_file: path
-    --command_name_filter: string = ''
+    --command_name_filter: string = '' # filter commands by their name to update examples at
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
-    --echo # output script
-    --no_git_check # don't check for emptyness of working tree
+    --echo # output script to stdout instead of saving ot the file
+    --no_git_check # don't check for the emptiness of the working tree
 ] {
     let pwd = pwd
 
