@@ -187,7 +187,7 @@ export def dependencies [
     $children_to_merge
     | insert step 0
     | generate $in {|i|
-        if not ($i | is-empty) {
+        if ($i | is-not-empty) {
             {out: $i, next: ($i | join-next $children_to_merge)}
         }
     }
