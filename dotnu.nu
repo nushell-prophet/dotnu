@@ -52,7 +52,9 @@ export def extract-command [
 ] {
     let $dotnu_vars_delim = '#dotnu-vars-end'
 
-    let $dummy_closure = {|function| # closure is used as the constructor for the command for `nu -c` highlighted in an editor
+    # the closure below is used as a highlighted in an editor constructor
+    # for the command that will be executed in `nu -c`
+    let $dummy_closure = {|function|
         let $params = scope commands
             | where name == $command
             | get signatures.0
