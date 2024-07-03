@@ -10,8 +10,11 @@ export def variables_definitions_to_record []: string -> record {
     | $"($in)(char nl)(
         $in
         | parse -r 'let (?:\$)*(?<var>.*) ='
-        | get var | uniq
-        | each {|i| $'($i): $($i)'} | str join ' ' | $'{($in)} | to nuon'
+        | get var
+        | uniq
+        | each {$'($in): $($in)'}
+        | str join ' '
+        | $'{($in)} | to nuon' # this way we ensure the proper formatting for bool, numeric and string vars
     )"
     | nu -n -c $in
     | from nuon
