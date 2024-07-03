@@ -139,7 +139,7 @@ export def extract-command [
 }
 
 
-# Check .nu module file for which commands use other commands
+# Extract table with information on which commands use which commands
 export def extract-nu-commands [
     path: path # path to a .nu module file.
     --keep_builtins # keep builtin commands in the result page
@@ -186,12 +186,13 @@ export def extract-nu-commands [
     | where parent != null
 }
 
+# Check .nu module files to determine which commands depend on other commands
 export def dependencies [
-    ...path: path # paths to a .nu module files
+    ...paths: path # paths to a .nu module files
     --keep_builtins # keep builtin commands in the result page
     --definitions_only # output only commands' names definitions
 ] {
-    let $children_to_merge = $path
+    let $children_to_merge = $paths
         | each {
             extract-nu-commands $in --keep_builtins=$keep_builtins --definitions_only=$definitions_only
         }
