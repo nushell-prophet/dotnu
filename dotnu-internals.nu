@@ -81,7 +81,7 @@ export def extract-nu-commands [
         | insert command_name {|i|
             $i.line
             | str replace -ra '( --(?:env|wrapped))*' ''
-            | str replace -r 'def (?<command>.*?) \[.*' '$command'
+            | str replace -r '^(export )?def (?<command>.*?) \[.*' '$command'
             | str trim -c "\""
             | str trim -c "'"
             | str trim -c "`"
