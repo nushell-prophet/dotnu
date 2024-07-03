@@ -161,33 +161,36 @@ export def dependencies [
             | str trim -c "`"
         }
 
-    if $definitions_only {return ($table | get command_name)}
+    if $definitions_only {return $table.command_name}
 
-    let $with_index = $table | insert start {|i| $raw_script | str index-of $i.line}
-    let $ast = nu --ide-ast $path | from json | flatten span
-    let $join = $ast | join $with_index start -l
-    let $scanned = $join
+    let $with_index = $table
+        | insert start {|i| $raw_script | str index-of $i.line}
+
+    let $children_to_merge = nu --ide-ast $path
+        | from json
+        | flatten span
+        | join $with_index start -l
         | merge (
             $in.command_name
-            | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr} }
+            | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr}}
             | wrap command_name
         )
-
-    let $not_built_in_commands = $scanned
         | where shape in [shape_internalcall]
         | if $keep_builtins {} else {
             where content not-in (
                 help commands | where command_type in ['builtin' 'keyword'] | get name
             )
         }
-
-    let $children_to_merge = $not_built_in_commands
         | select command_name content
         | rename parent child
         | where parent != null
 
-    generate ($children_to_merge | insert step 0) {|i|
-        if not ($i | is-empty) {{out: $i, next: ($i | join-next $children_to_merge)}}
+    $children_to_merge
+    | insert step 0
+    | generate $in {|i|
+        if not ($i | is-empty) {
+            {out: $i, next: ($i | join-next $children_to_merge)}
+        }
     }
     | flatten
     | uniq-by parent child
