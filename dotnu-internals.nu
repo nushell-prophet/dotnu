@@ -22,12 +22,14 @@ export def variables_definitions_to_record []: string -> record {
     | from nuon
 }
 
+# parse `>` examples from the parsed docstrings
 export def parse-examples [] {
     str replace -ram '^# ?' ''
     | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
     | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
 }
 
+# generate command to execute `>` example command in a new nushell instance
 export def gen-example-exec-command [
     example_command
     command_name
@@ -53,6 +55,7 @@ export def escape-escapes []: string -> string {
     str replace --all --regex '(\\|\")' '\$1'
 }
 
+# context aware completions for defined command names in nushell module files
 export def nu-completion-command-name [
     context: string
 ] {
@@ -114,6 +117,7 @@ export def extract-module-commands [
     | where parent != null
 }
 
+# insert example_res column with results of execution example commands
 export def execute-examples [
     module_file: path
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
