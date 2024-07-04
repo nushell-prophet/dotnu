@@ -66,7 +66,9 @@ export def nu-completion-command-name [
         str replace -r ' \[.*' ''
         | split row ' '
         | last
+        | str trim -c "\""
         | str trim -c "'"
+        | str trim -c "`"
     }
 }
 
