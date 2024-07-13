@@ -192,7 +192,8 @@ export def test [
 }
 
 export def parse-docstrings [] {
-    parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
+    collect
+    | parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
 }
 
 # Execute examples in the docstrings of module commands and update results accordingly
@@ -219,6 +220,7 @@ export def update-docstring-examples [
     cd $pwd
 
     $raw_module
+    | collect
     | parse-docstrings
     | if $command_name_filter == '' {} else {
         where command_name =~ $command_name_filter
