@@ -1,7 +1,6 @@
 use dotnu-internals.nu [
     variables_definitions_to_record
     parse-examples
-    gen-example-exec-command
     escape-escapes
     extract-module-commands
     nu-completion-command-name
