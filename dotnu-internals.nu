@@ -136,7 +136,7 @@ export def execute-examples [
                 | complete
                 | if $in.exit_code == 0 {get stdout} else {get stderr}
                 | ansi strip
-                | $e.annotation + "\n" + "> " + $e.command + "\n" + $in
+                | $e.annotation + "> " + $e.command + "\n" + $in
             }
             | str trim -c "\n"
             | str join "\n\n"
