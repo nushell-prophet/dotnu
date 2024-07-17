@@ -199,7 +199,7 @@ export def parse-docstrings [] {
 # Execute examples in the docstrings of module commands and update results accordingly
 export def update-docstring-examples [
     module_file: path
-    --command_name_filter: string = '' # filter commands by their name to update examples at
+    --command_filter: string = '' # filter commands by their name to update examples at
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
     --echo # output script to stdout instead of saving ot the file
     --no_git_check # don't check for the emptiness of the working tree
@@ -222,8 +222,8 @@ export def update-docstring-examples [
     $raw_module
     | collect
     | parse-docstrings
-    | if $command_name_filter == '' {} else {
-        where command_name =~ $command_name_filter
+    | if $command_filter == '' {} else {
+        where command_name =~ $command_filter
     }
     | insert examples_parsed {|i|
         $i.examples
