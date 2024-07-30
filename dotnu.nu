@@ -190,8 +190,14 @@ export def test [
     }
 }
 
-export def parse-docstrings [] {
-    collect
+# Parse commands' docstrings from a module
+export def parse-docstrings [
+    file?: path
+] {
+    if $file == null {} else {
+        open $file
+        | collect
+    }
     | parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")? \\["
 }
 
