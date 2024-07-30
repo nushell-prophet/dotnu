@@ -28,7 +28,7 @@ def 'test-parse-examples' [] {
         ['tests-related' 'numd-internals-parse-docstrings1.yaml']
         | path join
         | open
-        | insert examples_parsed {|i| $i.examples | parse-examples}
+        | parse examples
         | to yaml
     }
     | do_closure_save_results (
