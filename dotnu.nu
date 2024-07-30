@@ -219,7 +219,6 @@ export def update-docstring-examples [
     cd $pwd
 
     $raw_module
-    | collect
     | parse-docstrings
     | if $command_filter == '' {} else {
         where command_name =~ $command_filter
