@@ -199,6 +199,7 @@ export def parse-docstrings [
         | collect
     }
     | parse -r "(?:\n\n|^)# (?<desc>.*)\n(?:#\n)(?<examples>(?:(?:\n#)|.)*)\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")?(?: --(?:env|wrapped))* \\["
+    | move command_name --before desc
 }
 
 # Execute examples in the docstrings of module commands and update results accordingly
