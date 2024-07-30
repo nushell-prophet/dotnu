@@ -1,6 +1,6 @@
 use dotnu-internals.nu [
     variables_definitions_to_record
-    parse-examples
+    parse-example
     escape-escapes
     extract-module-commands
     nu-completion-command-name
@@ -202,6 +202,13 @@ export def parse-docstrings [
     | move command_name --before desc
 }
 
+export def parse-examples [] {
+    insert examples_parsed {|i|
+        $i.examples
+        | parse-example
+    }
+}
+
 # Execute examples in the docstrings of module commands and update results accordingly
 export def update-docstring-examples [
     module_file: path
@@ -230,10 +237,7 @@ export def update-docstring-examples [
     | if $command_filter == '' {} else {
         where command_name =~ $command_filter
     }
-    | insert examples_parsed {|i|
-        $i.examples
-        | parse-examples
-    }
+    | parse-examples
     | execute-examples $module_file --use_statement=$use_statement
     | reduce --fold $raw_module {|i acc|
         $acc | str replace $i.examples $i.examples_res

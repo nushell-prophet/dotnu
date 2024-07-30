@@ -23,7 +23,7 @@ export def variables_definitions_to_record []: string -> record {
 }
 
 # parse `>` examples from the parsed docstrings
-export def parse-examples [] {
+export def parse-example [] {
     str replace -ram '^# ?' ''
     | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
     | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
