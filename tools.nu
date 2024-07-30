@@ -28,7 +28,7 @@ def 'test-parse-examples' [] {
         ['tests-related' 'numd-internals-parse-docstrings1.yaml']
         | path join
         | open
-        | parse examples
+        | parse-examples
         | to yaml
     }
     | do_closure_save_results (
@@ -49,4 +49,6 @@ def do_closure_save_results [
     | str join (char nl)
     | $in + (char nl) + (do $closure) + (char nl)
     | save -fr $output_file
+
+    print $'file created ($output_file)'
 }
