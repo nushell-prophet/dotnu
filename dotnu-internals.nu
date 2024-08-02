@@ -29,6 +29,38 @@ export def parse-example [] {
     | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
 }
 
+# parse commands definitions with docstrings
+export def parse-docstrings2 [
+    file?
+] {
+    if $file == null {} else {
+        open $file | collect
+    }
+    | parse -r '(?:\n\n|^)((?:(?:#.*\n)*)?(?:export def.*))'
+    | get capture0
+    | each {
+        let $input = $in
+        let $lines = $input | lines
+
+        let $command_name = $lines
+            | last
+            | extract-command-name
+
+        if ($lines | length) > 1 {
+
+        }
+    }
+}
+
+# > 'export def --env "test" --wrapped' | lines | last | extract-command-name
+# test
+export def 'extract-command-name' [] {
+    str replace -r '\[.*' ''
+    | str replace 'export def ' ''
+    | str replace -ra '(--(env|wrapped) ?)' ''
+    | str replace -ra "\"|'" ''
+}
+
 # generate command to execute `>` example command in a new nushell instance
 export def gen-example-exec-command [
     example_command
