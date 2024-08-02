@@ -1,7 +1,7 @@
 # ['tests-related' 'numd-internals-parse-docstrings1.yaml']
 # | path join
 # | open
-# | insert examples_parsed {|i| $i.examples | parse-example}
+# | parse-examples
 # | to yaml
 - command_name: gen-execute-code
   desc: Generates code for execution in the intermediate script within a given code fence.
