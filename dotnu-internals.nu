@@ -33,7 +33,9 @@ export def parse-example [] {
 export def parse-docstrings2 [
     file?
 ] {
-    if $file == null {} else {
+    if $file == null {
+        collect
+    } else {
         open $file | collect
     }
     | parse -r '(?:\n\n|^)((?:(?:#.*\n)*)?(?:export def.*))'
