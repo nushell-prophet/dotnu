@@ -30,7 +30,7 @@ export def parse-example [] {
 }
 
 export def parse-example-2 [] {
-    parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n(?:\||;).+)*)\n(?s)(?<result>.*)'
+    parse -r '(?<annotation>^(?:.+\n)+)??> (?<command>.+(?:\n(?:\||;).+)*)\n(?s)(?<result>.*)'
 }
 
 # parse commands definitions with docstrings
