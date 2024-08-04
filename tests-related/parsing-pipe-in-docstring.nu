@@ -16,4 +16,8 @@
 # | sort-by modfied
 # ; echo 'hello'
 # hello
+#
+# Some random example
+# multiline
+# > ls
 export def 'links-link-all' [] {}
