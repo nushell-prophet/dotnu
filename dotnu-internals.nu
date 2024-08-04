@@ -49,10 +49,10 @@ export def parse-docstrings2 [
 
         if ($lines | length) > 1 {
             let $blocks = $lines
-            | drop
-            | str replace --all --regex '^#( ?)|( +$)' ''
-            | split list ''
-            | each {str join (char nl)}
+                | drop
+                | str replace --all --regex '^#( ?)|( +$)' ''
+                | split list ''
+                | each {str join (char nl)}
 
             let $description = $blocks.0
                 | collect
