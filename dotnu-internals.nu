@@ -49,9 +49,26 @@ export def parse-docstrings2 [
             | extract-command-name
 
         if ($lines | length) > 1 {
+            let $blocks = $lines
+            | drop
+            | str replace --all --regex '^#( ?)|( +$)' ''
+            | split list ''
+            | each {str join (char nl)}
 
+            let $description = $blocks.0
+                | collect
+                | if $in =~ '(^|\n)>' {''} else {}
+
+            let $examples = $blocks
+                | if $description == '' {} else {
+                    skip
+                }
+                | each {parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n(?:\||;).+)*)\n(?s)(?<result>.*)'}
+
+            $examples
         }
     }
+    | flatten
 }
 
 # > 'export def --env "test" --wrapped' | lines | last | extract-command-name
