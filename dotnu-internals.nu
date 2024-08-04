@@ -47,26 +47,26 @@ export def parse-docstrings2 [
             | last
             | extract-command-name
 
-        if ($lines | length) > 1 {
-            let $blocks = $lines
-                | drop
+        let $blocks = $lines
+            | if ($lines | length) > 1 {
+                drop
                 | str replace --all --regex '^#( ?)|( +$)' ''
                 | split list ''
                 | each {str join (char nl)}
+            } else {['']}
 
-            let $description = $blocks.0
-                | collect
-                | if $in =~ '(^|\n)>' {''} else {}
+        let $command_description = $blocks.0
+            | if $in =~ '(^|\n)>' {''} else {}
 
-            let $examples = $blocks
-                | if $description == '' {} else {
-                    skip
-                }
-                | each {parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n(?:\||;).+)*)\n(?s)(?<result>.*)'}
+        let $examples = $blocks
+            | if $command_description == '' {} else {
+                skip
+            }
+            | each {parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n(?:\||;).+)*)\n(?s)(?<result>.*)'}
 
-            {example_description: $description examples: $examples}
-        }
-        | {command_name: $command_name examples: $in}
+        { command_name: $command_name
+            command_description: $command_description
+            examples: $examples }
     }
 }
 
