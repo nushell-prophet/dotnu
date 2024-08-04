@@ -41,8 +41,7 @@ export def parse-docstrings2 [
     | parse -r '(?:\n\n|^)((?:(?:#.*\n)*)?(?:export def.*))'
     | get capture0
     | each {
-        let $input = $in
-        let $lines = $input | lines
+        let $lines = lines
 
         let $command_name = $lines
             | last
@@ -65,10 +64,10 @@ export def parse-docstrings2 [
                 }
                 | each {parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n(?:\||;).+)*)\n(?s)(?<result>.*)'}
 
-            $examples
+            {example_description: $description examples: $examples}
         }
+        | {command_name: $command_name examples: $in}
     }
-    | flatten
 }
 
 # > 'export def --env "test" --wrapped' | lines | last | extract-command-name
