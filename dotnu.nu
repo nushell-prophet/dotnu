@@ -194,7 +194,9 @@ export def test [
 export def parse-docstrings [
     file?: path
 ] {
-    if $file == null {} else {
+    if $file == null {
+        collect
+    } else {
         open $file
         | collect
     }
