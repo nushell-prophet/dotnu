@@ -29,6 +29,10 @@ export def parse-example [] {
     | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
 }
 
+export def parse-example-2 [] {
+    parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n(?:\||;).+)*)\n(?s)(?<result>.*)'
+}
+
 # parse commands definitions with docstrings
 export def parse-docstrings2 [
     file?
@@ -62,7 +66,7 @@ export def parse-docstrings2 [
             | if $command_description == '' {} else {
                 skip
             }
-            | each {parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n(?:\||;).+)*)\n(?s)(?<result>.*)'}
+            | each {parse-example-2}
 
         { command_name: $command_name
             command_description: $command_description
