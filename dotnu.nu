@@ -234,7 +234,9 @@ export def parse-docstrings2 [
             } else {['']}
 
         let $command_description = $blocks.0
-            | if $in =~ '(^|\n)>' {''} else {}
+            | if $in =~ '(^|\n)>' {''} else {
+                str trim --char (char nl)
+            }
 
         let $examples = $blocks
             | if $command_description == '' {} else {
