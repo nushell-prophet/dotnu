@@ -26,4 +26,16 @@
 # Some random example
 # multiline
 # > ls
+# test
+#
+# Some random example multiline
+# > ls
 export def 'links-link-all' [] {}
+
+
+# Some random example multiline 2
+# > ls
+export def 'links-link-all-2' [] {}
+
+# no example provided
+export def 'test' [] {}
