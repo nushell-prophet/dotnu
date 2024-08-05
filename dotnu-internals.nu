@@ -30,7 +30,7 @@ export def parse-example [] {
 }
 
 export def parse-example-2 [] {
-    parse -r '(?<annotation>^(?:[^\n]*\n)+)??(?<command>> (?:[^\n]*(?:\n|$))+(?:(?:\||;|>)[^\n]*(?:\n|$))*)(?s)(?<result>.*)?'
+    parse -r '(?<annotation>^(?:[^\n>]*\n)+)??(?<command>> (?:[^\n]*\n)(?:(?:\||;|>)[^\n]*\n)*)(?s)(?<result>.*)?'
 }
 
 # > 'export def --env "test" --wrapped' | lines | last | extract-command-name

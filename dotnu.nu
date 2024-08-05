@@ -230,7 +230,7 @@ export def parse-docstrings2 [
                 drop
                 | str replace --all --regex '^#( ?)|( +$)' ''
                 | split list ''
-                | each {str join (char nl)}
+                | each {str join (char nl) | $"($in)\n"}
             } else {['']}
 
         let $command_description = $blocks.0
