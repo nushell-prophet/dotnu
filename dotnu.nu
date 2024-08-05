@@ -241,6 +241,7 @@ export def parse-docstrings2 [
                 skip
             }
             | each {parse-example-2}
+            | flatten
 
         { command_name: $command_name
             command_description: $command_description
