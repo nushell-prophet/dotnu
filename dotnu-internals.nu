@@ -33,47 +33,6 @@ export def parse-example-2 [] {
     parse -r '(?<annotation>^(?:.+\n)+)??> (?<command>.+(?:\n(?:\||;).+)*)\n(?s)(?<result>.*)?'
 }
 
-# parse commands definitions with docstrings
-export def parse-docstrings2 [
-    file?
-] {
-    if $file == null {
-        collect
-    } else {
-        open $file | collect
-    }
-    | parse -r '(?:\n\n|^)((?:(?:#.*\n)*)?(?:export def.*))'
-    | get capture0
-    | each {
-        let $lines = lines
-
-        let $command_name = $lines
-            | last
-            | extract-command-name
-
-        let $blocks = $lines
-            | if ($lines | length) > 1 {
-                drop
-                | str replace --all --regex '^#( ?)|( +$)' ''
-                | split list ''
-                | each {str join (char nl)}
-            } else {['']}
-
-        let $command_description = $blocks.0
-            | if $in =~ '(^|\n)>' {''} else {}
-
-        let $examples = $blocks
-            | if $command_description == '' {} else {
-                skip
-            }
-            | each {parse-example-2}
-
-        { command_name: $command_name
-            command_description: $command_description
-            examples: $examples }
-    }
-}
-
 # > 'export def --env "test" --wrapped' | lines | last | extract-command-name
 # test
 export def 'extract-command-name' [] {

@@ -1,7 +1,9 @@
 use dotnu-internals.nu [
     variables_definitions_to_record
     parse-example
+    parse-example-2
     escape-escapes
+    extract-command-name
     extract-module-commands
     nu-completion-command-name
     execute-examples
@@ -202,6 +204,48 @@ export def parse-docstrings [
     }
     | parse -r "(?:\n\n|^)# (?<desc>.*)(?:\n#\n)?(?<examples>(?:(?:\n#)|.)*)?\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")?(?: --(?:env|wrapped))* \\["
     | move command_name --before desc
+}
+
+
+# parse commands definitions with docstrings
+export def parse-docstrings2 [
+    file?
+] {
+    if $file == null {
+        collect
+    } else {
+        open $file | collect
+    }
+    | parse -r '(?:\n\n|^)((?:(?:#.*\n)*)?(?:export def.*))'
+    | get capture0
+    | each {
+        let $lines = lines
+
+        let $command_name = $lines
+            | last
+            | extract-command-name
+
+        let $blocks = $lines
+            | if ($lines | length) > 1 {
+                drop
+                | str replace --all --regex '^#( ?)|( +$)' ''
+                | split list ''
+                | each {str join (char nl)}
+            } else {['']}
+
+        let $command_description = $blocks.0
+            | if $in =~ '(^|\n)>' {''} else {}
+
+        let $examples = $blocks
+            | if $command_description == '' {} else {
+                skip
+            }
+            | each {parse-example-2}
+
+        { command_name: $command_name
+            command_description: $command_description
+            examples: $examples }
+    }
 }
 
 export def parse-examples [] {
