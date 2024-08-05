@@ -48,6 +48,7 @@ export def 'extract-command-name' [] {
     | str replace 'export def ' ''
     | str replace -ra '(--(env|wrapped) ?)' ''
     | str replace -ra "\"|'" ''
+    | str trim
 }
 
 # generate command to execute `>` example command in a new nushell instance
