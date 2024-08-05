@@ -214,7 +214,7 @@ export def parse-docstrings2 [
     if $file == null {
         collect
     } else {
-        open $file | collect
+        $file | open | collect
     }
     | parse -r '(?:\n\n|^)((?:(?:#.*\n)*)?(?:export def.*))'
     | get capture0
