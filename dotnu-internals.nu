@@ -38,6 +38,7 @@ export def parse-example-2 [] {
         ')' +
         '(?s)(?<result>.*)?'
     )
+    | str trim --char (char nl) annotation command result
 }
 
 # > 'export def --env "test" --wrapped' | lines | last | extract-command-name
