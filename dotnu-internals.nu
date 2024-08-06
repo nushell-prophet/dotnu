@@ -75,16 +75,11 @@ export def escape-escapes []: string -> string {
 export def nu-completion-command-name [
     context: string
 ] {
-    $context | str replace -r '^.*? extract ' '' | str trim | split row ' ' | first
+    $context | str replace -r '^.*? extract-command ' '' | str trim | split row ' ' | first
     | path expand | open $in -r | lines
-    | where $it =~ '(^|\s)def '
+    | where $it =~ '^(export )?def '
     | each {
-        str replace -r ' \[.*' ''
-        | split row ' '
-        | last
-        | str trim -c "\""
-        | str trim -c "'"
-        | str trim -c "`"
+        extract-command-name
     }
 }
 
