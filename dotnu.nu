@@ -1,14 +1,12 @@
 use dotnu-internals.nu [
     variables_definitions_to_record
     parse-example
-    parse-example-2
     escape-escapes
     extract-command-name
     execute-update-example-results
     extract-module-commands
     prepare-substitutions
     nu-completion-command-name
-    execute-examples
     join-next
 ]
 
@@ -229,20 +227,13 @@ export def parse-docstrings [
             | if $command_description == '' {} else {
                 skip
             }
-            | each {parse-example-2}
+            | each {parse-example}
             | flatten
 
         { command_name: $command_name
             command_description: $command_description
             examples: $examples
             input: ($lines | drop | str join (char nl)) }
-    }
-}
-
-export def parse-examples [] {
-    insert examples_parsed {|i|
-        $i.examples
-        | parse-example
     }
 }
 

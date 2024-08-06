@@ -24,12 +24,6 @@ export def variables_definitions_to_record []: string -> record {
 
 # parse `>` examples from the parsed docstrings
 export def parse-example [] {
-    str replace -ram '^# ?' ''
-    | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
-    | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
-}
-
-export def parse-example-2 [] {
     parse -r (
         '(?<annotation>^(?:[^\n>]*\n)+)??' +
         '(?<command>' +
@@ -139,33 +133,6 @@ export def extract-module-commands [
     | select command_name content
     | rename parent child
     | where parent != null
-}
-
-# insert example_res column with results of execution example commands
-export def execute-examples [
-    module_file: path
-    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
-] {
-    par-each {|row|
-        $row
-        | insert examples_res {
-            get examples_parsed
-            | each {|e|
-                gen-example-exec-command $e.command $row.command_name $use_statement $module_file
-                | nu --no-newline -c $in
-                | complete
-                | if $in.exit_code == 0 {get stdout} else {get stderr}
-                | ansi strip
-                | $e.annotation + "> " + $e.command + "\n" + $in
-            }
-            | str trim -c "\n"
-            | str join "\n\n"
-            | lines
-            | each {|i| '# ' + $i}
-            | str trim
-            | str join "\n"
-        }
-    }
 }
 
 export def execute-update-example-results [
