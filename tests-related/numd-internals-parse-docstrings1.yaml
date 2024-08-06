@@ -5,111 +5,220 @@
 # | parse-docstrings
 # | to yaml
 - command_name: detect-code-blocks
-  desc: Detects code blocks in a markdown string and returns a table with their line numbers and infostrings.
-  examples: ''
+  command_description: Detects code blocks in a markdown string and returns a table with their line numbers and infostrings.
+  examples: []
+  input: '# Detects code blocks in a markdown string and returns a table with their line numbers and infostrings.'
 - command_name: gen-execute-code
-  desc: Generates code for execution in the intermediate script within a given code fence.
-  examples: '# > ''ls | sort-by modified -r'' | gen-execute-code --whole_block --fence ''```nu indent-output'' | save z_examples/999_numd_internals/gen-execute-code_0.nu -f'
+  command_description: Generates code for execution in the intermediate script within a given code fence.
+  examples:
+  - annotation: ''
+    command: '> ''ls | sort-by modified -r'' | gen-execute-code --whole_block --fence ''```nu indent-output'' | save z_examples/999_numd_internals/gen-execute-code_0.nu -f'
+    result: ''
+  input: |-
+    # Generates code for execution in the intermediate script within a given code fence.
+    #
+    # > 'ls | sort-by modified -r' | gen-execute-code --whole_block --fence '```nu indent-output' | save z_examples/999_numd_internals/gen-execute-code_0.nu -f
 - command_name: gen-intermid-script
-  desc: Generates an intermediate script from a table of classified markdown code blocks.
-  examples: ''
+  command_description: Generates an intermediate script from a table of classified markdown code blocks.
+  examples: []
+  input: '# Generates an intermediate script from a table of classified markdown code blocks.'
+- command_name: exec-block-lines
+  command_description: ''
+  examples: []
+  input: ''
 - command_name: parse-block-index
-  desc: Parses block indices from Nushell output lines and returns a table with the original markdown line numbers.
-  examples: ''
+  command_description: Parses block indices from Nushell output lines and returns a table with the original markdown line numbers.
+  examples: []
+  input: '# Parses block indices from Nushell output lines and returns a table with the original markdown line numbers.'
 - command_name: assemble-markdown
-  desc: Assembles the final markdown by merging original classified markdown with parsed results of the generated script.
-  examples: ''
+  command_description: Assembles the final markdown by merging original classified markdown with parsed results of the generated script.
+  examples: []
+  input: '# Assembles the final markdown by merging original classified markdown with parsed results of the generated script.'
 - command_name: prettify-markdown
-  desc: Prettifies markdown by removing unnecessary empty lines and trailing spaces.
-  examples: ''
+  command_description: Prettifies markdown by removing unnecessary empty lines and trailing spaces.
+  examples: []
+  input: '# Prettifies markdown by removing unnecessary empty lines and trailing spaces.'
 - command_name: replace-output-numd-fences
-  desc: The replacement is needed to distinguish the blocks with outputs from just blocks with ```.
-  examples: |2-
-
+  command_description: |-
+    The replacement is needed to distinguish the blocks with outputs from just blocks with ```.
+    `detect-code-blocks` works only with lines without knowing the previous lines.
+  examples: []
+  input: |-
+    # The replacement is needed to distinguish the blocks with outputs from just blocks with ```.
     # `detect-code-blocks` works only with lines without knowing the previous lines.
 - command_name: calc-changes-stats
-  desc: Calculates changes between the original and updated markdown files and returns a record with differences.
-  examples: ''
+  command_description: Calculates changes between the original and updated markdown files and returns a record with differences.
+  examples: []
+  input: '# Calculates changes between the original and updated markdown files and returns a record with differences.'
 - command_name: code-block-options
-  desc: Lists code block options for execution and output customization.
-  examples: ''
+  command_description: Lists code block options for execution and output customization.
+  examples: []
+  input: '# Lists code block options for execution and output customization.'
 - command_name: expand-short-options
-  desc: Expands short options for code block execution to their long forms.
-  examples: |-
+  command_description: Expands short options for code block execution to their long forms.
+  examples:
+  - annotation: ''
+    command: '> expand-short-options ''i'''
+    result: indent-output
+  input: |-
+    # Expands short options for code block execution to their long forms.
+    #
     # > expand-short-options 'i'
     # indent-output
 - command_name: escape-escapes
-  desc: Escapes symbols to be printed unchanged inside a `print "something"` statement.
-  examples: |-
+  command_description: Escapes symbols to be printed unchanged inside a `print "something"` statement.
+  examples:
+  - annotation: ''
+    command: '> ''abcd"dfdaf" "'' | escape-escapes'
+    result: abcd\"dfdaf\" \"
+  input: |-
+    # Escapes symbols to be printed unchanged inside a `print "something"` statement.
+    #
     # > 'abcd"dfdaf" "' | escape-escapes
     # abcd\"dfdaf\" \"
 - command_name: run-intermid-script
-  desc: Runs the intermediate script and returns its output lines as a list.
-  examples: ''
+  command_description: Runs the intermediate script and returns its output lines as a list.
+  examples: []
+  input: '# Runs the intermediate script and returns its output lines as a list.'
 - command_name: numd-block
-  desc: Generates an unique identifier for code blocks in markdown to distinguish their output.
-  examples: |-
+  command_description: Generates an unique identifier for code blocks in markdown to distinguish their output.
+  examples:
+  - annotation: ''
+    command: '> numd-block 3'
+    result: code-block-starting-line-in-original-md-3
+  input: |-
+    # Generates an unique identifier for code blocks in markdown to distinguish their output.
+    #
     # > numd-block 3
     # code-block-starting-line-in-original-md-3
 - command_name: gen-highlight-command
-  desc: Generates a command to highlight code using Nushell syntax highlighting.
-  examples: |2-
-
+  command_description: ''
+  examples:
+  - annotation: Generates a command to highlight code using Nushell syntax highlighting.
+    command: '> ''ls'' | gen-highlight-command'
+    result: '"ls" | nu-highlight | print'
+  input: |-
+    # Generates a command to highlight code using Nushell syntax highlighting.
     # > 'ls' | gen-highlight-command
     # "ls" | nu-highlight | print
 - command_name: trim-comments-plus
-  desc: Trims comments and extra whitespaces from code blocks for using code in the generated script.
-  examples: ''
+  command_description: Trims comments and extra whitespaces from code blocks for using code in the generated script.
+  examples: []
+  input: '# Trims comments and extra whitespaces from code blocks for using code in the generated script.'
 - command_name: ends-with-definition
-  desc: Checks if the last line of the input ends with a semicolon or certain keywords to determine if appending ` | print` is possible.
-  examples: |-
+  command_description: Checks if the last line of the input ends with a semicolon or certain keywords to determine if appending ` | print` is possible.
+  examples:
+  - annotation: ''
+    command: '> ends-with-definition ''let a = ls'''
+    result: 'true'
+  - annotation: ''
+    command: '> ends-with-definition ''ls'''
+    result: 'false'
+  input: |-
+    # Checks if the last line of the input ends with a semicolon or certain keywords to determine if appending ` | print` is possible.
+    #
     # > ends-with-definition 'let a = ls'
     # true
     #
     # > ends-with-definition 'ls'
     # false
 - command_name: gen-indented-output
-  desc: Generates indented output for better visual formatting.
-  examples: |-
+  command_description: Generates indented output for better visual formatting.
+  examples:
+  - annotation: ''
+    command: '> ''ls'' | gen-indented-output'
+    result: ls | table | into string | lines | each {$'//  ($in)' | str trim --right} | str join (char nl)
+  input: |-
+    # Generates indented output for better visual formatting.
+    #
     # > 'ls' | gen-indented-output
     # ls | table | into string | lines | each {$'//  ($in)' | str trim --right} | str join (char nl)
 - command_name: gen-print-in
-  desc: Generates a print statement for capturing command output.
-  examples: |-
+  command_description: Generates a print statement for capturing command output.
+  examples:
+  - annotation: ''
+    command: '> ''ls'' | gen-print-in'
+    result: ls | print; print ''
+  input: |-
+    # Generates a print statement for capturing command output.
+    #
     # > 'ls' | gen-print-in
     # ls | print; print ''
 - command_name: gen-catch-error-in-current-instance
-  desc: Generates a try-catch block to handle errors in the current Nushell instance.
-  examples: |-
+  command_description: Generates a try-catch block to handle errors in the current Nushell instance.
+  examples:
+  - annotation: ''
+    command: '> ''ls'' | gen-catch-error-in-current-instance'
+    result: try {ls} catch {|error| $error}
+  input: |-
+    # Generates a try-catch block to handle errors in the current Nushell instance.
+    #
     # > 'ls' | gen-catch-error-in-current-instance
     # try {ls} catch {|error| $error}
 - command_name: gen-catch-error-outside
-  desc: Executes the command outside to obtain a formatted error message if any.
-  examples: |-
+  command_description: Executes the command outside to obtain a formatted error message if any.
+  examples:
+  - annotation: ''
+    command: '> ''ls'' | gen-catch-error-outside'
+    result: /Users/user/.cargo/bin/nu -c "ls"| complete | if ($in.exit_code != 0) {get stderr} else {get stdout}
+  input: |-
+    # Executes the command outside to obtain a formatted error message if any.
+    #
     # > 'ls' | gen-catch-error-outside
     # /Users/user/.cargo/bin/nu -c "ls"| complete | if ($in.exit_code != 0) {get stderr} else {get stdout}
 - command_name: gen-fence-output-numd
-  desc: Generates a fenced code block for output with a specific format.
-  examples: '# We use a combination of "\n" and (char nl) here for itermid script formatting aesthetics'
+  command_description: Generates a fenced code block for output with a specific format.
+  examples: []
+  input: |-
+    # Generates a fenced code block for output with a specific format.
+    #
+    # We use a combination of "\n" and (char nl) here for itermid script formatting aesthetics
+- command_name: gen-print-lines
+  command_description: ''
+  examples: []
+  input: ''
 - command_name: parse-options-from-fence
-  desc: Parses options from a code fence and returns them as a list.
-  examples: |-
+  command_description: Parses options from a code fence and returns them as a list.
+  examples:
+  - annotation: ''
+    command: '> ''```nu no-run, t'' | parse-options-from-fence'
+    result: |-
+      ╭────────╮
+      │ no-run │
+      │ try    │
+      ╰────────╯
+  input: |-
+    # Parses options from a code fence and returns them as a list.
+    #
     # > '```nu no-run, t' | parse-options-from-fence
     # ╭────────╮
     # │ no-run │
     # │ try    │
     # ╰────────╯
 - command_name: path-modify
-  desc: Modifies a path by adding a prefix, suffix, extension, or parent directory.
-  examples: |-
+  command_description: Modifies a path by adding a prefix, suffix, extension, or parent directory.
+  examples:
+  - annotation: ''
+    command: '> ''numd/capture.nu'' | path-modify --extension ''.md'' --prefix ''pref_'' --suffix ''_suf'' --parent_dir abc'
+    result: numd/abc/pref_capture_suf.nu.
+  input: |-
+    # Modifies a path by adding a prefix, suffix, extension, or parent directory.
+    #
     # > 'numd/capture.nu' | path-modify --extension '.md' --prefix 'pref_' --suffix '_suf' --parent_dir abc
     # numd/abc/pref_capture_suf.nu.
 - command_name: backup-file
-  desc: Creates a backup of a file by moving it to a specified directory with a timestamp.
-  examples: ''
+  command_description: Creates a backup of a file by moving it to a specified directory with a timestamp.
+  examples: []
+  input: '# Creates a backup of a file by moving it to a specified directory with a timestamp.'
 - command_name: tstamp
-  desc: Generates a timestamp string in the format YYYYMMDD_HHMMSS.
-  examples: |-
+  command_description: Generates a timestamp string in the format YYYYMMDD_HHMMSS.
+  examples:
+  - annotation: ''
+    command: '> tstamp'
+    result: 20240527_111215
+  input: |-
+    # Generates a timestamp string in the format YYYYMMDD_HHMMSS.
+    #
     # > tstamp
     # 20240527_111215
 
