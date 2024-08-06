@@ -285,31 +285,19 @@ export def update-docstring-examples [
     cd $pwd
 
     $raw_module
-    | parse-docstrings
+    | parse-docstrings2
     | if $command_filter == '' {} else {
         where command_name =~ $command_filter
     }
-    | parse-examples
-    | execute-examples $module_file --use_statement=$use_statement
-    | reduce --fold $raw_module {|i acc|
-        $acc | str replace $i.examples $i.examples_res
+    | execute-update-example-results --module_file $module_file --use_statement $use_statement
+    | prepare-substitutions
+    | reject command_description command_name examples -i
+    | reduce -f $raw_module {|i acc|
+        $acc | str replace -a $i.input $i.updated
     }
     | str replace -r '\n*$' "\n" # add ending new line
     | if $echo {} else {
         save $module_file --force
-    }
-}
-
-export def update-docstring-examples-2 [
-    module_file
-    --use_statement: string = ''
-] {
-    parse-docstrings2 $module_file
-    | execute-update-example-results --module_file $module_file --use_statement $use_statement
-    | prepare-substitutions
-    | reject command_description command_name examples
-    | reduce -f (open $module_file) {|i acc|
-        $acc | str replace -a $i.input $i.updated
     }
 }
 
