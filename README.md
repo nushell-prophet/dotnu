@@ -1,4 +1,5 @@
 <h1 align="center">generate scripts from .nu scripts ﻿🤯</h1>
+
 ## Quickstart
 
 ```nushell no-run
