@@ -14,13 +14,14 @@ use dotnu-internals.nu [
 # that will print the code of each block before executing it, and print the timings of each block's execution.
 export def set-x [
     file: path # path to `.nu` file
+    --regex: string = "\n+\n" # regex to use to split .nu on blocks
     --echo # output script to terminal
 ] {
     let $out_file = $file + 'setx.nu'
 
     open $file
     | str trim --char (char nl)
-    | split row -r "\n+\n"
+    | split row -r $regex
     | each {|block|
         $block
         | escape-escapes
