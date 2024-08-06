@@ -1,7 +1,7 @@
 # Add the same text particle into the 'from' or 'to' column of the temp cyberlinks table
 #
 # > [[from_text, to_text]; ['cyber-prophet' null] ['tweet' 'cy is cool!']]
-# | cy links-pin-columns | cy links-link-all 'master' --column 'to' --empty | to yaml
+# | sort-by from_text | to yaml
 # - from_text: cyber-prophet
 #   to_text: master
 #   from: QmXFUupJCSfydJZ85HQHD8tU1L7CZFErbRdMTBxkAmBJaD
