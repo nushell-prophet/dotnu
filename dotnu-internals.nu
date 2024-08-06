@@ -62,11 +62,9 @@ export def gen-example-exec-command [
         $use_statement
     } else if ($example_command | str contains $'($module_file | path parse | get stem) ($command_name)') {
         $'use "($module_file)"'
-    } else if ($example_command | str contains $'($command_name)') {
+    } else {
         # I use asterisk for importing all the commands because the example might contain other commands from the module
         $'use "($module_file)" *'
-    } else {
-        $'use "($module_file)"'
     }
     | $"$env.config.table = ($env.config.table | to nuon);\n($in);\n($example_command)"
 }
