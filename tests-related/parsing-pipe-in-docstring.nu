@@ -13,13 +13,13 @@
 #
 # Some random example
 # > ls
-# | sort-by modfied
+# | sort-by modified
 # ; echo 'hello'
 # hello
 #
 # Some random example
 # > ls
-# | sort-by modfied;
+# | sort-by modified;
 # > echo 'hello'
 # hello
 #
