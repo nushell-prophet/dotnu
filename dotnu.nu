@@ -56,11 +56,11 @@ export def dependencies [
 
     $children_to_merge
     | insert step 0
-    | generate $in {|i|
+    | generate {|i|
         if ($i | is-not-empty) {
             {out: $i, next: ($i | join-next $children_to_merge)}
         }
-    }
+    } $in
     | flatten
     | uniq-by parent child
     | sort-by parent step child
