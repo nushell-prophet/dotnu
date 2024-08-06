@@ -10,8 +10,8 @@ use dotnu-internals.nu [
     join-next
 ]
 
-# create a file that will print and execute all the commands by blocks.
-# Blocks are separated by empty lines between commands.
+# Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
+# that will print the code of each block before executing it, and print the timings of each block's execution.
 export def set-x [
     file: path # path to `.nu` file
     --echo # output script to terminal
@@ -139,7 +139,7 @@ export def extract-command [
     }
 }
 
-# Check .nu module files to determine which commands depend on other commands
+# Check .nu module files to determine which commands depend on other commands.
 export def dependencies [
     ...paths: path # paths to a .nu module files
     --keep_builtins # keep builtin commands in the result page
@@ -192,7 +192,7 @@ export def test [
     }
 }
 
-# parse commands definitions with docstrings
+# Parse commands definitions with their docstrings, output a table.
 export def parse-docstrings [
     file?
 ] {
@@ -237,7 +237,7 @@ export def parse-docstrings [
     }
 }
 
-# Execute examples in the docstrings of module commands and update results accordingly
+# Execute examples in the docstrings of the module commands and update the results accordingly.
 export def update-docstring-examples [
     module_file: path
     --command_filter: string = '' # filter commands by their name to update examples at
@@ -277,6 +277,7 @@ export def update-docstring-examples [
     }
 }
 
+# Generate `.numd` from `.nu` divided on blocks by "\n\n"
 export def generate-numd [] {
     split row -r "\n+\n"
     | each {$"```nu\n($in)\n```\n"}
