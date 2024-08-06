@@ -39,7 +39,7 @@ export def parse-example [] {
 # test
 export def 'extract-command-name' [] {
     str replace -r '\[.*' ''
-    | str replace 'export def ' ''
+    | str replace -r '^(export )?def ' ''
     | str replace -ra '(--(env|wrapped) ?)' ''
     | str replace -ra "\"|'" ''
     | str trim
