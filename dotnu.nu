@@ -247,7 +247,8 @@ export def parse-docstrings2 [
 
         { command_name: $command_name
             command_description: $command_description
-            examples: $examples }
+            examples: $examples
+            input: ($lines | drop | str join (char nl)) }
     }
 }
 
