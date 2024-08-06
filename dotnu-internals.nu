@@ -41,7 +41,7 @@ export def 'extract-command-name' [] {
     str replace -r '\[.*' ''
     | str replace -r '^(export )?def ' ''
     | str replace -ra '(--(env|wrapped) ?)' ''
-    | str replace -ra "\"|'" ''
+    | str replace -ra "\"|'|`" ''
     | str trim
 }
 
