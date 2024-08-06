@@ -4,6 +4,7 @@ use dotnu-internals.nu [
     parse-example-2
     escape-escapes
     extract-command-name
+    execute-update-example-results
     extract-module-commands
     nu-completion-command-name
     execute-examples
@@ -296,6 +297,14 @@ export def update-docstring-examples [
     | if $echo {} else {
         save $module_file --force
     }
+}
+
+export def update-docstring-examples-2 [
+    module_file
+    --use_statement: string = ''
+] {
+    parse-docstrings2 $module_file
+    | execute-update-example-results --module_file $module_file --use_statement $use_statement
 }
 
 export def generate-numd [] {
