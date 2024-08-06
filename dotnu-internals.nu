@@ -183,6 +183,7 @@ export def execute-update-example-results [
                 | complete
                 | if $in.exit_code == 0 {get stdout} else {get stderr}
                 | ansi strip
+                | str trim --char (char nl)
             }
         }
     }
