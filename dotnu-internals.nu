@@ -102,12 +102,7 @@ export def extract-module-commands [
         | rename row_number line
         | where line =~ '^(export )?def.*\['
         | insert command_name {|i|
-            $i.line
-            | str replace -ra '( --(?:env|wrapped))*' ''
-            | str replace -r '^(export )?def (?<command>.*?) \[.*' '$command'
-            | str trim -c "\""
-            | str trim -c "'"
-            | str trim -c "`"
+            $i.line | extract-command-name
         }
 
     if $definitions_only {return $table.command_name}
