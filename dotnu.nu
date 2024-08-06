@@ -6,6 +6,7 @@ use dotnu-internals.nu [
     extract-command-name
     execute-update-example-results
     extract-module-commands
+    prepare-substitutions
     nu-completion-command-name
     execute-examples
     join-next
@@ -305,6 +306,10 @@ export def update-docstring-examples-2 [
 ] {
     parse-docstrings2 $module_file
     | execute-update-example-results --module_file $module_file --use_statement $use_statement
+    | prepare-substitutions
+    | reduce -f (open $module_file) {|i acc|
+        $acc | str replace -a $i.input $i.examples
+    }
 }
 
 export def generate-numd [] {

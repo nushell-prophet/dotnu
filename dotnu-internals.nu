@@ -189,6 +189,26 @@ export def execute-update-example-results [
     }
 }
 
+export def prepare-substitutions [] {
+    each {|e| $e
+        | update examples {
+            each {|i|
+                [$i.annotation $i.command $i.result]
+                | compact --empty
+                | str join (char nl)
+            }
+            | [$e.command_description $in]
+            | flatten
+            | compact --empty
+            | str join $"(char nl)(char nl)"
+            | lines
+            | each {$"# ($in)" | str trim}
+            | str join (char nl)
+        }
+    }
+    | reject command_description command_name
+}
+
 # helper function for use inside of generate
 #
 # > [[parent child step]; [a b 0] [b c 0]] | join-next $in | to nuon
