@@ -194,23 +194,8 @@ export def test [
     }
 }
 
-# Parse commands' docstrings from a module
-export def parse-docstrings [
-    file?: path
-] {
-    if $file == null {
-        collect
-    } else {
-        open $file
-        | collect
-    }
-    | parse -r "(?:\n\n|^)# (?<desc>.*)(?:\n#\n)?(?<examples>(?:(?:\n#)|.)*)?\nexport def(?: --(?:env|wrapped))* (?:'|\")?(?<command_name>.*?)(?:'|\")?(?: --(?:env|wrapped))* \\["
-    | move command_name --before desc
-}
-
-
 # parse commands definitions with docstrings
-export def parse-docstrings2 [
+export def parse-docstrings [
     file?
 ] {
     if $file == null {
@@ -285,7 +270,7 @@ export def update-docstring-examples [
     cd $pwd
 
     $raw_module
-    | parse-docstrings2
+    | parse-docstrings
     | if $command_filter == '' {} else {
         where command_name =~ $command_filter
     }
