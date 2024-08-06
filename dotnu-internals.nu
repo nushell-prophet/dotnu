@@ -205,7 +205,6 @@ export def prepare-substitutions [] {
         | each {$"# ($in)" | str trim}
         | str join (char nl)
     }
-    | reject command_description command_name examples
 }
 
 # helper function for use inside of generate
