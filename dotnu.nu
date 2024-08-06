@@ -307,8 +307,9 @@ export def update-docstring-examples-2 [
     parse-docstrings2 $module_file
     | execute-update-example-results --module_file $module_file --use_statement $use_statement
     | prepare-substitutions
+    | reject command_description command_name examples
     | reduce -f (open $module_file) {|i acc|
-        $acc | str replace -a $i.input $i.examples
+        $acc | str replace -a $i.input $i.updated
     }
 }
 

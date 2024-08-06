@@ -190,23 +190,22 @@ export def execute-update-example-results [
 }
 
 export def prepare-substitutions [] {
-    each {|e| $e
-        | update examples {
-            each {|i|
-                [$i.annotation $i.command $i.result]
-                | compact --empty
-                | str join (char nl)
-            }
-            | [$e.command_description $in]
-            | flatten
+    insert updated {|e|
+        $e.examples
+        | each {|i|
+            [$i.annotation $i.command $i.result]
             | compact --empty
-            | str join $"(char nl)(char nl)"
-            | lines
-            | each {$"# ($in)" | str trim}
             | str join (char nl)
         }
+        | [$e.command_description $in]
+        | flatten
+        | compact --empty
+        | str join $"(char nl)(char nl)"
+        | lines
+        | each {$"# ($in)" | str trim}
+        | str join (char nl)
     }
-    | reject command_description command_name
+    | reject command_description command_name examples
 }
 
 # helper function for use inside of generate
