@@ -135,6 +135,7 @@ export def extract-module-commands [
     | where parent != null
 }
 
+# update examples column with results of execution commands
 export def execute-update-example-results [
     --module_file: string = ''
     --use_statement: string = ''
@@ -156,6 +157,7 @@ export def execute-update-example-results [
     }
 }
 
+# prepare pairs of substituions of old results and new results
 export def prepare-substitutions [] {
     insert updated {|e|
         $e.examples
