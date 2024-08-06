@@ -168,6 +168,26 @@ export def execute-examples [
     }
 }
 
+export def execute-update-example-results [
+    --module_file: string = ''
+    --use_statement: string = ''
+] {
+    update examples {|row|
+        $row.examples
+        | each {
+            upsert result {|i|
+                $i.command
+                | str replace -arm '^> ' ''
+                | gen-example-exec-command $in $row.command_name $use_statement $module_file
+                | nu --no-newline --commands $in
+                | complete
+                | if $in.exit_code == 0 {get stdout} else {get stderr}
+                | ansi strip
+            }
+        }
+    }
+}
+
 # helper function for use inside of generate
 #
 # > [[parent child step]; [a b 0] [b c 0]] | join-next $in | to nuon
