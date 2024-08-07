@@ -99,8 +99,9 @@ export def extract-module-commands [
         | insert command_name {|i|
             $i.line | extract-command-name
         }
+        | insert filename_of_parent ($path | path basename)
 
-    if $definitions_only {return $table.command_name}
+    if $definitions_only {return ($table | select command_name filename_of_parent)}
 
     let $with_index = $table
         | insert start {|i| $raw_script | str index-of $i.line}
