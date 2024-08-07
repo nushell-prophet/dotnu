@@ -178,7 +178,7 @@ export def 'join-next' [
     children_to_merge
 ] {
     join -l $children_to_merge child parent
-    | select parent child_ step
+    | select parent child_ step filename_of_parent
     | rename parent child
     | upsert step {|i| $i.step + 1}
     | where child != null
