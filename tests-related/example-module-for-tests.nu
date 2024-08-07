@@ -1,21 +1,34 @@
+use example-module-for-tests2.nu *
+
 export def main []: nothing -> nothing {}
 
-export def command-1 [] {
-    main
+# Just like `ls` but longer to type
+#
+# > lscustom
+export def lscustom [] {
+    ls
 }
 
-def --env 'command-2' [] {
-    command-1 | something | command-1
+# > lscustrom | sort-by-custom --option name
+def --env 'sort-by-custom' [
+    --option: string = 'modified'
+] {
+    sort-by $option
 }
 
-def --wrapped command-3 [...rest] {
-    command-2
+# Example command-3
+#
+# > command-3
+def --wrapped `command-3` [...rest] {
+    lscustom | sort-by-custom
 }
 
-def "command-4" [] {
-    command-2 | command-1
+# > lscustrom | first-custom
+def "first-custom" --env [] {
+    first
 }
 
+# > command-5
 export def 'command-5' [] {
-    command-3 'abc' | command-4
+    command-3 'abc' | first-custom | append-random
 }
