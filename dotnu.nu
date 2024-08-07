@@ -53,7 +53,7 @@ export def dependencies [
         }
         | flatten
 
-    if $definitions_only {return $children_to_merge.command_name}
+    if $definitions_only {return $children_to_merge}
 
     $children_to_merge
     | insert step 0
