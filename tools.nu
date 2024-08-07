@@ -18,7 +18,7 @@ def 'test-parse-docstrings' [] {
         | to yaml
     }
     | do_closure_save_results (
-        ['tests-related' 'numd-internals-parse-docstrings1.yaml']
+        ['tests-related' 'parse-docstrings1-numd-internals.yaml']
         | path join
     )
 }
