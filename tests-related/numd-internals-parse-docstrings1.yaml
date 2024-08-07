@@ -1,7 +1,6 @@
 # [tests-related numd-internals.nu]
 # | path join
 # | open
-# | collect
 # | parse-docstrings
 # | to yaml
 - command_name: detect-code-blocks
