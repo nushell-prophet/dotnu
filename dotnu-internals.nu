@@ -132,17 +132,15 @@ export def execute-update-example-results [
 ] {
     update examples {|row|
         $row.examples
-        | each {
-            upsert result {|i|
-                $i.command
-                | str replace -arm '^> ' ''
-                | gen-example-exec-command $in $row.command_name $use_statement $module_file
-                | nu --no-newline --commands $in
-                | complete
-                | if $in.exit_code == 0 {get stdout} else {get stderr}
-                | ansi strip
-                | str trim --char (char nl)
-            }
+        | upsert result {|i|
+            $i.command
+            | str replace -arm '^> ' ''
+            | gen-example-exec-command $in $row.command_name $use_statement $module_file
+            | nu --no-newline --commands $in
+            | complete
+            | if $in.exit_code == 0 {get stdout} else {get stderr}
+            | ansi strip
+            | str trim --char (char nl)
         }
     }
 }
