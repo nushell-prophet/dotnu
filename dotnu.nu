@@ -117,7 +117,7 @@ export def update-docstring-examples [
     module_file: path
     --command_filter: string = '' # filter commands by their name to update examples at
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
-    --echo # output script to stdout instead of saving ot the file
+    --echo # output script to stdout instead of updating the module_file provided
     --no_git_check # don't check for the emptiness of the working tree
 ] {
     let pwd = pwd
