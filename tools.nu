@@ -18,7 +18,7 @@ def 'test-parse-docstrings' [] {
         | to yaml
     }
     | do_closure_save_results (
-        ['tests-related' 'parse-docstrings1-numd-internals.yaml']
+        ['tests-related' 'output-yaml' 'parse-docstrings1-numd-internals.yaml']
         | path join
     )
 }
@@ -29,7 +29,7 @@ def 'test-dependencies' [] {
         | to yaml
     }
     | do_closure_save_results (
-        ['tests-related' 'dependencies.yaml']
+        ['tests-related' 'output-yaml' 'dependencies.yaml']
         | path join
     )
 }
@@ -40,7 +40,7 @@ def 'test-dependencies-keep_builtins' [] {
         | to yaml
     }
     | do_closure_save_results (
-        ['tests-related' 'dependencies --keep_bulitins.yaml']
+        ['tests-related' 'output-yaml' 'dependencies --keep_bulitins.yaml']
         | path join
     )
 }
