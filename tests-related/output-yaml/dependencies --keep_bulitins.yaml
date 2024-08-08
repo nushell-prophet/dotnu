@@ -1,0 +1,78 @@
+# dependencies tests-related/example-module-for-tests.nu tests-related/example-module-for-tests2.nu --keep_builtins
+# | to yaml
+- parent: append-random
+  child: append
+  step: 0
+- parent: append-random
+  child: export def
+  step: 0
+- parent: append-random
+  child: random chars
+  step: 0
+- parent: command-3
+  child: def
+  step: 0
+- parent: command-3
+  child: lscustom
+  step: 0
+- parent: command-3
+  child: sort-by-custom
+  step: 0
+- parent: command-3
+  child: export def
+  step: 1
+- parent: command-3
+  child: ls
+  step: 1
+- parent: command-3
+  child: sort-by
+  step: 1
+- parent: command-5
+  child: command-3
+  step: 0
+- parent: command-5
+  child: export def
+  step: 0
+- parent: command-5
+  child: first-custom
+  step: 0
+- parent: command-5
+  child: def
+  step: 1
+- parent: command-5
+  child: first
+  step: 1
+- parent: command-5
+  child: lscustom
+  step: 1
+- parent: command-5
+  child: sort-by-custom
+  step: 1
+- parent: command-5
+  child: ls
+  step: 2
+- parent: command-5
+  child: sort-by
+  step: 2
+- parent: first-custom
+  child: def
+  step: 0
+- parent: first-custom
+  child: first
+  step: 0
+- parent: lscustom
+  child: export def
+  step: 0
+- parent: lscustom
+  child: ls
+  step: 0
+- parent: main
+  child: export def
+  step: 0
+- parent: sort-by-custom
+  child: def
+  step: 0
+- parent: sort-by-custom
+  child: sort-by
+  step: 0
+
