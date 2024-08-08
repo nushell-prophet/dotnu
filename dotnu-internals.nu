@@ -2,12 +2,12 @@ use std iter scan
 
 # make a record from code with variable definitions
 #
-# > "let $quiet = false; let $no_timestamp = false" | variables_definitions_to_record | to nuon
+# > "let $quiet = false; let $no_timestamp = false" | variable-definitions-to-record | to nuon
 # {quiet: false, no_timestamp: false}
 #
-# > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variables_definitions_to_record | to nuon
+# > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record | to nuon
 # {a: b, c: d}
-export def variables_definitions_to_record []: string -> record {
+export def variable-definitions-to-record []: string -> record {
     str replace -a ';' ";\n"
     | $"($in)(char nl)(
         $in
@@ -24,9 +24,25 @@ export def variables_definitions_to_record []: string -> record {
 
 # parse `>` examples from the parsed docstrings
 export def parse-example [] {
-    str replace -ram '^# ?' ''
-    | split row "\n\n" # By splitting on groups, we can execute in one command several lines that start with `>`
-    | parse -r '(?<annotation>^.+\n)??> (?<command>.+(?:\n\|.+)*)'
+    parse -r (
+        '(?<annotation>^(?:[^\n>]*\n)+)??' +
+        '(?<command>' +
+            '> (?:[^\n]*\n)' +
+            '(?:(?:\||;|>)[^\n]*\n)*' +
+        ')' +
+        '(?s)(?<result>.*)?'
+    )
+    | str trim --char (char nl) annotation command result
+}
+
+# > 'export def --env "test" --wrapped' | lines | last | extract-command-name
+# test
+export def 'extract-command-name' [] {
+    str replace -r '\[.*' ''
+    | str replace -r '^(export )?def ' ''
+    | str replace -ra '(--(env|wrapped) ?)' ''
+    | str replace -ra "\"|'|`" ''
+    | str trim
 }
 
 # generate command to execute `>` example command in a new nushell instance
@@ -40,11 +56,9 @@ export def gen-example-exec-command [
         $use_statement
     } else if ($example_command | str contains $'($module_file | path parse | get stem) ($command_name)') {
         $'use "($module_file)"'
-    } else if ($example_command | str contains $'($command_name)') {
-        # I use asterisk for importing all the commands because the example might contain other commands from the module
-        $'use "($module_file)" *'
     } else {
-        $'use "($module_file)"'
+        # I use asterisk for importing all the commands because the example might contain other commands from the module
+        $'use "($module_file)"; use "($module_file)" *'
     }
     | $"$env.config.table = ($env.config.table | to nuon);\n($in);\n($example_command)"
 }
@@ -61,16 +75,11 @@ export def escape-escapes []: string -> string {
 export def nu-completion-command-name [
     context: string
 ] {
-    $context | str replace -r '^.*? extract ' '' | str trim | split row ' ' | first
+    $context | str replace -r '^.*? extract-command ' '' | str trim | split row ' ' | first
     | path expand | open $in -r | lines
-    | where $it =~ '(^|\s)def '
+    | where $it =~ '^(export )?def '
     | each {
-        str replace -r ' \[.*' ''
-        | split row ' '
-        | last
-        | str trim -c "\""
-        | str trim -c "'"
-        | str trim -c "`"
+        extract-command-name
     }
 }
 
@@ -82,82 +91,96 @@ export def extract-module-commands [
 ] {
     let $raw_script = open $path -r
 
-    let $table = $raw_script
+    let $defined_commands = $raw_script
         | lines
-        | enumerate
-        | rename row_number line
-        | where line =~ '^(export )?def.*\['
-        | insert command_name {|i|
-            $i.line
-            | str replace -ra '( --(?:env|wrapped))*' ''
-            | str replace -r '^(export )?def (?<command>.*?) \[.*' '$command'
-            | str trim -c "\""
-            | str trim -c "'"
-            | str trim -c "`"
+        | where $it =~ '^(export )?def.*\['
+        | wrap line
+        | insert caller {|i|
+            $i.line | extract-command-name
         }
+        | insert filename_of_caller ($path | path basename)
 
-    if $definitions_only {return $table.command_name}
+    if $definitions_only {return ($defined_commands | select caller filename_of_caller)}
 
-    let $with_index = $table
+    let $with_index = $defined_commands
         | insert start {|i| $raw_script | str index-of $i.line}
 
-    nu --ide-ast $path
-    | from json
-    | flatten span
-    | join $with_index start -l
-    | merge (
-        $in.command_name
-        | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr}}
-        | wrap command_name
-    )
-    | where shape == 'shape_internalcall'
-    | if $keep_builtins {} else {
-        where content not-in (
-            help commands | where command_type in ['built-in' 'keyword'] | get name
+    let $dependencies = nu --ide-ast $path
+        | from json
+        | flatten span
+        | join $with_index start -l
+        | merge (
+            $in
+            | select caller filename_of_caller
+            | scan {} --noinit {|prev curr| if $curr.caller? == null {$prev} else {$curr}}
         )
-    }
-    | select command_name content
-    | rename parent child
-    | where parent != null
+        | where shape == 'shape_internalcall'
+        | if $keep_builtins {} else {
+            where content not-in (
+                help commands | where command_type in ['built-in' 'keyword'] | get name
+            )
+        }
+        | select caller content filename_of_caller
+        | rename --column {content: callee}
+        | where caller != null
+
+    let $commands_with_no_deps = $defined_commands
+        | select caller filename_of_caller
+        | where caller not-in ($dependencies.caller | uniq)
+        | insert callee null
+
+    $dependencies | append $commands_with_no_deps
 }
 
-# insert example_res column with results of execution example commands
-export def execute-examples [
-    module_file: path
-    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
+# update examples column with results of execution commands
+export def execute-update-example-results [
+    --module_file: string = ''
+    --use_statement: string = ''
 ] {
-    par-each {|row|
-        $row
-        | insert examples_res {
-            get examples_parsed
-            | each {|e|
-                gen-example-exec-command $e.command $row.command_name $use_statement $module_file
-                | nu --no-newline -c $in
-                | complete
-                | if $in.exit_code == 0 {get stdout} else {get stderr}
-                | ansi strip
-                | $e.annotation + "> " + $e.command + "\n" + $in
-            }
-            | str trim -c "\n"
-            | str join "\n\n"
-            | lines
-            | each {|i| '# ' + $i}
-            | str trim
-            | str join "\n"
+    update examples {|row|
+        $row.examples
+        | upsert result {|i|
+            $i.command
+            | str replace -arm '^> ' ''
+            | gen-example-exec-command $in $row.command_name $use_statement $module_file
+            | nu --no-newline --commands $in
+            | complete
+            | if $in.exit_code == 0 {get stdout} else {get stderr}
+            | ansi strip
+            | str trim --char (char nl)
         }
+    }
+}
+
+# prepare pairs of substituions of old results and new results
+export def prepare-substitutions [] {
+    insert updated {|e|
+        $e.examples
+        | each {|i|
+            [$i.annotation $i.command $i.result]
+            | compact --empty
+            | str join (char nl)
+        }
+        | [$e.command_description $in]
+        | flatten
+        | compact --empty
+        | str join $"(char nl)(char nl)"
+        | lines
+        | each {$"# ($in)" | str trim}
+        | str join (char nl)
     }
 }
 
 # helper function for use inside of generate
 #
-# > [[parent child step]; [a b 0] [b c 0]] | join-next $in | to nuon
-# [[parent, child, step]; [a, c, 1]]
+# > [[caller callee step]; [a b 0] [b c 0]] | join-next $in | to nuon
+# [[caller, callee, step]; [a, c, 1]]
 export def 'join-next' [
-    children_to_merge
+    callees_to_merge
 ] {
-    join -l $children_to_merge child parent
-    | select parent child_ step
-    | rename parent child
+    join -l $callees_to_merge callee caller
+    | select caller callee_ step filename_of_caller
+    | rename caller callee
     | upsert step {|i| $i.step + 1}
-    | where child != null
+    | where callee != null
 }

@@ -1,66 +1,43 @@
 <h1 align="center">generate scripts from .nu scripts ﻿🤯</h1>
+
+## Quickstart
+
+```nushell no-run
+> git clone https://github.com/nushell-prophet/dotnu; cd dotnu
+> use dotnu
+```
+
 ## Commands
 
-```nushell
-> use dotnu *
-> extract -h
-extract a command from a module and save it as a file, that can be sourced
+### set-x
 
-Usage:
-  > intermid.nu {flags} <$file> <$command> 
+Let's check the code of the simple `set-x-demo.nu` script
 
-Flags:
-  --output <Filepath> - a file path to save extracted command script
-  -h, --help - Display the help message for this command
+```nushell indent-output
+> open tests-related/set-x-demo.nu
+//  sleep 0.5sec
+//
+//  sleep 0.7sec
+//
+//  sleep 0.8sec
+```
+Let's see how `dotnu set-x` will modify this script
 
-Parameters:
-  $file <path>: a file of a module to extract a command from
-  $command <string>: the name of the command to extract
-
-Input/output types:
-  ╭───┬───────┬────────╮
-  │ # │ input │ output │
-  ├───┼───────┼────────┤
-  │ 0 │ any   │ any    │
-  ╰───┴───────┴────────╯
-
-> set-x -h
-create a file that will print and execute all the commands by blocks.
-Blocks are separated by empty lines between commands.
-
-Usage:
-  > intermid.nu <file> 
-
-Flags:
-  -h, --help - Display the help message for this command
-
-Parameters:
-  file <path>: path to `.nu` file
-
-Input/output types:
-  ╭───┬───────┬────────╮
-  │ # │ input │ output │
-  ├───┼───────┼────────┤
-  │ 0 │ any   │ any    │
-  ╰───┴───────┴────────╯
-
-> dependencies -h
-Check .nu module file for which commands use other commands
-
-Usage:
-  > intermid.nu {flags} <path> 
-
-Flags:
-  --keep_builtins - keep builtin commands in the result page
-  -h, --help - Display the help message for this command
-
-Parameters:
-  path <path>: path to a .nu module file.
-
-Input/output types:
-  ╭───┬───────┬────────╮
-  │ # │ input │ output │
-  ├───┼───────┼────────┤
-  │ 0 │ any   │ any    │
-  ╰───┴───────┴────────╯
+```nushell indent-output
+> dotnu set-x tests-related/set-x-demo.nu --echo
+//  mut $prev_ts = date now
+//  print "> sleep 0.5sec"
+//  sleep 0.5sec
+//  print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);
+//
+//
+//  print "> sleep 0.7sec"
+//  sleep 0.7sec
+//  print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);
+//
+//
+//  print "> sleep 0.8sec"
+//  sleep 0.8sec
+//  print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);
+//
 ```
