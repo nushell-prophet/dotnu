@@ -1,4 +1,4 @@
-use example-module-for-tests2.nu *
+use example-mod2.nu *
 
 export def main []: nothing -> nothing {}
 

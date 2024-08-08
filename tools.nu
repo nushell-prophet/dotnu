@@ -25,7 +25,7 @@ def 'test-parse-docstrings' [] {
 
 def 'test-dependencies' [] {
     {
-        dependencies tests-related/example-module-for-tests.nu tests-related/example-module-for-tests2.nu
+        dependencies tests-related/example-mod1.nu tests-related/example-mod2.nu
         | to yaml
     }
     | do_closure_save_results (
@@ -36,7 +36,7 @@ def 'test-dependencies' [] {
 
 def 'test-dependencies-keep_builtins' [] {
     {
-        dependencies tests-related/example-module-for-tests.nu tests-related/example-module-for-tests2.nu --keep_builtins
+        dependencies tests-related/example-mod1.nu tests-related/example-mod2.nu --keep_builtins
         | to yaml
     }
     | do_closure_save_results (

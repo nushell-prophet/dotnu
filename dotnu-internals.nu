@@ -73,7 +73,7 @@ export def escape-escapes []: string -> string {
 
 # context aware completions for defined command names in nushell module files
 #
-# > nu-completion-command-name 'dotnu extract-command tests-related/example-module-for-tests.nu' | first 3
+# > nu-completion-command-name 'dotnu extract-command tests-related/example-mod1.nu' | first 3
 # ╭───┬────────────────╮
 # │ 0 │ main           │
 # │ 1 │ lscustom       │
@@ -92,19 +92,19 @@ export def nu-completion-command-name [
 
 # Extract table with information on which commands use which commands
 #
-# > extract-module-commands tests-related/example-module-for-tests.nu | first 3
-# ╭─#─┬──caller───┬─────callee─────┬─────filename_of_caller──────╮
-# │ 0 │ command-3 │ lscustom       │ example-module-for-tests.nu │
-# │ 1 │ command-3 │ sort-by-custom │ example-module-for-tests.nu │
-# │ 2 │ command-5 │ command-3      │ example-module-for-tests.nu │
-# ╰───┴───────────┴────────────────┴─────────────────────────────╯
+# > extract-module-commands tests-related/example-mod1.nu | first 3
+# ╭─#─┬──caller───┬─────callee─────┬─filename_of_caller─╮
+# │ 0 │ command-3 │ lscustom       │ example-mod1.nu    │
+# │ 1 │ command-3 │ sort-by-custom │ example-mod1.nu    │
+# │ 2 │ command-5 │ command-3      │ example-mod1.nu    │
+# ╰───┴───────────┴────────────────┴────────────────────╯
 #
-# > extract-module-commands --definitions_only tests-related/example-module-for-tests.nu | first 3
-# ╭─#─┬─────caller─────┬─────filename_of_caller──────╮
-# │ 0 │ main           │ example-module-for-tests.nu │
-# │ 1 │ lscustom       │ example-module-for-tests.nu │
-# │ 2 │ sort-by-custom │ example-module-for-tests.nu │
-# ╰───┴────────────────┴─────────────────────────────╯
+# > extract-module-commands --definitions_only tests-related/example-mod1.nu | first 3
+# ╭─#─┬─────caller─────┬─filename_of_caller─╮
+# │ 0 │ main           │ example-mod1.nu    │
+# │ 1 │ lscustom       │ example-mod1.nu    │
+# │ 2 │ sort-by-custom │ example-mod1.nu    │
+# ╰───┴────────────────┴────────────────────╯
 export def extract-module-commands [
     path: path # path to a .nu module file.
     --keep_builtins # keep builtin commands in the result page

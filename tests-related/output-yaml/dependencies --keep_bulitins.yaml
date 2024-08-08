@@ -1,78 +1,102 @@
-# dependencies tests-related/example-module-for-tests.nu tests-related/example-module-for-tests2.nu --keep_builtins
+# dependencies tests-related/example-mod1.nu tests-related/example-mod2.nu --keep_builtins
 # | to yaml
-- parent: append-random
-  child: append
+- caller: append-random
+  callee: append
+  filename_of_caller: example-mod2.nu
   step: 0
-- parent: append-random
-  child: export def
+- caller: append-random
+  callee: export def
+  filename_of_caller: example-mod2.nu
   step: 0
-- parent: append-random
-  child: random chars
+- caller: append-random
+  callee: random chars
+  filename_of_caller: example-mod2.nu
   step: 0
-- parent: command-3
-  child: def
+- caller: command-3
+  callee: def
+  filename_of_caller: example-mod1.nu
   step: 0
-- parent: command-3
-  child: lscustom
+- caller: command-3
+  callee: lscustom
+  filename_of_caller: example-mod1.nu
   step: 0
-- parent: command-3
-  child: sort-by-custom
+- caller: command-3
+  callee: sort-by-custom
+  filename_of_caller: example-mod1.nu
   step: 0
-- parent: command-3
-  child: export def
+- caller: command-5
+  callee: command-3
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: command-5
+  callee: export def
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: command-5
+  callee: first-custom
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: first-custom
+  callee: def
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: first-custom
+  callee: first
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: lscustom
+  callee: export def
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: lscustom
+  callee: ls
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: main
+  callee: export def
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: sort-by-custom
+  callee: def
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: sort-by-custom
+  callee: sort-by
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: command-3
+  callee: export def
   step: 1
-- parent: command-3
-  child: ls
+  filename_of_caller: example-mod1.nu
+- caller: command-3
+  callee: ls
   step: 1
-- parent: command-3
-  child: sort-by
+  filename_of_caller: example-mod1.nu
+- caller: command-3
+  callee: sort-by
   step: 1
-- parent: command-5
-  child: command-3
-  step: 0
-- parent: command-5
-  child: export def
-  step: 0
-- parent: command-5
-  child: first-custom
-  step: 0
-- parent: command-5
-  child: def
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: def
   step: 1
-- parent: command-5
-  child: first
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: first
   step: 1
-- parent: command-5
-  child: lscustom
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: lscustom
   step: 1
-- parent: command-5
-  child: sort-by-custom
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: sort-by-custom
   step: 1
-- parent: command-5
-  child: ls
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: ls
   step: 2
-- parent: command-5
-  child: sort-by
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: sort-by
   step: 2
-- parent: first-custom
-  child: def
-  step: 0
-- parent: first-custom
-  child: first
-  step: 0
-- parent: lscustom
-  child: export def
-  step: 0
-- parent: lscustom
-  child: ls
-  step: 0
-- parent: main
-  child: export def
-  step: 0
-- parent: sort-by-custom
-  child: def
-  step: 0
-- parent: sort-by-custom
-  child: sort-by
-  step: 0
-
+  filename_of_caller: example-mod1.nu

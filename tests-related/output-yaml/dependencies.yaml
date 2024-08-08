@@ -1,21 +1,46 @@
-# dependencies tests-related/example-module-for-tests.nu tests-related/example-module-for-tests2.nu
+# dependencies tests-related/example-mod1.nu tests-related/example-mod2.nu
 # | to yaml
-- parent: command-3
-  child: lscustom
+- caller: append-random
+  filename_of_caller: example-mod2.nu
+  callee: null
   step: 0
-- parent: command-3
-  child: sort-by-custom
+- caller: command-3
+  callee: lscustom
+  filename_of_caller: example-mod1.nu
   step: 0
-- parent: command-5
-  child: command-3
+- caller: command-3
+  callee: sort-by-custom
+  filename_of_caller: example-mod1.nu
   step: 0
-- parent: command-5
-  child: first-custom
+- caller: command-5
+  callee: command-3
+  filename_of_caller: example-mod1.nu
   step: 0
-- parent: command-5
-  child: lscustom
+- caller: command-5
+  callee: first-custom
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: first-custom
+  filename_of_caller: example-mod1.nu
+  callee: null
+  step: 0
+- caller: lscustom
+  filename_of_caller: example-mod1.nu
+  callee: null
+  step: 0
+- caller: main
+  filename_of_caller: example-mod1.nu
+  callee: null
+  step: 0
+- caller: sort-by-custom
+  filename_of_caller: example-mod1.nu
+  callee: null
+  step: 0
+- caller: command-5
+  callee: lscustom
   step: 1
-- parent: command-5
-  child: sort-by-custom
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: sort-by-custom
   step: 1
-
+  filename_of_caller: example-mod1.nu
