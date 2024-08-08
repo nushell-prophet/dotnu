@@ -97,12 +97,12 @@ export def extract-module-commands [
         | enumerate
         | rename row_number line
         | where line =~ '^(export )?def.*\['
-        | insert command_name {|i|
+        | insert caller {|i|
             $i.line | extract-command-name
         }
         | insert filename_of_caller $path_basename
 
-    if $definitions_only {return ($table | select command_name filename_of_caller)}
+    if $definitions_only {return ($table | select caller filename_of_caller)}
 
     let $with_index = $table
         | insert start {|i| $raw_script | str index-of $i.line}
@@ -113,8 +113,8 @@ export def extract-module-commands [
         | join $with_index start -l
         | merge (
             $in
-            | select command_name filename_of_caller
-            | scan {} --noinit {|prev curr| if $curr.command_name? == null {$prev} else {$curr}}
+            | select caller filename_of_caller
+            | scan {} --noinit {|prev curr| if $curr.caller? == null {$prev} else {$curr}}
         )
         | where shape == 'shape_internalcall'
         | if $keep_builtins {} else {
@@ -122,15 +122,18 @@ export def extract-module-commands [
                 help commands | where command_type in ['built-in' 'keyword'] | get name
             )
         }
-        | select command_name content filename_of_caller
-        | rename caller callee
+        | select caller content filename_of_caller
+        | rename --column {content: callee}
         | where caller != null
 
     $res1
-    | append ($table | select command_name | rename caller
+    | append (
+        $table
+        | select caller
         | where caller not-in ($res1.caller | uniq)
         | insert callee null
-        | insert filename_of_caller $path_basename)
+        | insert filename_of_caller $path_basename
+    )
 }
 
 # update examples column with results of execution commands
