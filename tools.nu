@@ -5,6 +5,8 @@ def main [] {}
 
 def 'main testing' [] {
     test-parse-docstrings
+    test-dependencies
+    test-dependencies-keep_builtins
 }
 
 def 'test-parse-docstrings' [] {
@@ -12,16 +14,36 @@ def 'test-parse-docstrings' [] {
         [tests-related numd-internals.nu]
         | path join
         | open
-        | collect
         | parse-docstrings
         | to yaml
     }
     | do_closure_save_results (
-        ['tests-related' 'numd-internals-parse-docstrings1.yaml']
+        ['tests-related' 'output-yaml' 'parse-docstrings1-numd-internals.yaml']
         | path join
     )
 }
 
+def 'test-dependencies' [] {
+    {
+        dependencies tests-related/example-module-for-tests.nu tests-related/example-module-for-tests2.nu
+        | to yaml
+    }
+    | do_closure_save_results (
+        ['tests-related' 'output-yaml' 'dependencies.yaml']
+        | path join
+    )
+}
+
+def 'test-dependencies-keep_builtins' [] {
+    {
+        dependencies tests-related/example-module-for-tests.nu tests-related/example-module-for-tests2.nu --keep_builtins
+        | to yaml
+    }
+    | do_closure_save_results (
+        ['tests-related' 'output-yaml' 'dependencies --keep_bulitins.yaml']
+        | path join
+    )
+}
 
 def do_closure_save_results [
     output_file: path
