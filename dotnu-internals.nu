@@ -84,6 +84,20 @@ export def nu-completion-command-name [
 }
 
 # Extract table with information on which commands use which commands
+#
+# > extract-module-commands tests-related/example-module-for-tests.nu | first 3
+# ╭─#─┬──caller───┬─────callee─────┬─────filename_of_caller──────╮
+# │ 0 │ command-3 │ lscustom       │ example-module-for-tests.nu │
+# │ 1 │ command-3 │ sort-by-custom │ example-module-for-tests.nu │
+# │ 2 │ command-5 │ command-3      │ example-module-for-tests.nu │
+# ╰───┴───────────┴────────────────┴─────────────────────────────╯
+#
+# > extract-module-commands --definitions_only tests-related/example-module-for-tests.nu | first 3
+# ╭─#─┬─────caller─────┬─────filename_of_caller──────╮
+# │ 0 │ main           │ example-module-for-tests.nu │
+# │ 1 │ lscustom       │ example-module-for-tests.nu │
+# │ 2 │ sort-by-custom │ example-module-for-tests.nu │
+# ╰───┴────────────────┴─────────────────────────────╯
 export def extract-module-commands [
     path: path # path to a .nu module file.
     --keep_builtins # keep builtin commands in the result page
@@ -173,8 +187,8 @@ export def prepare-substitutions [] {
 
 # helper function for use inside of generate
 #
-# > [[caller callee step]; [a b 0] [b c 0]] | join-next $in | to nuon
-# [[caller, callee, step]; [a, c, 1]]
+# > [[caller callee step filename_of_caller]; [a b 0 test] [b c 0 test]] | join-next $in | to nuon
+# [[caller, callee, step, filename_of_caller]; [a, c, 1, test]]
 export def 'join-next' [
     callees_to_merge
 ] {
