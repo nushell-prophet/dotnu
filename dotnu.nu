@@ -17,7 +17,7 @@ export def set-x [
     --regex: string = "\n+\n" # regex to use to split .nu on blocks
     --echo # output script to terminal
 ] {
-    let $out_file = $file + 'setx.nu'
+    let $out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
 
     open $file
     | str trim --char (char nl)
