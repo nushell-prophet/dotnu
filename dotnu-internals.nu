@@ -126,14 +126,13 @@ export def extract-module-commands [
         | rename --column {content: callee}
         | where caller != null
 
-    $res1
-    | append (
-        $table
+    let $commands_with_no_deps = $table
         | select caller
         | where caller not-in ($res1.caller | uniq)
         | insert callee null
         | insert filename_of_caller $path_basename
-    )
+
+    $res1 | append $commands_with_no_deps
 }
 
 # update examples column with results of execution commands
