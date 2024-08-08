@@ -72,6 +72,13 @@ export def escape-escapes []: string -> string {
 }
 
 # context aware completions for defined command names in nushell module files
+#
+# > nu-completion-command-name 'dotnu extract-command tests-related/example-module-for-tests.nu' | first 3
+# ╭───┬────────────────╮
+# │ 0 │ main           │
+# │ 1 │ lscustom       │
+# │ 2 │ sort-by-custom │
+# ╰───┴────────────────╯
 export def nu-completion-command-name [
     context: string
 ] {
