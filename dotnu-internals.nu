@@ -94,9 +94,8 @@ export def extract-module-commands [
 
     let $defined_commands = $raw_script
         | lines
-        | enumerate
-        | rename row_number line
-        | where line =~ '^(export )?def.*\['
+        | where $it =~ '^(export )?def.*\['
+        | wrap line
         | insert caller {|i|
             $i.line | extract-command-name
         }
