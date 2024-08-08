@@ -90,7 +90,6 @@ export def extract-module-commands [
     --definitions_only # output only commands' names definitions
 ] {
     let $raw_script = open $path -r
-    let $path_basename = $path | path basename
 
     let $defined_commands = $raw_script
         | lines
@@ -99,7 +98,7 @@ export def extract-module-commands [
         | insert caller {|i|
             $i.line | extract-command-name
         }
-        | insert filename_of_caller $path_basename
+        | insert filename_of_caller ($path | path basename)
 
     if $definitions_only {return ($defined_commands | select caller filename_of_caller)}
 
@@ -126,10 +125,9 @@ export def extract-module-commands [
         | where caller != null
 
     let $commands_with_no_deps = $defined_commands
-        | select caller
+        | select caller filename_of_caller
         | where caller not-in ($dependencies.caller | uniq)
         | insert callee null
-        | insert filename_of_caller $path_basename
 
     $dependencies | append $commands_with_no_deps
 }
