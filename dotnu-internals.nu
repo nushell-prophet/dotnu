@@ -128,7 +128,7 @@ export def extract-module-commands [
 
     $res1
     | append ($table | select command_name | rename caller
-        | where caller not-in $res1.caller
+        | where caller not-in ($res1.caller | uniq)
         | insert callee null
         | insert filename_of_caller $path_basename)
 }
