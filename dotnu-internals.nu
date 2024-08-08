@@ -90,6 +90,7 @@ export def extract-module-commands [
     --definitions_only # output only commands' names definitions
 ] {
     let $raw_script = open $path -r
+    let $path_basename = $path | path basename
 
     let $table = $raw_script
         | lines
@@ -99,7 +100,7 @@ export def extract-module-commands [
         | insert command_name {|i|
             $i.line | extract-command-name
         }
-        | insert filename_of_caller ($path | path basename)
+        | insert filename_of_caller $path_basename
 
     if $definitions_only {return ($table | select command_name filename_of_caller)}
 
@@ -128,7 +129,8 @@ export def extract-module-commands [
     $res1
     | append ($table | select command_name | rename caller
         | where caller not-in $res1.caller
-        | insert callee null)
+        | insert callee null
+        | insert filename_of_caller $path_basename)
 }
 
 # update examples column with results of execution commands
