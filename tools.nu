@@ -62,7 +62,16 @@ def do_closure_save_results [
 
 def 'main release' [] {
     let $git_info = (gh repo view --json description,name | from json);
-    let $git_tag = (git tag | lines | prepend '0.0.0' | sort -n | last | inc -p)
+    let $git_tag = git tag
+        | lines
+        | prepend '0.0.0'
+        | sort -n
+        | last
+        | split row '.'
+        | into int
+        | update 2 {$in + 1}
+        | str join '.'
+
     let $desc = ($git_info | get description)
 
     open nupm.nuon
