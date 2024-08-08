@@ -2,12 +2,12 @@ use std iter scan
 
 # make a record from code with variable definitions
 #
-# > "let $quiet = false; let $no_timestamp = false" | variables_definitions_to_record | to nuon
+# > "let $quiet = false; let $no_timestamp = false" | variable-definitions-to-record | to nuon
 # {quiet: false, no_timestamp: false}
 #
-# > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variables_definitions_to_record | to nuon
+# > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record | to nuon
 # {a: b, c: d}
-export def variables_definitions_to_record []: string -> record {
+export def variable-definitions-to-record []: string -> record {
     str replace -a ';' ";\n"
     | $"($in)(char nl)(
         $in
@@ -91,28 +91,28 @@ export def extract-module-commands [
 ] {
     let $raw_script = open $path -r
 
-    let $table = $raw_script
+    let $defined_commands = $raw_script
         | lines
-        | enumerate
-        | rename row_number line
-        | where line =~ '^(export )?def.*\['
-        | insert command_name {|i|
+        | where $it =~ '^(export )?def.*\['
+        | wrap line
+        | insert caller {|i|
             $i.line | extract-command-name
         }
+        | insert filename_of_caller ($path | path basename)
 
-    if $definitions_only {return $table.command_name}
+    if $definitions_only {return ($defined_commands | select caller filename_of_caller)}
 
-    let $with_index = $table
+    let $with_index = $defined_commands
         | insert start {|i| $raw_script | str index-of $i.line}
 
-    let $res1 = nu --ide-ast $path
+    let $dependencies = nu --ide-ast $path
         | from json
         | flatten span
         | join $with_index start -l
         | merge (
-            $in.command_name
-            | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr}}
-            | wrap command_name
+            $in
+            | select caller filename_of_caller
+            | scan {} --noinit {|prev curr| if $curr.caller? == null {$prev} else {$curr}}
         )
         | where shape == 'shape_internalcall'
         | if $keep_builtins {} else {
@@ -120,14 +120,16 @@ export def extract-module-commands [
                 help commands | where command_type in ['built-in' 'keyword'] | get name
             )
         }
-        | select command_name content
-        | rename parent child
-        | where parent != null
+        | select caller content filename_of_caller
+        | rename --column {content: callee}
+        | where caller != null
 
-    $res1
-    | append ($table | select command_name | rename parent
-        | where parent not-in $res1.parent
-        | insert child null)
+    let $commands_with_no_deps = $defined_commands
+        | select caller filename_of_caller
+        | where caller not-in ($dependencies.caller | uniq)
+        | insert callee null
+
+    $dependencies | append $commands_with_no_deps
 }
 
 # update examples column with results of execution commands
@@ -171,14 +173,14 @@ export def prepare-substitutions [] {
 
 # helper function for use inside of generate
 #
-# > [[parent child step]; [a b 0] [b c 0]] | join-next $in | to nuon
-# [[parent, child, step]; [a, c, 1]]
+# > [[caller callee step]; [a b 0] [b c 0]] | join-next $in | to nuon
+# [[caller, callee, step]; [a, c, 1]]
 export def 'join-next' [
-    children_to_merge
+    callees_to_merge
 ] {
-    join -l $children_to_merge child parent
-    | select parent child_ step
-    | rename parent child
+    join -l $callees_to_merge callee caller
+    | select caller callee_ step filename_of_caller
+    | rename caller callee
     | upsert step {|i| $i.step + 1}
-    | where child != null
+    | where callee != null
 }

@@ -1,5 +1,5 @@
 use dotnu-internals.nu [
-    variables_definitions_to_record
+    variable-definitions-to-record
     parse-example
     escape-escapes
     extract-command-name
@@ -47,24 +47,24 @@ export def dependencies [
     --keep_builtins # keep builtin commands in the result page
     --definitions_only # output only commands' names definitions
 ] {
-    let $children_to_merge = $paths
+    let $callees_to_merge = $paths
         | each {
             extract-module-commands $in --keep_builtins=$keep_builtins --definitions_only=$definitions_only
         }
         | flatten
 
-    if $definitions_only {return $children_to_merge.command_name}
+    if $definitions_only {return $callees_to_merge}
 
-    $children_to_merge
+    $callees_to_merge
     | insert step 0
     | generate {|i|
         if ($i | is-not-empty) {
-            {out: $i, next: ($i | join-next $children_to_merge)}
+            {out: $i, next: ($i | join-next $callees_to_merge)}
         }
     } $in
     | flatten
-    | uniq-by parent child
-    | sort-by parent step child
+    | uniq-by caller callee
+    | sort-by step caller callee
 }
 
 # Parse commands definitions with their docstrings, output a table.
@@ -233,13 +233,13 @@ export def extract-command [
     let $filename = $output | default $'($command).nu'
 
     $extracted_command.0
-    | variables_definitions_to_record
+    | variable-definitions-to-record
     | if ($filename | path exists) and not $clear_vars {
         merge (
             open $filename
             | split row $dotnu_vars_delim
             | get 0
-            | variables_definitions_to_record
+            | variable-definitions-to-record
         )
     } else {}
     | if $set_vars != null {
