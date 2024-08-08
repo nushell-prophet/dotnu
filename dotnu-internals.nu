@@ -92,7 +92,7 @@ export def extract-module-commands [
     let $raw_script = open $path -r
     let $path_basename = $path | path basename
 
-    let $table = $raw_script
+    let $defined_commands = $raw_script
         | lines
         | enumerate
         | rename row_number line
@@ -102,12 +102,12 @@ export def extract-module-commands [
         }
         | insert filename_of_caller $path_basename
 
-    if $definitions_only {return ($table | select caller filename_of_caller)}
+    if $definitions_only {return ($defined_commands | select caller filename_of_caller)}
 
-    let $with_index = $table
+    let $with_index = $defined_commands
         | insert start {|i| $raw_script | str index-of $i.line}
 
-    let $res1 = nu --ide-ast $path
+    let $dependencies = nu --ide-ast $path
         | from json
         | flatten span
         | join $with_index start -l
@@ -126,13 +126,13 @@ export def extract-module-commands [
         | rename --column {content: callee}
         | where caller != null
 
-    let $commands_with_no_deps = $table
+    let $commands_with_no_deps = $defined_commands
         | select caller
-        | where caller not-in ($res1.caller | uniq)
+        | where caller not-in ($dependencies.caller | uniq)
         | insert callee null
         | insert filename_of_caller $path_basename
 
-    $res1 | append $commands_with_no_deps
+    $dependencies | append $commands_with_no_deps
 }
 
 # update examples column with results of execution commands
