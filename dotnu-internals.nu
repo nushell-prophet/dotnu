@@ -111,9 +111,9 @@ export def extract-module-commands [
         | flatten span
         | join $with_index start -l
         | merge (
-            $in.command_name
-            | scan null --noinit {|prev curr| if ($curr == null) {$prev} else {$curr}}
-            | wrap command_name
+            $in
+            | select command_name filename_of_parent
+            | scan {command_name: null filename_of_parent: null} --noinit {|prev curr| if ($curr == {command_name: null filename_of_parent: null}) {$prev} else {$curr}}
         )
         | where shape == 'shape_internalcall'
         | if $keep_builtins {} else {
@@ -121,7 +121,7 @@ export def extract-module-commands [
                 help commands | where command_type in ['built-in' 'keyword'] | get name
             )
         }
-        | select command_name content
+        | select command_name content filename_of_parent
         | rename parent child
         | where parent != null
 
