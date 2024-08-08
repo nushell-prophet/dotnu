@@ -114,7 +114,7 @@ export def extract-module-commands [
         | merge (
             $in
             | select command_name filename_of_caller
-            | scan {command_name: null filename_of_caller: null} --noinit {|prev curr| if ($curr == {command_name: null filename_of_caller: null}) {$prev} else {$curr}}
+            | scan {} --noinit {|prev curr| if $curr.command_name? == null {$prev} else {$curr}}
         )
         | where shape == 'shape_internalcall'
         | if $keep_builtins {} else {
