@@ -175,9 +175,9 @@ export def prepare-substitutions [] {
 # > [[caller callee step]; [a b 0] [b c 0]] | join-next $in | to nuon
 # [[caller, callee, step]; [a, c, 1]]
 export def 'join-next' [
-    children_to_merge
+    callees_to_merge
 ] {
-    join -l $children_to_merge child parent
+    join -l $callees_to_merge callee caller
     | select caller callee_ step filename_of_caller
     | rename caller callee
     | upsert step {|i| $i.step + 1}

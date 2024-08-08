@@ -47,19 +47,19 @@ export def dependencies [
     --keep_builtins # keep builtin commands in the result page
     --definitions_only # output only commands' names definitions
 ] {
-    let $children_to_merge = $paths
+    let $callees_to_merge = $paths
         | each {
             extract-module-commands $in --keep_builtins=$keep_builtins --definitions_only=$definitions_only
         }
         | flatten
 
-    if $definitions_only {return $children_to_merge}
+    if $definitions_only {return $callees_to_merge}
 
-    $children_to_merge
+    $callees_to_merge
     | insert step 0
     | generate {|i|
         if ($i | is-not-empty) {
-            {out: $i, next: ($i | join-next $children_to_merge)}
+            {out: $i, next: ($i | join-next $callees_to_merge)}
         }
     } $in
     | flatten
