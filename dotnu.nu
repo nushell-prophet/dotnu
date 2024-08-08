@@ -1,5 +1,5 @@
 use dotnu-internals.nu [
-    variables_definitions_to_record
+    variable-definitions-to-record
     parse-example
     escape-escapes
     extract-command-name
@@ -233,13 +233,13 @@ export def extract-command [
     let $filename = $output | default $'($command).nu'
 
     $extracted_command.0
-    | variables_definitions_to_record
+    | variable-definitions-to-record
     | if ($filename | path exists) and not $clear_vars {
         merge (
             open $filename
             | split row $dotnu_vars_delim
             | get 0
-            | variables_definitions_to_record
+            | variable-definitions-to-record
         )
     } else {}
     | if $set_vars != null {
