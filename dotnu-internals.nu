@@ -2,12 +2,12 @@ use std iter scan
 
 # make a record from code with variable definitions
 #
-# > "let $quiet = false; let $no_timestamp = false" | variables_definitions_to_record | to nuon
+# > "let $quiet = false; let $no_timestamp = false" | variable-definitions-to-record | to nuon
 # {quiet: false, no_timestamp: false}
 #
-# > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variables_definitions_to_record | to nuon
+# > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record | to nuon
 # {a: b, c: d}
-export def variables_definitions_to_record []: string -> record {
+export def variable-definitions-to-record []: string -> record {
     str replace -a ';' ";\n"
     | $"($in)(char nl)(
         $in
