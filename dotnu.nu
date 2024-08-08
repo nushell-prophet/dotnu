@@ -42,6 +42,14 @@ export def set-x [
 }
 
 # Check .nu module files to determine which commands depend on other commands.
+#
+# > dotnu dependencies tests-related/example-module-for-tests.nu tests-related/example-module-for-tests2.nu
+# | first 3
+# ╭─#─┬──caller───┬─────callee─────┬─────filename_of_caller──────┬─step─╮
+# │ 0 │ command-3 │ lscustom       │ example-module-for-tests.nu │    0 │
+# │ 1 │ command-3 │ sort-by-custom │ example-module-for-tests.nu │    0 │
+# │ 2 │ command-5 │ command-3      │ example-module-for-tests.nu │    0 │
+# ╰───┴───────────┴────────────────┴─────────────────────────────┴──────╯
 export def dependencies [
     ...paths: path # paths to a .nu module files
     --keep_builtins # keep builtin commands in the result page
