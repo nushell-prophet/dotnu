@@ -63,8 +63,8 @@ export def dependencies [
         }
     } $in
     | flatten
-    | uniq-by parent child
-    | sort-by parent step child
+    | uniq-by caller callee
+    | sort-by caller step callee
 }
 
 # Parse commands definitions with their docstrings, output a table.

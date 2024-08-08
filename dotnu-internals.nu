@@ -99,9 +99,9 @@ export def extract-module-commands [
         | insert command_name {|i|
             $i.line | extract-command-name
         }
-        | insert filename_of_parent ($path | path basename)
+        | insert filename_of_caller ($path | path basename)
 
-    if $definitions_only {return ($table | select command_name filename_of_parent)}
+    if $definitions_only {return ($table | select command_name filename_of_caller)}
 
     let $with_index = $table
         | insert start {|i| $raw_script | str index-of $i.line}
@@ -112,8 +112,8 @@ export def extract-module-commands [
         | join $with_index start -l
         | merge (
             $in
-            | select command_name filename_of_parent
-            | scan {command_name: null filename_of_parent: null} --noinit {|prev curr| if ($curr == {command_name: null filename_of_parent: null}) {$prev} else {$curr}}
+            | select command_name filename_of_caller
+            | scan {command_name: null filename_of_caller: null} --noinit {|prev curr| if ($curr == {command_name: null filename_of_caller: null}) {$prev} else {$curr}}
         )
         | where shape == 'shape_internalcall'
         | if $keep_builtins {} else {
@@ -121,14 +121,14 @@ export def extract-module-commands [
                 help commands | where command_type in ['built-in' 'keyword'] | get name
             )
         }
-        | select command_name content filename_of_parent
-        | rename parent child
-        | where parent != null
+        | select command_name content filename_of_caller
+        | rename caller callee
+        | where caller != null
 
     $res1
-    | append ($table | select command_name | rename parent
-        | where parent not-in $res1.parent
-        | insert child null)
+    | append ($table | select command_name | rename caller
+        | where caller not-in $res1.caller
+        | insert callee null)
 }
 
 # update examples column with results of execution commands
@@ -172,14 +172,14 @@ export def prepare-substitutions [] {
 
 # helper function for use inside of generate
 #
-# > [[parent child step]; [a b 0] [b c 0]] | join-next $in | to nuon
-# [[parent, child, step]; [a, c, 1]]
+# > [[caller callee step]; [a b 0] [b c 0]] | join-next $in | to nuon
+# [[caller, callee, step]; [a, c, 1]]
 export def 'join-next' [
     children_to_merge
 ] {
     join -l $children_to_merge child parent
-    | select parent child_ step filename_of_parent
-    | rename parent child
+    | select caller callee_ step filename_of_caller
+    | rename caller callee
     | upsert step {|i| $i.step + 1}
-    | where child != null
+    | where callee != null
 }
