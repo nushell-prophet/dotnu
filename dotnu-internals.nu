@@ -106,24 +106,29 @@ export def extract-module-commands [
     let $with_index = $table
         | insert start {|i| $raw_script | str index-of $i.line}
 
-    nu --ide-ast $path
-    | from json
-    | flatten span
-    | join $with_index start -l
-    | merge (
-        $in
-        | select command_name filename_of_parent
-        | scan {command_name: null filename_of_parent: null} --noinit {|prev curr| if ($curr == {command_name: null filename_of_parent: null}) {$prev} else {$curr}}
-    )
-    | where shape == 'shape_internalcall'
-    | if $keep_builtins {} else {
-        where content not-in (
-            help commands | where command_type in ['built-in' 'keyword'] | get name
+    let $res1 = nu --ide-ast $path
+        | from json
+        | flatten span
+        | join $with_index start -l
+        | merge (
+            $in
+            | select command_name filename_of_parent
+            | scan {command_name: null filename_of_parent: null} --noinit {|prev curr| if ($curr == {command_name: null filename_of_parent: null}) {$prev} else {$curr}}
         )
-    }
-    | select command_name content filename_of_parent
-    | rename parent child
-    | where parent != null
+        | where shape == 'shape_internalcall'
+        | if $keep_builtins {} else {
+            where content not-in (
+                help commands | where command_type in ['built-in' 'keyword'] | get name
+            )
+        }
+        | select command_name content filename_of_parent
+        | rename parent child
+        | where parent != null
+
+    $res1
+    | append ($table | select command_name | rename parent
+        | where parent not-in $res1.parent
+        | insert child null)
 }
 
 # update examples column with results of execution commands
