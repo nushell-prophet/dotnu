@@ -205,3 +205,59 @@ export def 'join-next' [
     | upsert step {|i| $i.step + 1}
     | where callee != null
 }
+
+export def 'dummy-command' [] {
+    let $command = ''
+    let $dotnu_vars_delim = ''
+
+    # the closure below is used as a highlighted in an editor constructor
+    # for the command that will be executed in `nu -c`
+    let $dummy_closure = {|function|
+        let $params = scope commands
+            | where name == $command
+            | get signatures.0
+            | values
+            | get 0
+            | each {
+                if ($in.parameter_type == 'rest') {
+                    if ($in.parameter_name == '') {
+                        upsert parameter_name 'rest'  # if rest parameters named $rest, in the signatures it doesn't have a name
+                    } else {}
+                    | default [] parameter_default
+                } else {}
+            }
+            | where parameter_name != null
+            | each {|i|
+                let $param = $i.parameter_name | str replace -a '-' '_' | str replace '$' ''
+
+                let $value = $i.parameter_default?
+                    | if $in == null {} else {
+                        if $i.syntax_shape in ['string' 'path'] {
+                            $"'($in)'"
+                        } else {}
+                    }
+                    | default (
+                        if $i.parameter_type == 'switch' { false }
+                            else if $i.is_optional { 'null' }
+                            else { $i.syntax_shape }
+                    )
+                    | if $in == '' {"''"} else {}
+                    | into string
+
+                $"let $($param) = ($value)"
+            }
+            | str join "\n"
+
+        let $main = view source $command
+            | lines
+            | upsert 0 {|i| '# ' + $i}
+            | drop
+            | append '# }'
+            | prepend $dotnu_vars_delim
+            | str join "\n"
+
+        "source '$file'\n\n" + $params + "\n\n" + $main
+    }
+
+    view source $dummy_closure
+}
