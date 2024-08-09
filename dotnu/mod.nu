@@ -47,7 +47,7 @@ export def set-x [
 
 # Check .nu module files to determine which commands depend on other commands.
 #
-# > dotnu dependencies tests/assets/example-mod1.nu tests/assets/example-mod2.nu
+# > dependencies tests/assets/example-mod1.nu tests/assets/example-mod2.nu
 # | first 3
 # ╭─#─┬──caller───┬─────callee─────┬─filename_of_caller─┬─step─╮
 # │ 0 │ command-3 │ lscustom       │ example-mod1.nu    │    0 │
