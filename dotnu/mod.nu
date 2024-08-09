@@ -193,6 +193,10 @@ export def extract-command [
         | nu -n -c $in
         | split row $dotnu_vars_delim
 
+    if $extracted_command.1? == null {
+        error make --unspanned {msg: $'no command `($command)` was found'}
+    }
+
     let $filename = $output | default $'($command).nu'
 
     $extracted_command.0

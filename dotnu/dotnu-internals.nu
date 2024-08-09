@@ -215,7 +215,10 @@ export def 'dummy-command' [] {
     let $dummy_closure = {|function|
         let $params = scope commands
             | where name == $command
-            | get signatures.0
+            | get -i signatures.0
+            | if $in == null {
+                error make --unspanned {msg: $'no command `($command)` was found'}
+            } else {}
             | values
             | get 0
             | each {
