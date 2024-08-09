@@ -12,6 +12,11 @@ use dotnu-internals.nu [
 
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
+#
+# > set-x tests-related/set-x-demo.nu --echo | lines | first 3 | str join (char nl)
+# mut $prev_ts = date now
+# print ("> sleep 0.5sec" | nu-highlight)
+# sleep 0.5sec
 export def set-x [
     file: path # path to `.nu` file
     --regex: string = "\n+\n" # regex to use to split .nu on blocks
