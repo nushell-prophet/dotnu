@@ -184,12 +184,7 @@ export def extract-command [
 ] {
     let $dotnu_vars_delim = '#dotnu-vars-end'
 
-    let $extracted_command = dummy-command
-        | lines | skip | drop | str join "\n"
-        | str replace -a '$command' $command
-        | str replace -a '$file' $file
-        | str replace -a '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
-        | $"source ($file)\n\n($in)"
+    let $extracted_command = dummy-command $command $file $dotnu_vars_delim
         | nu -n -c $in
         | split row $dotnu_vars_delim
 

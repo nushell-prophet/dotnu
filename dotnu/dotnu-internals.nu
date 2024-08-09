@@ -206,10 +206,11 @@ export def 'join-next' [
     | where callee != null
 }
 
-export def 'dummy-command' [] {
-    let $command = ''
-    let $dotnu_vars_delim = ''
-
+export def 'dummy-command' [
+    $command
+    $file
+    $dotnu_vars_delim
+] {
     # the closure below is used as a highlighted in an editor constructor
     # for the command that will be executed in `nu -c`
     let $dummy_closure = {|function|
@@ -263,4 +264,9 @@ export def 'dummy-command' [] {
     }
 
     view source $dummy_closure
+    | lines | skip | drop | str join "\n"
+    | str replace -a '$command' $command
+    | str replace -a '$file' $file
+    | str replace -a '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
+    | $"source ($file)\n\n($in)"
 }
