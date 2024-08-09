@@ -210,7 +210,7 @@ export def extract-command [
     | items {|k v| $'let $($k) = ($v)'}
     | append (char nl)
     | str join (char nl)
-    | $in + $dotnu_vars_delim + $extracted_command.1
+    | $in + $dotnu_vars_delim + $extracted_command.1 + (char nl)
     | if $echo {
         return $in
     } else {
