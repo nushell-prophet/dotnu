@@ -17,10 +17,7 @@ def 'test-parse-docstrings' [] {
         | parse-docstrings
         | to yaml
     }
-    | do_closure_save_results (
-        ['tests' 'assets' 'output-yaml' 'parse-docstrings1-numd-internals.yaml']
-        | path join
-    )
+    | do_closure_save_results 'tests' 'assets' 'output-yaml' 'parse-docstrings1-numd-internals.yaml'
 }
 
 def 'test-dependencies' [] {
@@ -32,10 +29,7 @@ def 'test-dependencies' [] {
         | dependencies $in.0 $in.1
         | to yaml
     }
-    | do_closure_save_results (
-        ['tests' 'assets' 'output-yaml' 'dependencies.yaml']
-        | path join
-    )
+    | do_closure_save_results 'tests' 'assets' 'output-yaml' 'dependencies.yaml'
 }
 
 def 'test-dependencies-keep_builtins' [] {
@@ -44,18 +38,16 @@ def 'test-dependencies-keep_builtins' [] {
             ([tests assets example-mod1.nu] | path join)
             ([tests assets example-mod2.nu] | path join)
         ]
-        | dependencies $in.0 $in.1 --keep_builtins
+        | dependencies ...$in --keep_builtins
         | to yaml
     }
-    | do_closure_save_results (
-        ['tests' 'assets' 'output-yaml' 'dependencies --keep_bulitins.yaml']
-        | path join
-    )
+    | do_closure_save_results 'tests' 'assets' 'output-yaml' 'dependencies --keep_bulitins.yaml'
 }
 
 def do_closure_save_results [
-    output_file: path
+    ...output_path_segments
 ] {
+    let $output_file = $output_path_segments | path join
     let closure = $in
 
     view source $closure
