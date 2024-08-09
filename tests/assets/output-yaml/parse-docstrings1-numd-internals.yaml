@@ -1,4 +1,4 @@
-# [tests-related numd-internals.nu]
+# [tests/assets numd-internals.nu]
 # | path join
 # | open
 # | parse-docstrings
@@ -220,4 +220,3 @@
     #
     # > tstamp
     # 20240527_111215
-
