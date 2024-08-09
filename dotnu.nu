@@ -25,8 +25,7 @@ export def set-x [
     | each {|block|
         $block
         | escape-escapes
-        | nu-highlight
-        | ($'print "> ($in)"(char nl)($block)'
+        | ('print ("> ' + $in + '" | nu-highlight)' + (char nl) + $block
             + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
     }
     | prepend 'mut $prev_ts = date now'
