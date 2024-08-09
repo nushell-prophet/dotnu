@@ -197,7 +197,7 @@ export def extract-command [
     $extracted_command.0
     | variable-definitions-to-record
     | if ($filename | path exists) and not $clear_vars {
-        merge (
+        merge ( # here we use defined variables from the previously extracted command to a file
             open $filename
             | split row $dotnu_vars_delim
             | get 0
