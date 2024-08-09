@@ -11,36 +11,44 @@ def 'main testing' [] {
 
 def 'test-parse-docstrings' [] {
     {
-        [tests-related numd-internals.nu]
+        [tests assets numd-internals.nu]
         | path join
         | open
         | parse-docstrings
         | to yaml
     }
     | do_closure_save_results (
-        ['tests-related' 'output-yaml' 'parse-docstrings1-numd-internals.yaml']
+        ['tests' 'assets' 'output-yaml' 'parse-docstrings1-numd-internals.yaml']
         | path join
     )
 }
 
 def 'test-dependencies' [] {
     {
-        dependencies tests-related/example-mod1.nu tests-related/example-mod2.nu
+        [
+            ([tests assets example-mod1.nu] | path join)
+            ([tests assets example-mod2.nu] | path join)
+        ]
+        | dependencies $in.0 $in.1
         | to yaml
     }
     | do_closure_save_results (
-        ['tests-related' 'output-yaml' 'dependencies.yaml']
+        ['tests' 'assets' 'output-yaml' 'dependencies.yaml']
         | path join
     )
 }
 
 def 'test-dependencies-keep_builtins' [] {
     {
-        dependencies tests-related/example-mod1.nu tests-related/example-mod2.nu --keep_builtins
+        [
+            ([tests assets example-mod1.nu] | path join)
+            ([tests assets example-mod2.nu] | path join)
+        ]
+        | dependencies $in.0 $in.1 --keep_builtins
         | to yaml
     }
     | do_closure_save_results (
-        ['tests-related' 'output-yaml' 'dependencies --keep_bulitins.yaml']
+        ['tests' 'assets' 'output-yaml' 'dependencies --keep_bulitins.yaml']
         | path join
     )
 }
