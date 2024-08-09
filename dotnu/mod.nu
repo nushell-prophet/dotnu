@@ -1,14 +1,14 @@
 use dotnu-internals.nu [
     dummy-command
-    variable-definitions-to-record
-    parse-example
     escape-escapes
-    extract-command-name
     execute-update-example-results
+    extract-command-name
     extract-module-commands
-    prepare-substitutions
-    nu-completion-command-name
     join-next
+    nu-completion-command-name
+    parse-example
+    prepare-substitutions
+    variable-definitions-to-record
 ]
 
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
