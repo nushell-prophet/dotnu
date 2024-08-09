@@ -1,5 +1,5 @@
-use dotnu.nu *
-use dotnu-internals.nu *
+use dotnu/mod.nu *
+use dotnu/dotnu-internals.nu *
 
 def main [] {}
 
