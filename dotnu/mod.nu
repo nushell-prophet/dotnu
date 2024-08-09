@@ -4,6 +4,7 @@ use dotnu-internals.nu [
     execute-update-example-results
     extract-command-name
     extract-module-commands
+    generate-test-command
     join-next
     nu-completion-command-name
     parse-example
@@ -162,6 +163,30 @@ export def update-docstring-examples [
     | if $echo {} else {
         save $module_file --force
     }
+}
+
+# Generate nupm tests from examples in docstrings
+export def generate-nupm-tests [
+    $module_file
+] {
+    parse-docstrings $module_file
+    | select command_name examples
+    | where examples != []
+    | each {|i|
+        $i.examples
+        | enumerate
+        | each {|e| generate-test-command $i.command_name $e.index $e.item.command}
+    }
+    | flatten
+    | prepend (
+        $module_file
+        | path expand
+        | path relative-to (pwd)
+        | [.. $in]
+        | path join
+        | $'use ($in) *'
+    )
+    | str join "\n\n"
 }
 
 # Generate `.numd` from `.nu` divided on blocks by "\n\n"

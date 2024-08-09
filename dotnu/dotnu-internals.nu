@@ -270,3 +270,15 @@ export def 'dummy-command' [
     | str replace -a '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
     | $"source ($file)\n\n($in)"
 }
+
+export def generate-test-command [
+    $command_name
+    $index
+    $command
+] {
+    (
+        $'export def `test-($command_name)-($index)` [] {' + (char nl) +
+        ($command | str replace -arm `^(> )?` `    `) + (char nl) +
+        '}'
+    )
+}
