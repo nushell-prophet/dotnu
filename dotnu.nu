@@ -13,7 +13,7 @@ use dotnu-internals.nu [
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
 #
-# > set-x tests-related/set-x-demo.nu --echo | lines | first 3 | str join (char nl)
+# > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | str join (char nl)
 # mut $prev_ts = date now
 # print ("> sleep 0.5sec" | nu-highlight)
 # sleep 0.5sec
@@ -47,7 +47,7 @@ export def set-x [
 
 # Check .nu module files to determine which commands depend on other commands.
 #
-# > dotnu dependencies tests-related/example-mod1.nu tests-related/example-mod2.nu
+# > dotnu dependencies tests/assets/example-mod1.nu tests/assets/example-mod2.nu
 # | first 3
 # ╭─#─┬──caller───┬─────callee─────┬─filename_of_caller─┬─step─╮
 # │ 0 │ command-3 │ lscustom       │ example-mod1.nu    │    0 │

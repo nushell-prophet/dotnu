@@ -14,7 +14,7 @@
 Let's check the code of the simple `set-x-demo.nu` script
 
 ```nushell indent-output
-> open tests-related/set-x-demo.nu
+> open tests/assets/set-x-demo.nu
 //  sleep 0.5sec
 //
 //  sleep 0.7sec
@@ -24,7 +24,7 @@ Let's check the code of the simple `set-x-demo.nu` script
 Let's see how `dotnu set-x` will modify this script
 
 ```nushell indent-output
-> dotnu set-x tests-related/set-x-demo.nu --echo
+> dotnu set-x tests/assets/set-x-demo.nu --echo
 //  mut $prev_ts = date now
 //  print "> sleep 0.5sec"
 //  sleep 0.5sec
