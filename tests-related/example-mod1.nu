@@ -18,6 +18,7 @@ export def lscustom [] {
     ls
 }
 
+# This example won't update as its command is not exported
 # > lscustom | sort-by-custom --option name
 def --env 'sort-by-custom' [
     --option: string = 'modified'
@@ -27,11 +28,13 @@ def --env 'sort-by-custom' [
 
 # Example command-3
 #
+# This example won't update as its command is not exported
 # > command-3
 def --wrapped `command-3` [...rest] {
     lscustom | sort-by-custom
 }
 
+# This example won't update as its command is not exported
 # > lscustom | first-custom
 def "first-custom" --env [] {
     first
