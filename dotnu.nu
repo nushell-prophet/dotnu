@@ -83,8 +83,8 @@ export def parse-docstrings [
     } else {
         $file | open | collect
     }
-    | parse -r '(?:\n\n|^)((?:(?:#.*\n)*)?(?:export def.*))'
-    | get capture0
+    | parse -r '(?:\n\n|^)(?<definit_line>(?:(?:#.*\n)*)?(?:export def.*))'
+    | get definit_line
     | each {
         let $lines = lines
 
