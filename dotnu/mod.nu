@@ -187,6 +187,7 @@ export def generate-nupm-tests [
         | $'use ($in) *'
     )
     | str join "\n\n"
+    | str replace -r "\n*$" "\n"
 }
 
 # Generate `.numd` from `.nu` divided on blocks by "\n\n"
