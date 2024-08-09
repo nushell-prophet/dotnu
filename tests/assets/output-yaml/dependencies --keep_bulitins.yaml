@@ -1,16 +1,28 @@
-# dependencies tests/assets/example-mod1.nu tests/assets/example-mod2.nu --keep_builtins
+# [
+# ([tests assets example-mod1.nu] | path join)
+# ([tests assets example-mod2.nu] | path join)
+# ]
+# | dependencies $in.0 $in.1 --keep_builtins
 # | to yaml
-- caller: append-random
-  callee: append
-  filename_of_caller: example-mod2.nu
-  step: 0
-- caller: append-random
+- caller: main
   callee: export def
-  filename_of_caller: example-mod2.nu
+  filename_of_caller: example-mod1.nu
   step: 0
-- caller: append-random
-  callee: random chars
-  filename_of_caller: example-mod2.nu
+- caller: lscustom
+  callee: export def
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: lscustom
+  callee: ls
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: sort-by-custom
+  callee: def
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: sort-by-custom
+  callee: sort-by
+  filename_of_caller: example-mod1.nu
   step: 0
 - caller: command-3
   callee: def
@@ -22,6 +34,18 @@
   step: 0
 - caller: command-3
   callee: sort-by-custom
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: first-custom
+  callee: def
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: first-custom
+  callee: first
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: command-5
+  callee: export def
   filename_of_caller: example-mod1.nu
   step: 0
 - caller: command-5
@@ -29,40 +53,20 @@
   filename_of_caller: example-mod1.nu
   step: 0
 - caller: command-5
-  callee: export def
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: command-5
   callee: first-custom
   filename_of_caller: example-mod1.nu
   step: 0
-- caller: first-custom
-  callee: def
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: first-custom
-  callee: first
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: lscustom
+- caller: append-random
   callee: export def
-  filename_of_caller: example-mod1.nu
+  filename_of_caller: example-mod2.nu
   step: 0
-- caller: lscustom
-  callee: ls
-  filename_of_caller: example-mod1.nu
+- caller: append-random
+  callee: append
+  filename_of_caller: example-mod2.nu
   step: 0
-- caller: main
-  callee: export def
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: sort-by-custom
-  callee: def
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: sort-by-custom
-  callee: sort-by
-  filename_of_caller: example-mod1.nu
+- caller: append-random
+  callee: random chars
+  filename_of_caller: example-mod2.nu
   step: 0
 - caller: command-3
   callee: export def
@@ -78,10 +82,6 @@
   filename_of_caller: example-mod1.nu
 - caller: command-5
   callee: def
-  step: 1
-  filename_of_caller: example-mod1.nu
-- caller: command-5
-  callee: first
   step: 1
   filename_of_caller: example-mod1.nu
 - caller: command-5
@@ -93,6 +93,10 @@
   step: 1
   filename_of_caller: example-mod1.nu
 - caller: command-5
+  callee: first
+  step: 1
+  filename_of_caller: example-mod1.nu
+- caller: command-5
   callee: ls
   step: 2
   filename_of_caller: example-mod1.nu
@@ -100,3 +104,4 @@
   callee: sort-by
   step: 2
   filename_of_caller: example-mod1.nu
+

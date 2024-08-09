@@ -1,9 +1,9 @@
-# dependencies tests/assets/example-mod1.nu tests/assets/example-mod2.nu
+# [
+# ([tests assets example-mod1.nu] | path join)
+# ([tests assets example-mod2.nu] | path join)
+# ]
+# | dependencies $in.0 $in.1
 # | to yaml
-- caller: append-random
-  filename_of_caller: example-mod2.nu
-  callee: null
-  step: 0
 - caller: command-3
   callee: lscustom
   filename_of_caller: example-mod1.nu
@@ -20,7 +20,7 @@
   callee: first-custom
   filename_of_caller: example-mod1.nu
   step: 0
-- caller: first-custom
+- caller: main
   filename_of_caller: example-mod1.nu
   callee: null
   step: 0
@@ -28,12 +28,16 @@
   filename_of_caller: example-mod1.nu
   callee: null
   step: 0
-- caller: main
+- caller: sort-by-custom
   filename_of_caller: example-mod1.nu
   callee: null
   step: 0
-- caller: sort-by-custom
+- caller: first-custom
   filename_of_caller: example-mod1.nu
+  callee: null
+  step: 0
+- caller: append-random
+  filename_of_caller: example-mod2.nu
   callee: null
   step: 0
 - caller: command-5
@@ -44,3 +48,4 @@
   callee: sort-by-custom
   step: 1
   filename_of_caller: example-mod1.nu
+
