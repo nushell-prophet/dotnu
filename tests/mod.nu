@@ -1,4 +1,4 @@
-use ../dotnu/dotnu-internals.nu *
+use ('..' | path join dotnu dotnu-internals.nu) *
 
 export def test1 [] {}
 

@@ -1,6 +1,5 @@
-const dotnupath = 'dotnu'
-use $dotnupath *
-use ($dotnupath | path join dotnu-internals.nu) *
+use dotnu *
+use ('dotnu' | path join dotnu-internals.nu) *
 
 def main [] {}
 
