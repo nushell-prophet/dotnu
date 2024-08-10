@@ -168,26 +168,50 @@ export def update-docstring-examples [
 # Generate nupm tests from examples in docstrings
 export def generate-nupm-tests [
     $module_file
+    --echo
 ] {
-    parse-docstrings $module_file
-    | select command_name examples
-    | where examples != []
-    | each {|i|
-        $i.examples
-        | enumerate
-        | each {|e| generate-test-command $i.command_name $e.index $e.item.command}
+    let tests_script = parse-docstrings $module_file
+        | select command_name examples
+        | where examples != []
+        | each {|i|
+            $i.examples
+            | enumerate
+            | each {|e| generate-test-command $i.command_name $e.index $e.item.command}
+        }
+        | flatten
+        | prepend (
+            $module_file
+            | path expand
+            | path relative-to (pwd)
+            | [.. $in]
+            | path join
+            | $'use ($in) *'
+        )
+        | str join "\n\n"
+        | str replace -r "\n*$" "\n"
+
+    if $echo {return $tests_script}
+
+    # I assume that we are in root directory here
+    let $tests_filename = $'dotnu-examples-test-($module_file | path basename)'
+    let $tests_path = ['tests' $tests_filename] | path join
+    let $tests_mod_path = ['tests' mod.nu] | path join
+    let $export_statement = $"export use ($tests_filename) *\n"
+
+    mkdir tests
+    $tests_script | save -f $tests_path
+
+    if ($tests_mod_path | path exists) {
+        open $tests_mod_path
+        | if ($in | str contains $tests_filename) {
+            return
+        } else {
+            $"($in)\n($export_statement)"
+        }
+    } else {
+        $export_statement
     }
-    | flatten
-    | prepend (
-        $module_file
-        | path expand
-        | path relative-to (pwd)
-        | [.. $in]
-        | path join
-        | $'use ($in) *'
-    )
-    | str join "\n\n"
-    | str replace -r "\n*$" "\n"
+    | save -f $tests_mod_path
 }
 
 # Generate `.numd` from `.nu` divided on blocks by "\n\n"
