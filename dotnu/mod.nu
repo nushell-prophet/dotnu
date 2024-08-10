@@ -172,6 +172,9 @@ export def generate-nupm-tests [
     $module_file
     --echo # output script to stdout instead of updating the module_file provided
 ] {
+    let $module_file = $module_file | path expand
+    let $root = find-root ($module_file | if ($in | path type) == file {path dirname} else {})
+
     let tests_script = parse-docstrings $module_file
         | select command_name examples
         | where examples != []
@@ -183,8 +186,7 @@ export def generate-nupm-tests [
         | flatten
         | prepend (
             $module_file
-            | path expand
-            | path relative-to (pwd)
+            | path relative-to $root
             | [.. $in]
             | path join
             | $'use ($in) *'
@@ -196,13 +198,13 @@ export def generate-nupm-tests [
 
     # I assume that we are in root directory here
     let $tests_filename = $'dotnu-examples-test-($module_file | path basename)'
-    let $root = find-root ($module_file | if ($in | path type) == file {path dirname} else {})
-    let $tests_path = [$root 'tests' $tests_filename] | path join | path relative-to $root
+    let $tests_path = [$root 'tests' $tests_filename] | path join
+    let $tests_path_abs = $tests_path | path expand
     let $tests_mod_path = $tests_path | str replace $tests_filename 'mod.nu'
     let $export_statement = $"export use ($tests_filename) *\n"
 
-    mkdir tests
-    $tests_script | save -f $tests_path
+    mkdir ($root | path join 'tests')
+    $tests_script | save -f $tests_path_abs
 
     if ($tests_mod_path | path exists) {
         open $tests_mod_path
