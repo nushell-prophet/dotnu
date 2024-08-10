@@ -10,6 +10,11 @@ def 'main testing' [] {
     test-dependencies-keep_builtins
 }
 
+def 'main test-nupm' [] {
+    overlay use tests/nupm/test.nu --prefix as nupm
+    nupm test
+}
+
 def 'test-parse-docstrings' [] {
     {
         [tests assets numd-internals.nu]
