@@ -89,7 +89,8 @@ def 'main release' [] {
         open -r
     } else {"\n"}
     | lines
-    | update 0 ('<h1 align="center">' + $git_info.name + '<br>' + $desc + '</h1>')
+    # | update 0 ('<h1 align="center">' + $git_info.name + '</h1>' + '<h3 align="center">' + $desc + '</h3>')
+    | update 0 $'# ($git_info.name) - ($desc)'
     | str join (char nl)
     | $in + (char nl)
     | save -f README.md
