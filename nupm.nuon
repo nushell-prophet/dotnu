@@ -1,1 +1,1 @@
-{name: dotnu, type: module, version: "0.0.5", description: "generate scripts from `.nu` scripts ﻿🤯", license: LICENSE}
+{name: dotnu, type: module, version: "0.0.6", description: "generate scripts from `.nu` scripts ﻿🤯", license: LICENSE}
