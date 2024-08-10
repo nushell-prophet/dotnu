@@ -170,7 +170,7 @@ export def update-docstring-examples [
 # Generate nupm tests from examples in docstrings
 export def generate-nupm-tests [
     $module_file
-    --echo
+    --echo # output script to stdout instead of updating the module_file provided
 ] {
     let tests_script = parse-docstrings $module_file
         | select command_name examples
