@@ -276,9 +276,9 @@ export def generate-test-command [
     $index
     $command
 ] {
-    (
-        $'export def `test-($command_name)-($index)` [] {' + (char nl) +
-        ($command | str replace -arm `^(> )?` `    `) + (char nl) +
+    [
+        $'export def `test-($command_name)-($index)` [] {'
+            ($command | str replace -arm `^(> )?` `    `)
         '}'
-    )
+    ] | str join (char nl)
 }
