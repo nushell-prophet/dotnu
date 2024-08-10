@@ -161,12 +161,16 @@ export def execute-update-example-result [
     update examples {|row|
         $row.examples
         | upsert result {|i|
-            $i.command
-            | str replace -arm '^> ' ''
-            | gen-example-exec-command $in $row.command_name $use_statement $module_file
-            | nu --no-newline --commands $in
+            let $example_command = $i.command
+                | str replace -arm '^> ' ''
+                | gen-example-exec-command $in $row.command_name $use_statement $module_file
+
+            nu --no-newline --commands $example_command
             | complete
-            | if $in.exit_code == 0 {get stdout} else {get stderr}
+            | if $in.exit_code == 0 {get stdout} else {
+                print $"the next command has failed:\n`($example_command)`\n\n($in.stderr)"
+                'example update failed'
+            }
             | ansi strip
             | str trim --char (char nl)
         }
