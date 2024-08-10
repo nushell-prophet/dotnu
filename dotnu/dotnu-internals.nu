@@ -154,7 +154,7 @@ export def extract-module-commands [
 }
 
 # update examples column with results of execution commands
-export def execute-update-example-results [
+export def execute-update-example-result [
     --module_file: string = ''
     --use_statement: string = ''
 ] {

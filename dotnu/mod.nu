@@ -1,7 +1,7 @@
 use dotnu-internals.nu [
     dummy-command
     escape-escapes
-    execute-update-example-results
+    execute-update-example-result
     extract-command-name
     extract-module-commands
     generate-test-command
@@ -155,7 +155,7 @@ export def update-docstring-examples [
     | if $command_filter == '' {} else {
         where command_name =~ $command_filter
     }
-    | execute-update-example-results --module_file $module_file --use_statement $use_statement
+    | execute-update-example-result --module_file $module_file --use_statement $use_statement
     | prepare-substitutions
     | reject command_description command_name examples -i
     | reduce -f $raw_module {|i acc|
