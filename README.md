@@ -1,4 +1,4 @@
-<h1 align="center">generate scripts from .nu scripts ﻿🤯</h1>
+<h1 align="center">dotnu<br>generate scripts from .nu scripts ﻿🤯</h1>
 
 ## Quickstart
 
@@ -21,6 +21,7 @@ Let's check the code of the simple `set-x-demo.nu` script
 //
 //  sleep 0.8sec
 ```
+
 Let's see how `dotnu set-x` will modify this script
 
 ```nushell indent-output
