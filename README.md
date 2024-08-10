@@ -1,4 +1,4 @@
-<h1 align="center">dotnu</h1><h3 align="center">generate scripts from `.nu` scripts ﻿🤯</h3>
+# dotnu - generate scripts from `.nu` scripts ﻿🤯
 
 ## Quickstart
 
