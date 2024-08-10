@@ -12,6 +12,8 @@ use dotnu-internals.nu [
     variable-definitions-to-record
 ]
 
+use ('..' | path join tests nupm utils dirs.nu) find-root
+
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
 #
@@ -194,8 +196,9 @@ export def generate-nupm-tests [
 
     # I assume that we are in root directory here
     let $tests_filename = $'dotnu-examples-test-($module_file | path basename)'
-    let $tests_path = ['tests' $tests_filename] | path join
-    let $tests_mod_path = ['tests' mod.nu] | path join
+    let $root = find-root ($module_file | if ($in | path type) == file {path dirname} else {})
+    let $tests_path = [$root 'tests' $tests_filename] | path join | path relative-to $root
+    let $tests_mod_path = $tests_path | str replace $tests_filename 'mod.nu'
     let $export_statement = $"export use ($tests_filename) *\n"
 
     mkdir tests
