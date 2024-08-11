@@ -82,6 +82,22 @@ export def dependencies [
     | uniq-by caller callee
 }
 
+# Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
+export def filter-commands-with-no-tests [] {
+    let $input = $in
+    let $covered_with_tests = $input
+        | where caller =~ 'test'
+        | get callee
+        | compact
+        | uniq
+
+    $input
+    | reject callee step
+    | uniq-by caller
+    | where caller !~ 'test'
+    | where caller not-in $covered_with_tests
+}
+
 # Parse commands definitions with their docstrings, output a table.
 export def parse-docstrings [
     file?
