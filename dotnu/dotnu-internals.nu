@@ -121,7 +121,7 @@ export def extract-module-commands [
         }
         | insert filename_of_caller ($path | path basename)
 
-    if $definitions_only {return ($defined_commands | select caller filename_of_caller)}
+    if $definitions_only or ($defined_commands | is-empty) {return ($defined_commands | select caller filename_of_caller)}
 
     let $with_index = $defined_commands
         | insert start {|i| $raw_script | str index-of $i.line}
