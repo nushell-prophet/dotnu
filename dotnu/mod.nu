@@ -196,7 +196,6 @@ export def generate-nupm-tests [
 
     if $echo {return $tests_script}
 
-    # I assume that we are in root directory here
     let $tests_filename = $'dotnu-examples-test-($module_file | path basename)'
     let $tests_path = [$root 'tests' $tests_filename] | path join
     let $tests_path_abs = $tests_path | path expand
