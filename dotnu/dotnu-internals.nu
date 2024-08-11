@@ -135,7 +135,7 @@ export def extract-module-commands [
             | select caller filename_of_caller
             | scan {} --noinit {|prev curr| if $curr.caller? == null {$prev} else {$curr}}
         )
-        | where shape == 'shape_internalcall'
+        | where shape in ['shape_internalcall' 'shape_external']
         | if $keep_builtins {} else {
             where content not-in (
                 help commands | where command_type in ['built-in' 'keyword'] | get name
