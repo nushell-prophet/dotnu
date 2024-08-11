@@ -56,6 +56,10 @@
   callee: first-custom
   filename_of_caller: example-mod1.nu
   step: 0
+- caller: command-5
+  callee: append-random
+  filename_of_caller: example-mod1.nu
+  step: 0
 - caller: append-random
   callee: export def
   filename_of_caller: example-mod2.nu
@@ -94,6 +98,14 @@
   filename_of_caller: example-mod1.nu
 - caller: command-5
   callee: first
+  step: 1
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: append
+  step: 1
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: random chars
   step: 1
   filename_of_caller: example-mod1.nu
 - caller: command-5
