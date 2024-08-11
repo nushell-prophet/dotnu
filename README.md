@@ -58,8 +58,6 @@ Description:
 Usage:
   > parse-docstrings (file)
 
-Flags:
-
 Parameters:
   file <any> (optional)
 ```
@@ -120,8 +118,6 @@ Description:
 
 Usage:
   > filter-commands-with-no-tests
-
-Flags:
 ```
 
 ### dotnu generate-nupm-tests
