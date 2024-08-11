@@ -127,7 +127,7 @@ export def parse-docstrings [
     }
 }
 
-# Filter commands after `parse-docstrings` that aren't used by any other command containing `test` in its name.
+# Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
 export def filter-commands-with-no-tests [] {
     let $input = $in
     let $covered_with_tests = $input
