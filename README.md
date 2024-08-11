@@ -1,6 +1,3 @@
-
-![dotnu](https://github.com/user-attachments/assets/7bbf0ec3-6ac7-45db-8b00-cc11e18e6dc4)
-
 # dotnu - generate scripts from `.nu` scripts ﻿🤯
 
 ## Quickstart
