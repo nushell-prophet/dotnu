@@ -20,6 +20,10 @@
   callee: first-custom
   filename_of_caller: example-mod1.nu
   step: 0
+- caller: command-5
+  callee: append-random
+  filename_of_caller: example-mod1.nu
+  step: 0
 - caller: main
   filename_of_caller: example-mod1.nu
   callee: null
