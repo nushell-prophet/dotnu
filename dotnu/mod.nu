@@ -127,6 +127,22 @@ export def parse-docstrings [
     }
 }
 
+# Filter commands after `parse-docstrings` that aren't used by any other command containing `test` in its name.
+export def filter-commands-with-no-tests [] {
+    let $input = $in
+    let $covered_with_tests = $input
+        | where caller =~ 'test'
+        | get callee
+        | compact
+        | uniq
+
+    $input
+    | reject callee step
+    | uniq-by caller
+    | where caller !~ 'test'
+    | where caller not-in $covered_with_tests
+}
+
 # Execute examples in the docstrings of the module commands and update the results accordingly.
 export def update-docstring-examples [
     module_file: path
