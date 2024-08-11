@@ -17,6 +17,16 @@ export def lscustom [] {
     ls
 }
 
+
+# > command-5
+# ╭─#─┬───────────name────────────┬─type─┬──size───┬───modified───╮
+# │ 0 │ LICENSE                   │ file │ 1.2 KiB │ 5 months ago │
+# │ 1 │ WW5DW7di1FEYWYdZ7P3ETt1VI │   ❎ │      ❎ │           ❎ │
+# ╰───┴───────────────────────────┴──────┴─────────┴──────────────╯
+export def 'command-5' [] {
+    command-3 'abc' | first-custom | append-random
+}
+
 # This example won't update as its command is not exported
 # > lscustom | sort-by-custom --option name
 def --env 'sort-by-custom' [
@@ -37,13 +47,4 @@ def --wrapped `command-3` [...rest] {
 # > lscustom | first-custom
 def "first-custom" --env [] {
     first
-}
-
-# > command-5
-# ╭─#─┬───────────name────────────┬─type─┬──size───┬───modified───╮
-# │ 0 │ LICENSE                   │ file │ 1.2 KiB │ 5 months ago │
-# │ 1 │ WW5DW7di1FEYWYdZ7P3ETt1VI │   ❎ │      ❎ │           ❎ │
-# ╰───┴───────────────────────────┴──────┴─────────┴──────────────╯
-export def 'command-5' [] {
-    command-3 'abc' | first-custom | append-random
 }
