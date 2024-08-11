@@ -47,4 +47,5 @@ def --wrapped `command-3` [...rest] {
 # > lscustom | first-custom
 def "first-custom" --env [] {
     first
+    | select name
 }
