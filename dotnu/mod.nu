@@ -244,7 +244,7 @@ export def generate-numd [] {
 # extract a code of a command from a module and save it as a `.nu' file, that can be sourced
 # by executing this `.nu` file you'll have all variables in your environment for debuging or development
 export def extract-command [
-    $file: path # a file of a module to extract a command from
+    $module_file: path # path to a nushell module file
     $command: string@nu-completion-command-name # the name of the command to extract
     --output: path # a file path to save extracted command script
     --clear_vars # clear variables previously set in the extracted .nu file
@@ -254,7 +254,7 @@ export def extract-command [
 ] {
     let $dotnu_vars_delim = '#dotnu-vars-end'
 
-    let $extracted_command = dummy-command $command $file $dotnu_vars_delim
+    let $extracted_command = dummy-command $command $module_file $dotnu_vars_delim
         | nu -n -c $in
         | split row $dotnu_vars_delim
 
