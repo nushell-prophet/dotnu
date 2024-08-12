@@ -62,7 +62,7 @@ Examples:
 
 `dotnu parse-docstrings` parses command definitions along with their docstrings from a module file and outputs a table.
 
-To check it in action let's first examine an example module:
+To see it in action let's first examine an example module:
 
 ```nushell
 > let hello_module_path = [tests assets a hello.nu] | path join
