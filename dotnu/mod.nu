@@ -14,41 +14,6 @@ use dotnu-internals.nu [
 
 use ('..' | path join tests nupm utils dirs.nu) find-root
 
-# Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
-# that will print the code of each block before executing it, and print the timings of each block's execution.
-#
-# > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | str join (char nl)
-# mut $prev_ts = date now
-# print ("> sleep 0.5sec" | nu-highlight)
-# sleep 0.5sec
-export def set-x [
-    file: path # path to `.nu` file
-    --regex: string = "\n+\n" # regex to use to split .nu on blocks
-    --echo # output script to terminal
-] {
-    let $out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
-
-    open $file
-    | str trim --char (char nl)
-    | split row -r $regex
-    | each {|block|
-        $block
-        | escape-escapes
-        | ('print ("> ' + $in + '" | nu-highlight)' + (char nl) + $block
-            + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
-    }
-    | prepend 'mut $prev_ts = date now'
-    | str join (char nl)
-    | if $echo {
-        return $in
-    } else {
-        save -f $out_file
-
-        print $'the file ($out_file) is produced. Source it'
-        commandline edit -r $'source ($out_file)'
-    }
-}
-
 # Check .nu module files to determine which commands depend on other commands.
 #
 # > dependencies ...(glob tests/assets/a/*.nu)
@@ -199,6 +164,41 @@ export def update-docstring-examples [
     | str replace -r '\n*$' "\n" # add ending new line
     | if $echo {} else {
         save $module_file --force
+    }
+}
+
+# Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
+# that will print the code of each block before executing it, and print the timings of each block's execution.
+#
+# > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | str join (char nl)
+# mut $prev_ts = date now
+# print ("> sleep 0.5sec" | nu-highlight)
+# sleep 0.5sec
+export def set-x [
+    file: path # path to `.nu` file
+    --regex: string = "\n+\n" # regex to use to split .nu on blocks
+    --echo # output script to terminal
+] {
+    let $out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
+
+    open $file
+    | str trim --char (char nl)
+    | split row -r $regex
+    | each {|block|
+        $block
+        | escape-escapes
+        | ('print ("> ' + $in + '" | nu-highlight)' + (char nl) + $block
+            + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
+    }
+    | prepend 'mut $prev_ts = date now'
+    | str join (char nl)
+    | if $echo {
+        return $in
+    } else {
+        save -f $out_file
+
+        print $'the file ($out_file) is produced. Source it'
+        commandline edit -r $'source ($out_file)'
     }
 }
 
