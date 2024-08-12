@@ -24,7 +24,7 @@ export def hi [where: string] {
 # > dialogue
 # - hello Darren!
 # - hi Maxim!
-# - have you heard about the fancy new shell?
+# - have you heard about a fancy new shell?
 export def main [] {
     [ (hello Darren) (hi Maxim) (neutral-question) ]
     | each {'- ' + $in}
