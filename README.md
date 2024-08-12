@@ -60,7 +60,7 @@ Examples:
 
 ### dotnu parse-docstrings
 
-`dotnu parse-docstrings` parses command definitions along with their docstrings from a module file and outputs a table.
+`dotnu parse-docstrings` parses command definitions along with their docstrings from a module file and outputs a table. It uses regex instead of the internal parsing engine of nushell to enable `str replace` operations inside the `dotnu update-docstring-examples` that will be showecased further.
 
 To see it in action let's first examine an example module:
 
