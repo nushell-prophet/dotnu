@@ -98,6 +98,7 @@ def 'main release' [] {
     prettier README.md -w
 
     git add nupm.nuon
+    git add README.md
     git commit -m $'($git_tag) nupm version'
     git tag $git_tag
 }
