@@ -1,4 +1,4 @@
-# dotnu - tools for nushell modules and scripts
+# dotnu - Convenience tools for interacting with the code of Nushell modules and scripts. ⏎
 
 ## Quickstart
 
@@ -101,6 +101,7 @@ And now let's use `dotnu parse-docstrings` and see its structured output (I get 
 ```
 
 `dotnu parse-docstrings` uses the following assumptions:
+
 1. The command description and example blocks are divided by a line with only the '#' symbol. The command description is optional.
 2. Examples of command usage may contain their own annotations (rows before the line starting with `>`). Example annotations are optional.
 3. Examples of command usage consist of consecutive lines starting with `>` or `|` symbols.
