@@ -37,12 +37,17 @@ export def parse-example [] {
 
 # > 'export def --env "test" --wrapped' | lines | last | extract-command-name
 # test
-export def 'extract-command-name' [] {
+export def 'extract-command-name' [
+    $module_file? # path to a nushell module file
+] {
     str replace -r '\[.*' ''
     | str replace -r '^(export )?def ' ''
     | str replace -ra '(--(env|wrapped) ?)' ''
     | str replace -ra "\"|'|`" ''
     | str trim
+    | if $module_file == null {} else {
+        str replace -r '^main( |$)' ($module_file | path parse | get stem)
+    }
 }
 
 # generate command to execute `>` example command in a new nushell instance
@@ -118,8 +123,7 @@ export def extract-module-commands [
         | wrap line
         | insert caller {|i|
             $i.line
-            | extract-command-name
-            | str replace -r '^main( |$)' ($path | path parse | get stem)
+            | extract-command-name $path
         }
         | insert filename_of_caller ($path | path basename)
 

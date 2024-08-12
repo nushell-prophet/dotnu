@@ -114,7 +114,7 @@ export def parse-docstrings [
 
         let $command_name = $lines
             | last
-            | extract-command-name
+            | extract-command-name $module_file
 
         let $blocks = $lines
             | if ($lines | length) > 1 {
