@@ -158,7 +158,10 @@ export def update-docstring-examples [
     if not $no_git_check {
         git status --short
         | if not ($in | lines | parse '{s} {m} {f}' | is-empty) {
-            error make {msg: $"Working tree isn't empty. Please commit or stash all changed files.\n($in)"}
+            error make --unspanned {
+                msg: ("Working tree isn't empty. Please commit or stash changed files," +
+                        "or use `--no_git_check` flag. Uncommited files:" + (char nl) + $in)
+            }
         }
     }
 
