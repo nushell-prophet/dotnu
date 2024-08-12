@@ -78,7 +78,7 @@ export def escape-escapes []: string -> string {
 
 # context aware completions for defined command names in nushell module files
 #
-# > nu-completion-command-name 'dotnu extract-command tests/assets/example-mod1.nu' | first 3
+# > nu-completion-command-name 'dotnu extract-command tests/assets/b/example-mod1.nu' | first 3
 # ╭───┬───────────╮
 # │ 0 │ main      │
 # │ 1 │ lscustom  │
@@ -97,14 +97,14 @@ export def nu-completion-command-name [
 
 # Extract table with information on which commands use which commands
 #
-# > extract-module-commands tests/assets/example-mod1.nu | first 3
+# > extract-module-commands tests/assets/b/example-mod1.nu | first 3
 # ╭─#─┬──caller───┬────callee─────┬─filename_of_caller─╮
 # │ 0 │ command-5 │ command-3     │ example-mod1.nu    │
 # │ 1 │ command-5 │ first-custom  │ example-mod1.nu    │
 # │ 2 │ command-5 │ append-random │ example-mod1.nu    │
 # ╰───┴───────────┴───────────────┴────────────────────╯
 #
-# > extract-module-commands --definitions_only tests/assets/example-mod1.nu | first 3
+# > extract-module-commands --definitions_only tests/assets/b/example-mod1.nu | first 3
 # ╭─#─┬────caller────┬─filename_of_caller─╮
 # │ 0 │ example-mod1 │ example-mod1.nu    │
 # │ 1 │ lscustom     │ example-mod1.nu    │
