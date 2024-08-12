@@ -3,7 +3,7 @@ use ('dotnu' | path join dotnu-internals.nu) *
 
 def main [] {}
 
-def 'main testing' [] {
+def 'main test' [] {
     test-parse-docstrings
     test-dependencies
     test-dependencies-keep_builtins
