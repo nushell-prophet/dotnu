@@ -28,8 +28,8 @@ def 'test-parse-docstrings' [] {
 def 'test-dependencies' [] {
     {
         [
-            ([tests assets example-mod1.nu] | path join)
-            ([tests assets example-mod2.nu] | path join)
+            ([tests assets b example-mod1.nu] | path join)
+            ([tests assets b example-mod2.nu] | path join)
         ]
         | dependencies ...$in
         | to yaml
@@ -40,8 +40,8 @@ def 'test-dependencies' [] {
 def 'test-dependencies-keep_builtins' [] {
     {
         [
-            ([tests assets example-mod1.nu] | path join)
-            ([tests assets example-mod2.nu] | path join)
+            ([tests assets b example-mod1.nu] | path join)
+            ([tests assets b example-mod2.nu] | path join)
         ]
         | dependencies ...$in --keep_builtins
         | to yaml
