@@ -145,7 +145,7 @@ export def parse-docstrings [
 
 # Execute examples in the docstrings of the module commands and update the results accordingly.
 export def update-docstring-examples [
-    module_file: path
+    module_file: path # path to a nushell module file
     --command_filter: string = '' # filter commands by their name to update examples at
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
     --echo # output script to stdout instead of updating the module_file provided
@@ -185,7 +185,7 @@ export def update-docstring-examples [
 
 # Generate nupm tests from examples in docstrings
 export def generate-nupm-tests [
-    $module_file
+    $module_file: path # path to a nushell module file
     --echo # output script to stdout instead of updating the module_file provided
 ] {
     let $module_file = $module_file | path expand
