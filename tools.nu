@@ -53,7 +53,7 @@ def do_closure_save_results [
     ...output_path_segments
 ] {
     let closure = $in
-    let $output_file = ['tests' 'assets' 'output-yaml' ...$output_path_segments] | path join
+    let $output_file = ['tests' 'output-yaml' ...$output_path_segments] | path join
 
     view source $closure
     | lines | skip | drop | str trim
