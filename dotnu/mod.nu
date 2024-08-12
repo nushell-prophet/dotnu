@@ -51,15 +51,18 @@ export def set-x [
 
 # Check .nu module files to determine which commands depend on other commands.
 #
-# > dependencies tests/assets/example-mod1.nu tests/assets/example-mod2.nu
-# | first 3
-# ╭─#─┬──caller───┬────callee─────┬─filename_of_caller─┬─step─╮
-# │ 0 │ command-5 │ command-3     │ example-mod1.nu    │    0 │
-# │ 1 │ command-5 │ first-custom  │ example-mod1.nu    │    0 │
-# │ 2 │ command-5 │ append-random │ example-mod1.nu    │    0 │
-# ╰───┴───────────┴───────────────┴────────────────────┴──────╯
+# > dependencies ...(glob tests/assets/a/*.nu)
+# ╭─#─┬──────caller──────┬──────callee──────┬─filename_of_caller─┬─step─╮
+# │ 0 │ test-hello       │ hello            │ test-hello.nu      │    0 │
+# │ 1 │ hello            │                  │ hello.nu           │    0 │
+# │ 2 │ neutral-question │                  │ small-talk.nu      │    0 │
+# │ 3 │ dialogue         │ hello            │ dialogue.nu        │    0 │
+# │ 4 │ dialogue         │ hi               │ dialogue.nu        │    0 │
+# │ 5 │ dialogue         │ neutral-question │ dialogue.nu        │    0 │
+# │ 6 │ hi               │                  │ dialogue.nu        │    0 │
+# ╰───┴──────────────────┴──────────────────┴────────────────────┴──────╯
 export def dependencies [
-    ...paths: path # paths to a .nu module files
+    ...paths: path # paths to nushell module files
     --keep_builtins # keep builtin commands in the result page
     --definitions_only # output only commands' names definitions
 ] {
@@ -83,6 +86,13 @@ export def dependencies [
 }
 
 # Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
+#
+# > dependencies ...(glob tests/assets/a/*.nu) | filter-commands-with-no-tests
+# ╭─#─┬──────caller──────┬─filename_of_caller─╮
+# │ 0 │ neutral-question │ small-talk.nu      │
+# │ 1 │ dialogue         │ dialogue.nu        │
+# │ 2 │ hi               │ dialogue.nu        │
+# ╰───┴──────────────────┴────────────────────╯
 export def filter-commands-with-no-tests [] {
     let $input = $in
     let $covered_with_tests = $input
