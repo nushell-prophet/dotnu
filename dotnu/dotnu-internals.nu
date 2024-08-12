@@ -117,7 +117,9 @@ export def extract-module-commands [
         | where $it =~ '^(export )?def.*\['
         | wrap line
         | insert caller {|i|
-            $i.line | extract-command-name
+            $i.line
+            | extract-command-name
+            | str replace -r '^main( |$)' ($path | path parse | get stem)
         }
         | insert filename_of_caller ($path | path basename)
 
