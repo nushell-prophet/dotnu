@@ -56,10 +56,10 @@ Description:
   Parse commands definitions with their docstrings, output a table.
 
 Usage:
-  > parse-docstrings (file)
+  > parse-docstrings (module_file)
 
 Parameters:
-  file <any> (optional)
+  module_file <any>: path to a nushell module file (optional)
 ```
 
 ### dotnu update-docstring-examples
@@ -79,7 +79,7 @@ Flags:
   --no_git_check - don't check for the emptiness of the working tree
 
 Parameters:
-  module_file <path>:
+  module_file <path>: path to a nushell module file
 ```
 
 ### dotnu dependencies
@@ -97,16 +97,19 @@ Flags:
   --definitions_only - output only commands' names definitions
 
 Parameters:
-  ...paths <path>: paths to a .nu module files
+  ...paths <path>: paths to nushell module files
 
 Examples:
-  > dependencies tests/assets/example-mod1.nu tests/assets/example-mod2.nu
-  | first 3
-  ╭─#─┬──caller───┬─────callee─────┬─filename_of_caller─┬─step─╮
-  │ 0 │ command-3 │ lscustom       │ example-mod1.nu    │    0 │
-  │ 1 │ command-3 │ sort-by-custom │ example-mod1.nu    │    0 │
-  │ 2 │ command-5 │ command-3      │ example-mod1.nu    │    0 │
-  ╰───┴───────────┴────────────────┴────────────────────┴──────╯
+  > dependencies ...(glob tests/assets/a/*.nu)
+  ╭─#─┬──────caller──────┬──────callee──────┬─filename_of_caller─┬─step─╮
+  │ 0 │ test-hello       │ hello            │ test-hello.nu      │    0 │
+  │ 1 │ hello            │                  │ hello.nu           │    0 │
+  │ 2 │ neutral-question │                  │ small-talk.nu      │    0 │
+  │ 3 │ dialogue         │ hello            │ dialogue.nu        │    0 │
+  │ 4 │ dialogue         │ hi               │ dialogue.nu        │    0 │
+  │ 5 │ dialogue         │ neutral-question │ dialogue.nu        │    0 │
+  │ 6 │ hi               │                  │ dialogue.nu        │    0 │
+  ╰───┴──────────────────┴──────────────────┴────────────────────┴──────╯
 ```
 
 ### dotnu filter-commands-with-no-tests
@@ -118,6 +121,14 @@ Description:
 
 Usage:
   > filter-commands-with-no-tests
+
+Examples:
+  > dependencies ...(glob tests/assets/a/*.nu) | filter-commands-with-no-tests
+  ╭─#─┬──────caller──────┬─filename_of_caller─╮
+  │ 0 │ neutral-question │ small-talk.nu      │
+  │ 1 │ dialogue         │ dialogue.nu        │
+  │ 2 │ hi               │ dialogue.nu        │
+  ╰───┴──────────────────┴────────────────────╯
 ```
 
 ### dotnu generate-nupm-tests
@@ -134,5 +145,5 @@ Flags:
   --echo - output script to stdout instead of updating the module_file provided
 
 Parameters:
-  $module_file <any>:
+  $module_file <path>: path to a nushell module file
 ```
