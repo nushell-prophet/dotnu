@@ -1,0 +1,29 @@
+# open $path
+# | parse-docstrings
+# | to yaml
+- command_name: hi
+  command_description: Greet informally
+  examples:
+  - annotation: ''
+    command: '> hi there'
+    result: hi there!
+  input: |-
+    # Greet informally
+    #
+    # > hi there
+    # hi there!
+- command_name: main
+  command_description: ''
+  examples:
+  - annotation: ''
+    command: '> dialogue'
+    result: |-
+      - hello Darren!
+      - hi Maxim!
+      - have you heard about a fancy new shell?
+  input: |-
+    # > dialogue
+    # - hello Darren!
+    # - hi Maxim!
+    # - have you heard about a fancy new shell?
+

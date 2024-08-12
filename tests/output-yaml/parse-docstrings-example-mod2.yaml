@@ -1,0 +1,8 @@
+# open $path
+# | parse-docstrings
+# | to yaml
+- command_name: append-random
+  command_description: ''
+  examples: []
+  input: ''
+

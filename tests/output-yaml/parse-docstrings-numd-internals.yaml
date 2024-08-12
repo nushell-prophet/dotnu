@@ -1,6 +1,4 @@
-# [tests assets numd-internals.nu]
-# | path join
-# | open
+# open $path
 # | parse-docstrings
 # | to yaml
 - command_name: detect-code-blocks

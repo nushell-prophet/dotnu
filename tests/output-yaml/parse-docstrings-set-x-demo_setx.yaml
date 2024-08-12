@@ -1,0 +1,5 @@
+# open $path
+# | parse-docstrings
+# | to yaml
+[]
+
