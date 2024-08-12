@@ -1,6 +1,6 @@
 # [
-# ([tests assets example-mod1.nu] | path join)
-# ([tests assets example-mod2.nu] | path join)
+# ([tests assets b example-mod1.nu] | path join)
+# ([tests assets b example-mod2.nu] | path join)
 # ]
 # | dependencies ...$in
 # | to yaml
