@@ -108,6 +108,12 @@ And now let's use `dotnu parse-docstrings` and see its structured output (I get 
 
 ### dotnu update-docstring-examples
 
+`dotnu update-docstring-examples` executes and updates examples in the specified nushell module file.
+
+It also checks the current repository for uncommitted changes (this check can be disabled using `--no_git_check`) to prevent data loss.
+
+If an example produces an error, this error is printed to the terminal output, and the file is updated with the text `example update failed` on the failed example result place.
+
 ```nushell
 > dotnu update-docstring-examples --help | numd parse-help
 Description:
@@ -127,6 +133,8 @@ Parameters:
 ```
 
 ### dotnu set-x
+
+`dotnu set-x` opens a regular .nu script. It divides it into blocks using the specified regex (by default, it is "\n\n") and generates a new script that will print the code of each block before executing it, along with the timings of each block's execution.
 
 Let's check the code of the simple `set-x-demo.nu` script
 
