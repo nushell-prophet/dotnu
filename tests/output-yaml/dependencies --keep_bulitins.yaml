@@ -1,7 +1,4 @@
-# [
-# ([tests assets b example-mod1.nu] | path join)
-# ([tests assets b example-mod2.nu] | path join)
-# ]
+# glob ([tests assets b *] | path join)
 # | dependencies ...$in --keep_builtins
 # | to yaml
 - caller: example-mod1
