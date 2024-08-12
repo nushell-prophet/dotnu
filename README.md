@@ -67,12 +67,37 @@ To check it in action let's first examine an example module:
 ```nushell
 > let hello_module_path = [tests assets a hello.nu] | path join
 > open $hello_module_path | lines
+╭────┬──────────────────────────────────╮
+│  0 │ # Output greeting!               │
+│  1 │ #                                │
+│  2 │ # Say hello to Maxim             │
+│  3 │ # > hello Maxim                  │
+│  4 │ # hello Maxim!                   │
+│  5 │ #                                │
+│  6 │ # Say hello to Darren            │
+│  7 │ # and capitlize letters          │
+│  8 │ # > hello Darren                 │
+│  9 │ # | str capitalize               │
+│ 10 │ # Hello Darren!                  │
+│ 11 │ export def main [name: string] { │
+│ 12 │     $"hello ($name)!"            │
+│ 13 │ }                                │
+╰────┴──────────────────────────────────╯
 ```
 
 And now let's use `dotnu parse-docstrings` and see its structured output (I get 0 row here for better output formatting).
 
 ```nushell
-> dotnu parse-docstrings $hello_module_path | reject input | get 0
+> dotnu parse-docstrings $hello_module_path | reject input | get 0 | table -e
+╭─────────────────────┬──────────────────────────────────────────────────────────────────╮
+│ command_name        │ hello                                                            │
+│ command_description │ Output greeting!                                                 │
+│                     │ ╭─#─┬──────annotation───────┬─────command──────┬────result─────╮ │
+│ examples            │ │ 0 │ Say hello to Maxim    │ > hello Maxim    │ hello Maxim!  │ │
+│                     │ │ 1 │ Say hello to Darren   │ > hello Darren   │ Hello Darren! │ │
+│                     │ │   │ and capitlize letters │ | str capitalize │               │ │
+│                     │ ╰─#─┴──────annotation───────┴─────command──────┴────result─────╯ │
+╰─────────────────────┴──────────────────────────────────────────────────────────────────╯
 ```
 
 `dotnu parse-docstrings` uses the following assumptions:
