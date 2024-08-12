@@ -46,7 +46,15 @@ export def 'extract-command-name' [
     | str replace -ra "\"|'|`" ''
     | str trim
     | if $module_file == null {} else {
-        str replace -r '^main( |$)' ($module_file | path parse | get stem)
+        str replace -r '^main( |$)' (
+            $module_file
+            | path expand
+            | path split
+            | where $it != mod.nu
+            | last
+            | str replace -r '\.nu$' ' '
+        )
+        | str trim
     }
 }
 
