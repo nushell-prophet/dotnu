@@ -9,78 +9,6 @@
 
 ## Commands
 
-### dotnu set-x
-
-Let's check the code of the simple `set-x-demo.nu` script
-
-```nushell
-> let $filename = [tests assets set-x-demo.nu] | path join
-> open $filename | lines | table -i false
-╭──────────────╮
-│ sleep 0.5sec │
-│              │
-│ sleep 0.7sec │
-│              │
-│ sleep 0.8sec │
-╰──────────────╯
-```
-
-Let's see how `dotnu set-x` will modify this script
-
-```nushell
-> dotnu set-x $filename --echo | lines | table -i false
-╭─────────────────────────────────────────────────────────────────────────────────╮
-│ mut $prev_ts = date now                                                         │
-│ print ("> sleep 0.5sec" | nu-highlight)                                         │
-│ sleep 0.5sec                                                                    │
-│ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
-│                                                                                 │
-│                                                                                 │
-│ print ("> sleep 0.7sec" | nu-highlight)                                         │
-│ sleep 0.7sec                                                                    │
-│ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
-│                                                                                 │
-│                                                                                 │
-│ print ("> sleep 0.8sec" | nu-highlight)                                         │
-│ sleep 0.8sec                                                                    │
-│ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
-│                                                                                 │
-╰─────────────────────────────────────────────────────────────────────────────────╯
-```
-
-### dotnu parse-docstrings
-
-```nushell
-> dotnu parse-docstrings --help | numd parse-help
-Description:
-  Parse commands definitions with their docstrings, output a table.
-
-Usage:
-  > parse-docstrings (module_file)
-
-Parameters:
-  module_file <any>: path to a nushell module file (optional)
-```
-
-### dotnu update-docstring-examples
-
-```nushell
-> dotnu update-docstring-examples --help | numd parse-help
-Description:
-  Execute examples in the docstrings of the module commands and update the results accordingly.
-
-Usage:
-  > update-docstring-examples {flags} <module_file>
-
-Flags:
-  --command_filter <String> - filter commands by their name to update examples at (default: '')
-  --use_statement <String> - use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically (default: '')
-  --echo - output script to stdout instead of updating the module_file provided
-  --no_git_check - don't check for the emptiness of the working tree
-
-Parameters:
-  module_file <path>: path to a nushell module file
-```
 
 ### dotnu dependencies
 
@@ -129,6 +57,79 @@ Examples:
   │ 1 │ dialogue         │ dialogue.nu        │
   │ 2 │ hi               │ dialogue.nu        │
   ╰───┴──────────────────┴────────────────────╯
+```
+
+### dotnu parse-docstrings
+
+```nushell
+> dotnu parse-docstrings --help | numd parse-help
+Description:
+  Parse commands definitions with their docstrings, output a table.
+
+Usage:
+  > parse-docstrings (module_file)
+
+Parameters:
+  module_file <any>: path to a nushell module file (optional)
+```
+
+### dotnu update-docstring-examples
+
+```nushell
+> dotnu update-docstring-examples --help | numd parse-help
+Description:
+  Execute examples in the docstrings of the module commands and update the results accordingly.
+
+Usage:
+  > update-docstring-examples {flags} <module_file>
+
+Flags:
+  --command_filter <String> - filter commands by their name to update examples at (default: '')
+  --use_statement <String> - use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically (default: '')
+  --echo - output script to stdout instead of updating the module_file provided
+  --no_git_check - don't check for the emptiness of the working tree
+
+Parameters:
+  module_file <path>: path to a nushell module file
+```
+
+### dotnu set-x
+
+Let's check the code of the simple `set-x-demo.nu` script
+
+```nushell
+> let $filename = [tests assets set-x-demo.nu] | path join
+> open $filename | lines | table -i false
+╭──────────────╮
+│ sleep 0.5sec │
+│              │
+│ sleep 0.7sec │
+│              │
+│ sleep 0.8sec │
+╰──────────────╯
+```
+
+Let's see how `dotnu set-x` will modify this script
+
+```nushell
+> dotnu set-x $filename --echo | lines | table -i false
+╭─────────────────────────────────────────────────────────────────────────────────╮
+│ mut $prev_ts = date now                                                         │
+│ print ("> sleep 0.5sec" | nu-highlight)                                         │
+│ sleep 0.5sec                                                                    │
+│ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
+│                                                                                 │
+│                                                                                 │
+│ print ("> sleep 0.7sec" | nu-highlight)                                         │
+│ sleep 0.7sec                                                                    │
+│ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
+│                                                                                 │
+│                                                                                 │
+│ print ("> sleep 0.8sec" | nu-highlight)                                         │
+│ sleep 0.8sec                                                                    │
+│ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
+│                                                                                 │
+╰─────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 ### dotnu generate-nupm-tests
