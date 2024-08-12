@@ -4,7 +4,7 @@
 # ]
 # | dependencies ...$in --keep_builtins
 # | to yaml
-- caller: main
+- caller: example-mod1
   callee: export def
   filename_of_caller: example-mod1.nu
   step: 0
