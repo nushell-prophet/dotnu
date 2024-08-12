@@ -1,4 +1,4 @@
-# dotnu - generate scripts from `.nu` scripts ﻿🤯
+# dotnu - tools for nushell modules and scripts
 
 ## Quickstart
 
