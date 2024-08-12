@@ -9,7 +9,6 @@
 
 ## Commands
 
-
 ### dotnu dependencies
 
 ```nushell
@@ -61,17 +60,26 @@ Examples:
 
 ### dotnu parse-docstrings
 
+`dotnu parse-docstrings` parses command definitions along with their docstrings from a module file and outputs a table.
+
+To check it in action let's first examine an example module:
+
 ```nushell
-> dotnu parse-docstrings --help | numd parse-help
-Description:
-  Parse commands definitions with their docstrings, output a table.
-
-Usage:
-  > parse-docstrings (module_file)
-
-Parameters:
-  module_file <any>: path to a nushell module file (optional)
+> let hello_module_path = [tests assets a hello.nu] | path join
+> open $hello_module_path | lines
 ```
+
+And now let's use `dotnu parse-docstrings` and see its structured output (I get 0 row here for better output formatting).
+
+```nushell
+> dotnu parse-docstrings $hello_module_path | reject input | get 0
+```
+
+`dotnu parse-docstrings` uses the following assumptions:
+1. The command description and example blocks are divided by a line with only the '#' symbol.
+2. The command description is optional.
+3. Examples of command usage may contain their own annotations (rows before the line starting with `>`). Example annotations are optional.
+4. Examples of command usage consist of consecutive lines starting with `>` or `|` symbols.
 
 ### dotnu update-docstring-examples
 
