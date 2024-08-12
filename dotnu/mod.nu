@@ -156,11 +156,17 @@ export def update-docstring-examples [
     cd ($module_file | path dirname)
 
     if not $no_git_check {
-        git status --short
-        | if not ($in | lines | parse '{s} {m} {f}' | is-empty) {
+        let git_status = git status --short
+
+        $git_status
+        | lines
+        | parse '{s} {m} {f}'
+        | where f =~ $'($module_file | path basename)$'
+        | is-not-empty
+        | if $in {
             error make --unspanned {
-                msg: ("Working tree isn't empty. Please commit or stash changed files," +
-                        "or use `--no_git_check` flag. Uncommited files:" + (char nl) + $in)
+                msg: ("Working tree isn't empty. Please commit or stash changed files, " +
+                        "or use `--no_git_check` flag. Uncommited files:\n" + $git_status)
             }
         }
     }
