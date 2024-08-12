@@ -100,12 +100,12 @@ export def filter-commands-with-no-tests [] {
 
 # Parse commands definitions with their docstrings, output a table.
 export def parse-docstrings [
-    file?
+    module_file? # path to a nushell module file
 ] {
-    if $file == null {
+    if $module_file == null {
         collect
     } else {
-        $file | open | collect
+        $module_file | open | collect
     }
     | parse -r '(?:\n\n|^)(?<definit_line>(?:(?:#.*\n)*)?(?:export def.*))'
     | get definit_line
