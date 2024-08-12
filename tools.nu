@@ -15,14 +15,20 @@ def 'main test-nupm' [] {
 }
 
 def 'test-parse-docstrings' [] {
+    [tests assets '**' '*.nu']
+    | path join
+    | glob $in
+    | each {test-parse-docstrings-output-yaml}
+}
+
+def 'test-parse-docstrings-output-yaml' [] {
+    let $path = $in
     {
-        [tests assets numd-internals.nu]
-        | path join
-        | open
+        open $path
         | parse-docstrings
         | to yaml
     }
-    | do_closure_save_results 'parse-docstrings1-numd-internals.yaml'
+    | do_closure_save_results $'parse-docstrings-($path | path parse | get stem).yaml'
 }
 
 def 'test-dependencies' [] {
