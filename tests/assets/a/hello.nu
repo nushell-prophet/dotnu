@@ -5,8 +5,10 @@
 # hello Maxim!
 #
 # Say hello to Darren
+# and capitlize letters
 # > hello Darren
-# hello Darren!
+# | str capitalize
+# Hello Darren!
 export def main [name: string] {
     $"hello ($name)!"
 }
