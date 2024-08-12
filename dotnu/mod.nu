@@ -53,11 +53,11 @@ export def set-x [
 #
 # > dependencies tests/assets/example-mod1.nu tests/assets/example-mod2.nu
 # | first 3
-# ╭─#─┬──caller───┬─────callee─────┬─filename_of_caller─┬─step─╮
-# │ 0 │ command-3 │ lscustom       │ example-mod1.nu    │    0 │
-# │ 1 │ command-3 │ sort-by-custom │ example-mod1.nu    │    0 │
-# │ 2 │ command-5 │ command-3      │ example-mod1.nu    │    0 │
-# ╰───┴───────────┴────────────────┴────────────────────┴──────╯
+# ╭─#─┬──caller───┬────callee─────┬─filename_of_caller─┬─step─╮
+# │ 0 │ command-5 │ command-3     │ example-mod1.nu    │    0 │
+# │ 1 │ command-5 │ first-custom  │ example-mod1.nu    │    0 │
+# │ 2 │ command-5 │ append-random │ example-mod1.nu    │    0 │
+# ╰───┴───────────┴───────────────┴────────────────────┴──────╯
 export def dependencies [
     ...paths: path # paths to a .nu module files
     --keep_builtins # keep builtin commands in the result page
