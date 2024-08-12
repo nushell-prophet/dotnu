@@ -110,7 +110,7 @@ And now let's use `dotnu parse-docstrings` and see its structured output (I get 
 
 `dotnu update-docstring-examples` executes and updates examples in the specified nushell module file.
 
-It also checks the current repository for uncommitted changes (this check can be disabled using `--no_git_check`) to prevent data loss.
+To prevent data loss it checks the current repository for uncommitted changes (this check can be disabled using `--no_git_check`).
 
 If an example produces an error, this error is printed to the terminal output, and the file is updated with the text `example update failed` on the failed example result place.
 
