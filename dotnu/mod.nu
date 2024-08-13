@@ -1,6 +1,6 @@
 use dotnu-internals.nu [
     dummy-command
-    escape-escapes
+    escape-for-quotes
     execute-update-example-result
     extract-command-name
     extract-module-commands
@@ -186,7 +186,7 @@ export def set-x [
     | split row -r $regex
     | each {|block|
         $block
-        | escape-escapes
+        | escape-for-quotes
         | ('print ("> ' + $in + '" | nu-highlight)' + (char nl) + $block
             + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
     }

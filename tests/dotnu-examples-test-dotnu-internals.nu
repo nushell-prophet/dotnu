@@ -12,8 +12,8 @@ export def `extract-command-name-0-test` [] {
     'export def --env "test" --wrapped' | lines | last | extract-command-name
 }
 
-export def `escape-escapes-0-test` [] {
-    'abcd"dfdaf" "' | escape-escapes
+export def `escape-for-quotes-0-test` [] {
+    'abcd"dfdaf" "' | escape-for-quotes
 }
 
 export def `nu-completion-command-name-0-test` [] {

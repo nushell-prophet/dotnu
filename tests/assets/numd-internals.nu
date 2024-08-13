@@ -276,9 +276,9 @@ export def expand-short-options [
 
 # Escapes symbols to be printed unchanged inside a `print "something"` statement.
 #
-# > 'abcd"dfdaf" "' | escape-escapes
+# > 'abcd"dfdaf" "' | escape-for-quotes
 # abcd\"dfdaf\" \"
-export def escape-escapes []: string -> string {
+export def escape-for-quotes []: string -> string {
     str replace --all --regex '(\\|\")' '\$1'
 }
 
@@ -320,7 +320,7 @@ export def numd-block [
 # > 'ls' | gen-highlight-command
 # "ls" | nu-highlight | print
 export def gen-highlight-command [ ]: string -> string {
-    escape-escapes
+    escape-for-quotes
     | $"\"($in)\" | nu-highlight | print(char nl)(char nl)"
 }
 
@@ -378,7 +378,7 @@ export def gen-catch-error-in-current-instance []: string -> string {
 # > 'ls' | gen-catch-error-outside
 # /Users/user/.cargo/bin/nu -c "ls"| complete | if ($in.exit_code != 0) {get stderr} else {get stdout}
 export def gen-catch-error-outside []: string -> string {
-    escape-escapes
+    escape-for-quotes
     | ($'($nu.current-exe) -c "($in)"' +
         "| complete | if ($in.exit_code != 0) {get stderr} else {get stdout}")
 }
@@ -392,7 +392,7 @@ export def gen-fence-output-numd []: string -> string {
 
 export def gen-print-lines []: list -> string {
     str join (char nl)
-    | escape-escapes
+    | escape-for-quotes
     | $'"($in)" | print'
 }
 

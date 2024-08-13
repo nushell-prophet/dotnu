@@ -78,9 +78,9 @@ export def gen-example-exec-command [
 
 # Escapes symbols to be printed unchanged inside a `print "something"` statement.
 #
-# > 'abcd"dfdaf" "' | escape-escapes
+# > 'abcd"dfdaf" "' | escape-for-quotes
 # abcd\"dfdaf\" \"
-export def escape-escapes []: string -> string {
+export def escape-for-quotes []: string -> string {
     str replace --all --regex '(\\|\")' '\$1'
 }
 
