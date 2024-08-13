@@ -20,10 +20,10 @@ use ('..' | path join tests nupm utils dirs.nu) find-root
 # ╭─#─┬──────caller──────┬──────callee──────┬─filename_of_caller─┬─step─╮
 # │ 0 │ test-hello       │ hello            │ test-hello.nu      │    0 │
 # │ 1 │ hello            │                  │ hello.nu           │    0 │
-# │ 2 │ neutral-question │                  │ small-talk.nu      │    0 │
+# │ 2 │ question │                  │ ask.nu      │    0 │
 # │ 3 │ dialogue         │ hello            │ dialogue.nu        │    0 │
 # │ 4 │ dialogue         │ hi               │ dialogue.nu        │    0 │
-# │ 5 │ dialogue         │ neutral-question │ dialogue.nu        │    0 │
+# │ 5 │ dialogue         │ question │ dialogue.nu        │    0 │
 # │ 6 │ hi               │                  │ dialogue.nu        │    0 │
 # ╰───┴──────────────────┴──────────────────┴────────────────────┴──────╯
 export def dependencies [
@@ -54,7 +54,7 @@ export def dependencies [
 #
 # > dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
 # ╭─#─┬──────caller──────┬─filename_of_caller─╮
-# │ 0 │ neutral-question │ small-talk.nu      │
+# │ 0 │ question │ ask.nu      │
 # │ 1 │ dialogue         │ dialogue.nu        │
 # │ 2 │ hi               │ dialogue.nu        │
 # ╰───┴──────────────────┴────────────────────╯

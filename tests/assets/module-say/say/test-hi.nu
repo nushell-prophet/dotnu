@@ -1,4 +1,4 @@
-use dialogue.nu hi
+use mod.nu hi
 
 export def main [] {
     (hi Amtoine) == 'hi Amtoine!'
