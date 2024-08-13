@@ -17,15 +17,15 @@ use ('..' | path join tests nupm utils dirs.nu) find-root
 # Check .nu module files to determine which commands depend on other commands.
 #
 # > dependencies ...(glob tests/assets/module-say/say/*.nu)
-# ╭─#─┬──────caller──────┬──────callee──────┬─filename_of_caller─┬─step─╮
-# │ 0 │ test-hello       │ hello            │ test-hello.nu      │    0 │
-# │ 1 │ hello            │                  │ hello.nu           │    0 │
-# │ 2 │ question │                  │ ask.nu      │    0 │
-# │ 3 │ dialogue         │ hello            │ dialogue.nu        │    0 │
-# │ 4 │ dialogue         │ hi               │ dialogue.nu        │    0 │
-# │ 5 │ dialogue         │ question │ dialogue.nu        │    0 │
-# │ 6 │ hi               │                  │ dialogue.nu        │    0 │
-# ╰───┴──────────────────┴──────────────────┴────────────────────┴──────╯
+# ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
+# │ 0 │ hello    │ hello.nu           │          │    0 │
+# │ 1 │ question │ ask.nu             │          │    0 │
+# │ 2 │ say      │ mod.nu             │ hello    │    0 │
+# │ 3 │ say      │ mod.nu             │ hi       │    0 │
+# │ 4 │ say      │ mod.nu             │ question │    0 │
+# │ 5 │ hi       │ mod.nu             │          │    0 │
+# │ 6 │ test-hi  │ test-hi.nu         │ hi       │    0 │
+# ╰───┴──────────┴────────────────────┴──────────┴──────╯
 export def dependencies [
     ...paths: path # paths to nushell module files
     --keep_builtins # keep builtin commands in the result page
@@ -53,11 +53,11 @@ export def dependencies [
 # Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
 #
 # > dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
-# ╭─#─┬──────caller──────┬─filename_of_caller─╮
-# │ 0 │ question │ ask.nu      │
-# │ 1 │ dialogue         │ dialogue.nu        │
-# │ 2 │ hi               │ dialogue.nu        │
-# ╰───┴──────────────────┴────────────────────╯
+# ╭─#─┬──caller──┬─filename_of_caller─╮
+# │ 0 │ hello    │ hello.nu           │
+# │ 1 │ question │ ask.nu             │
+# │ 2 │ say      │ mod.nu             │
+# ╰───┴──────────┴────────────────────╯
 export def filter-commands-with-no-tests [] {
     let $input = $in
     let $covered_with_tests = $input
