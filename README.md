@@ -27,7 +27,7 @@ Parameters:
   ...paths <path>: paths to nushell module files
 
 Examples:
-  > dependencies ...(glob tests/assets/a/*.nu)
+  > dependencies ...(glob tests/assets/module-say/say/*.nu)
   ╭─#─┬──────caller──────┬──────callee──────┬─filename_of_caller─┬─step─╮
   │ 0 │ test-hello       │ hello            │ test-hello.nu      │    0 │
   │ 1 │ hello            │                  │ hello.nu           │    0 │
@@ -50,7 +50,7 @@ Usage:
   > filter-commands-with-no-tests
 
 Examples:
-  > dependencies ...(glob tests/assets/a/*.nu) | filter-commands-with-no-tests
+  > dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
   ╭─#─┬──────caller──────┬─filename_of_caller─╮
   │ 0 │ neutral-question │ small-talk.nu      │
   │ 1 │ dialogue         │ dialogue.nu        │
@@ -65,7 +65,7 @@ Examples:
 To see it in action let's first examine an example module:
 
 ```nushell
-> let hello_module_path = [tests assets a hello.nu] | path join
+> let hello_module_path = [tests assets module-say say hello.nu] | path join
 > open $hello_module_path | lines
 ╭────┬──────────────────────────────────╮
 │  0 │ # Output greeting!               │

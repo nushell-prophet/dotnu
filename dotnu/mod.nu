@@ -16,7 +16,7 @@ use ('..' | path join tests nupm utils dirs.nu) find-root
 
 # Check .nu module files to determine which commands depend on other commands.
 #
-# > dependencies ...(glob tests/assets/a/*.nu)
+# > dependencies ...(glob tests/assets/module-say/say/*.nu)
 # ╭─#─┬──────caller──────┬──────callee──────┬─filename_of_caller─┬─step─╮
 # │ 0 │ test-hello       │ hello            │ test-hello.nu      │    0 │
 # │ 1 │ hello            │                  │ hello.nu           │    0 │
@@ -52,7 +52,7 @@ export def dependencies [
 
 # Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
 #
-# > dependencies ...(glob tests/assets/a/*.nu) | filter-commands-with-no-tests
+# > dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
 # ╭─#─┬──────caller──────┬─filename_of_caller─╮
 # │ 0 │ neutral-question │ small-talk.nu      │
 # │ 1 │ dialogue         │ dialogue.nu        │
