@@ -1,7 +1,7 @@
-use hello.nu
+use dialogue.nu hi
 
 export def main [] {
-    (hello Amtoine) == 'hello Amtoine!'
+    (hi Amtoine) == 'hi Amtoine!'
     | if not $in {
         print 'there is an error here' # I don't use `std assert` here to simplify example commands output
     }
