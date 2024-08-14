@@ -53,7 +53,7 @@ dotnu parse-docstrings dotnu/mod.nu | where command_name == set-x | reject input
 dotnu generate-nupm-tests dotnu/mod.nu
 
 # Let's see what new files we have
-lg
+lazygit
 
 # Let's run `nupm test`
 use /Users/user/git/nupm/nupm; nupm test
