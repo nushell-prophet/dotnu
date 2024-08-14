@@ -33,13 +33,13 @@ dotnu parse-docstrings tests/assets/module-say/say/hello.nu | reject input | get
 clear; "dotnu update-docstring-examples" | str upcase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | lines | fill -a center --width ((term size).columns - 5) | table --index false
 
 # Let's change some examples for demonstration
-code tests/assets/module-say/say/hello.nu
+hx tests/assets/module-say/say/hello.nu:4:11
 
 # Let's apply the command
 dotnu update-docstring-examples tests/assets/module-say/say/hello.nu
 
 # Let's see the results
-code tests/assets/module-say/say/hello.nu
+hx tests/assets/module-say/say/hello.nu:4:11
 
 clear; "dotnu generate-nupm-tests" | str upcase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | lines | fill -a center --width ((term size).columns - 5) | table --index false
 
