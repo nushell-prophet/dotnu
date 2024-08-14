@@ -1,0 +1,16 @@
+[
+  "clear; \"dotnu\" |  figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\\s*$' | table",
+  "ls tests/assets/module-say/say/",
+  "ls tests/assets/module-say/say/ | get name | sort | each {|i| $i | open | lines | where $it !~ '^#' | print $i $in }",
+  "dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)",
+  "dotnu dependencies ...(glob tests/assets/module-say/say/*.nu) | dotnu filter-commands-with-no-tests",
+  "dotnu dependencies dotnu/mod.nu dotnu/dotnu-internals.nu tools.nu ...(glob tests/*.nu) ",
+  "dotnu dependencies dotnu/mod.nu dotnu/dotnu-internals.nu tools.nu ...(glob tests/*.nu) | dotnu filter-commands-with-no-tests",
+  "dotnu generate-nupm-tests dotnu/mod.nu",
+  "use /Users/user/git/nupm/nupm; nupm test",
+  "dotnu dependencies dotnu/mod.nu dotnu/dotnu-internals.nu tools.nu ...(glob tests/*.nu) | dotnu filter-commands-with-no-tests"
+  "open tests/assets/module-say/say/hello.nu",
+  "dotnu parse-docstrings tests/assets/module-say/say/hello.nu | reject input | get 0 | table -e",
+  "code -n tests/assets/module-say/say/hello.nu",
+  "dotnu update-docstring-examples tests/assets/module-say/say/hello.nu",
+]
