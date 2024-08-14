@@ -91,7 +91,7 @@ export def escape-for-quotes []: string -> string {
 
 # context aware completions for defined command names in nushell module files
 #
-# > nu-completion-command-name 'dotnu extract-command tests/assets/b/example-mod1.nu' | first 3
+# > nu-completion-command-name 'dotnu extract-command-code tests/assets/b/example-mod1.nu' | first 3
 # ╭───┬───────────╮
 # │ 0 │ main      │
 # │ 1 │ lscustom  │
@@ -100,7 +100,7 @@ export def escape-for-quotes []: string -> string {
 export def nu-completion-command-name [
     context: string
 ] {
-    $context | str replace -r '^.*? extract-command ' '' | str trim | split row ' ' | first
+    $context | str replace -r '^.*? extract-command-code ' '' | str trim | split row ' ' | first
     | path expand | open $in -r | lines
     | where $it =~ '^(export )?def '
     | each {
