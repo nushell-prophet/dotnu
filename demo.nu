@@ -1,6 +1,9 @@
 $env.PROMPT_COMMAND = {|| "\n> "}
-clear; 'dotnu' |  figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' |
-∙ | fill -a center --width ((term size).columns - 5) | table --index false | $in + (char nl) + ('https://github.com/nushell-prophet/dotnu' | fill -a center --width ((term size).columns - 5)) + "\n\n\n" | print;
+clear; 'dotnu' |  figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$'
+| fill -a center --width ((term size).columns - 5) | table --index false | ansi strip
+| ((ansi green_bold) + $in + (ansi reset)  + (char nl) +
+    (ansi grey) + ('https://github.com/nushell-prophet/dotnu' | fill -a center --width ((term size).columns - 5)) +
+    (ansi reset ) + "\n\n\n") | print;
 
 "dotnu dependencies" | str upcase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | table
 
