@@ -1,6 +1,6 @@
 ![dotnu](https://github.com/user-attachments/assets/4fb74e46-f75b-4155-8e61-8ff75db66117)
 
-# dotnu - Convenience tools for interacting with the code of Nushell modules and scripts. ⏎
+# dotnu - interact with the code of Nushell modules and scripts. ⏎
 
 ## Quickstart
 
