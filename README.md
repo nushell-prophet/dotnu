@@ -2,7 +2,7 @@
 
 # dotnu - tools for Nushell module developers 🛠️
 
-*a good companion for [numd](https://github.com/nushell-prophet/numd)*
+*(a good companion for [numd](https://github.com/nushell-prophet/numd))*
 
 ## Quickstart
 
