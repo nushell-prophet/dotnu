@@ -1,3 +1,5 @@
+<img width="756" alt="dotnu" src="https://github.com/user-attachments/assets/5a53a9f6-316d-4edb-826a-e412e1cef1a8">
+
 # dotnu - Convenience tools for interacting with the code of Nushell modules and scripts. ⏎
 
 ## Quickstart
