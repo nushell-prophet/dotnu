@@ -1,8 +1,8 @@
 ![dotnu](https://github.com/user-attachments/assets/4fb74e46-f75b-4155-8e61-8ff75db66117)
 
-# dotnu - tools for Nushell module developers 🛠️
+<h1 align="center">dotnu - tools for Nushell module developers 🛠️</h1>
 
-*(a good companion for [numd](https://github.com/nushell-prophet/numd))*
+_(a good companion for [numd](https://github.com/nushell-prophet/numd))_
 
 ## Quickstart
 
