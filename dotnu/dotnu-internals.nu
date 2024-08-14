@@ -50,7 +50,7 @@ export def 'extract-command-name' [
             $module_file
             | path expand
             | path split
-            # | where $it != mod.nu
+            | where $it != mod.nu
             | last
             | str replace -r '\.nu$' ' '
         )
