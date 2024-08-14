@@ -68,7 +68,7 @@ clear; "dotnu set-x" | figlet -f 'phm-largetype.flf' -C utf8 | table
 open tests/assets/set-x-demo.nu
 
 # Let's apply `dotnu set-x`
-set-x tests/assets/set-x-demo.nu
+dotnu set-x tests/assets/set-x-demo.nu
 
 
 clear; clear; "dotnu" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' | table | print;
