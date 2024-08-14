@@ -1,3 +1,4 @@
+$env.PROMPT_COMMAND = {|| '> '}
 clear; "dotnu dependencies" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # Let's use a simple example module
@@ -73,7 +74,7 @@ dotnu set-x tests/assets/set-x-demo.nu
 # Let's see the content of a produced file
 open /Users/user/git/dotnu/tests/assets/set-x-demo_setx.nu
 
-clear; "dotnu" | str upcase | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$'
-| fill -a center --width ((term size).columns - 10 | table | print;
+clear; "dotnu" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$'
+| fill -a center --width ((term size).columns / 2 | into int) | table | print;
 print '' ''
 "thanks for watching!" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
