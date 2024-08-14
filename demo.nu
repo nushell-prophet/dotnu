@@ -35,7 +35,7 @@ dotnu update-docstring-examples tests/assets/module-say/say/hello.nu
 # Let's see the results
 code tests/assets/module-say/say/hello.nu
 
-clear; "generate-nupm-tests" | str upcase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | table
+clear; "dotnu generate-nupm-tests" | str upcase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | table
 
 # To demonstrate another command, let's apply the already familiar `dotnu dependencies`
 # to its own module files
