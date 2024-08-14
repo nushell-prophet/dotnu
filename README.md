@@ -1,4 +1,4 @@
-![dotnu](https://github.com/user-attachments/assets/ae40f2ea-c07d-4b78-9991-dfbace679e74)
+![dotnu](https://github.com/user-attachments/assets/4fb74e46-f75b-4155-8e61-8ff75db66117)
 
 # dotnu - Convenience tools for interacting with the code of Nushell modules and scripts. ⏎
 
