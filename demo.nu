@@ -74,7 +74,4 @@ dotnu set-x tests/assets/set-x-demo.nu
 # Let's see the content of a produced file
 open /Users/user/git/dotnu/tests/assets/set-x-demo_setx.nu
 
-clear; "dotnu" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$'
-| fill -a center --width ((term size).columns / 2 | into int) | table | print;
-print '' ''
-"thanks for watching!" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
+clear; "thanks for watching!" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
