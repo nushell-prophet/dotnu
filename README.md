@@ -1,6 +1,6 @@
 ![dotnu](https://github.com/user-attachments/assets/4fb74e46-f75b-4155-8e61-8ff75db66117)
 
-# dotnu - interact with the code of Nushell modules and scripts programmatically ⏎
+# dotnu - > dotnu - programmatically interact with Nushell modules and scripts 🛠️
 
 ## Quickstart
 
