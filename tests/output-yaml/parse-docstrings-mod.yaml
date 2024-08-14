@@ -16,13 +16,13 @@
   command_description: ''
   examples:
   - annotation: ''
-    command: '> dialogue'
+    command: '> say'
     result: |-
       - hello Darren!
       - hi Maxim!
       - have you heard about a fancy new shell?
   input: |-
-    # > dialogue
+    # > say
     # - hello Darren!
     # - hi Maxim!
     # - have you heard about a fancy new shell?

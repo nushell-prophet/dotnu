@@ -1,7 +1,7 @@
 # open $path
 # | parse-docstrings
 # | to yaml
-- command_name: neutral-question
+- command_name: question
   command_description: ''
   examples: []
   input: ''
