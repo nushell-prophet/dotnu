@@ -1,4 +1,4 @@
-clear; "dotnu dependencies" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' | table
+clear; "dotnu dependencies" | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # Let's use a simple example module
 ls tests/assets/module-say/say/
@@ -15,7 +15,7 @@ dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
 dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
 | dotnu filter-commands-with-no-tests
 
-clear; "dotnu parse-docstrings" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' | table
+clear; "dotnu parse-docstrings" | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # Let's check an example module file
 open tests/assets/module-say/say/hello.nu
@@ -23,7 +23,7 @@ open tests/assets/module-say/say/hello.nu
 # Let's use `dotnu parse-docstrings` with this file
 dotnu parse-docstrings tests/assets/module-say/say/hello.nu | reject input | get 0 | table -e
 
-clear; "dotnu update-docstring-examples" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' | table
+clear; "dotnu update-docstring-examples" | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # Let's change some examples for demonstration
 code -n tests/assets/module-say/say/hello.nu
@@ -34,7 +34,7 @@ dotnu update-docstring-examples tests/assets/module-say/say/hello.nu
 # Let's see the results
 code tests/assets/module-say/say/hello.nu
 
-clear; "generate-nupm-tests" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' | table
+clear; "generate-nupm-tests" | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # To demonstrate another command, let's apply the already familiar `dotnu dependencies`
 # to its own module files
@@ -45,7 +45,7 @@ dotnu dependencies dotnu/mod.nu dotnu/dotnu-internals.nu tools.nu ...(glob tests
 | dotnu filter-commands-with-no-tests
 
 # Let's parse the file to see that we have some examples there
-dotnu parse-docstrings dotnu/mod.nu | where results != []
+dotnu parse-docstrings dotnu/mod.nu | where command_name == set-x | reject input | get 0
 
 # As an example of using the structured output from `parse docstrings`
 # let's use another command
@@ -61,4 +61,4 @@ use /Users/user/git/nupm/nupm; nupm test
 dotnu dependencies dotnu/mod.nu dotnu/dotnu-internals.nu tools.nu ...(glob tests/*.nu)
 | dotnu filter-commands-with-no-tests
 
-clear; "thanks for watching!" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' | table
+clear; "thanks for watching!" | figlet -f 'phm-largetype.flf' -C utf8 | table
