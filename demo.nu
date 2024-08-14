@@ -65,13 +65,13 @@ dotnu dependencies dotnu/mod.nu ...(glob tests/*.nu)
 clear; "dotnu set-x" | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # Let's examine a simple .nu script
-open tests/assets/set-x-demo.nu | nu-highlight
+open tests/assets/set-x-demo.nu
 
 # Let's apply `dotnu set-x`
 dotnu set-x tests/assets/set-x-demo.nu
 
 # Let's see the content of a produced file
-open /Users/user/git/dotnu/tests/assets/set-x-demo_setx.nu | nu-highlight
+open /Users/user/git/dotnu/tests/assets/set-x-demo_setx.nu
 
 clear; "dotnu" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' | table | print;
 print '' ''
