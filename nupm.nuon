@@ -1,1 +1,1 @@
-{name: dotnu, type: module, version: "0.0.12", description: "interact with the code of Nushell modules and scripts. ⏎", license: LICENSE}
+{name: dotnu, type: module, version: "0.0.13", description: "interact with the code of Nushell modules and scripts programmatically ⏎", license: LICENSE}
