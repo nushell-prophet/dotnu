@@ -62,4 +62,15 @@ use /Users/user/git/nupm/nupm; nupm test
 dotnu dependencies dotnu/mod.nu ...(glob tests/*.nu)
 | dotnu filter-commands-with-no-tests
 
+"dotnu set-x" | figlet -f 'phm-largetype.flf' -C utf8 | table
+
+# Let's examine a simple .nu script
+open tests/assets/set-x-demo.nu
+
+# Let's apply `dotnu set-x`
+set-x tests/assets/set-x-demo.nu
+
+
+clear; "dotnu" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' | table | print;
+print '' ''
 "thanks for watching!" | figlet -f 'phm-largetype.flf' -C utf8 | table
