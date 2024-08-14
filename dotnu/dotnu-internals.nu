@@ -59,19 +59,24 @@ export def 'extract-command-name' [
 }
 
 # generate command to execute `>` example command in a new nushell instance
+# in case of any problems - use `--use_statement` flag
 export def gen-example-exec-command [
     example_command
     command_name
     use_statement
     module_file
 ] {
+    let $module_stem = $module_file | path parse | get stem
+
+    # the logic to deduce the use statement is very fragile and are better to be remade
     if $use_statement != '' {
         $use_statement
-    } else if ($example_command | str contains $'($module_file | path parse | get stem) ($command_name)') {
+    } else if ($example_command | str contains $'($module_stem) ($command_name)') {
         $'use "($module_file)"'
+    } else if $module_stem == 'mod' {
+        $'use "($module_file | path dirname)" *'
     } else {
-        # I use asterisk for importing all the commands because the example might contain other commands from the module
-        $'use "($module_file)"; use "($module_file)" *'
+        $'use "($module_file)" *'
     }
     | $"($in);\n($example_command)"
 }
