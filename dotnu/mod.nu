@@ -101,8 +101,7 @@ export def parse-docstrings [
 
         let $command_description = $blocks.0
             | if $in =~ '(^|\n)>' {''} else {
-                str join (char nl)
-                | str trim --char (char nl)
+                str trim --char (char nl)
             }
 
         let $examples = $blocks
