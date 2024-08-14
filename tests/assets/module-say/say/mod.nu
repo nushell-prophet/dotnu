@@ -3,7 +3,7 @@ use hello.nu
 
 # Greet informally
 #
-# > say hi there
+# > hi there
 # hi there!
 export def hi [where: string] {
     $"hi ($where)!"
