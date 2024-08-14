@@ -4,7 +4,8 @@ clear; "dotnu dependencies" | figlet -f 'phm-rounded.flf' -C utf8 | lines | wher
 ls tests/assets/module-say/say/
 
 # Let's check what the content of its files is
-glob tests/assets/module-say/say/*.nu | sort | each {|i| $i | open | lines | where $it !~ '^#' | print $i $in }
+glob tests/assets/module-say/say/*.nu | sort
+| each {|i| $i | open | lines | where $it !~ '^#' | print $i $in }
 
 # Let's examine which commands of the module depend on which commands.
 # We pass the files to examine using glob expansion
