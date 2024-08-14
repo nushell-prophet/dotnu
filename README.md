@@ -1,4 +1,4 @@
-<img width="756" alt="dotnu" src="https://github.com/user-attachments/assets/5a53a9f6-316d-4edb-826a-e412e1cef1a8">
+![dotnu](https://github.com/user-attachments/assets/ae40f2ea-c07d-4b78-9991-dfbace679e74)
 
 # dotnu - Convenience tools for interacting with the code of Nushell modules and scripts. ⏎
 
