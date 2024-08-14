@@ -1,4 +1,4 @@
-clear; "dotnu dependencies" | figlet -f 'phm-largetype.flf' -C utf8 | table
+clear; "dotnu dependencies" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # Let's use a simple example module
 ls tests/assets/module-say/say/
@@ -15,7 +15,7 @@ dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
 dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
 | dotnu filter-commands-with-no-tests
 
-clear; "dotnu parse-docstrings" | figlet -f 'phm-largetype.flf' -C utf8 | table
+clear; "dotnu parse-docstrings" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # Let's check an example module file
 open tests/assets/module-say/say/hello.nu | nu-highlight
@@ -23,7 +23,7 @@ open tests/assets/module-say/say/hello.nu | nu-highlight
 # Let's use `dotnu parse-docstrings` with this file
 dotnu parse-docstrings tests/assets/module-say/say/hello.nu | reject input | get 0 | table -e
 
-clear; "dotnu update-docstring-examples" | figlet -f 'phm-largetype.flf' -C utf8 | table
+clear; "dotnu update-docstring-examples" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # Let's change some examples for demonstration
 code tests/assets/module-say/say/hello.nu
@@ -34,7 +34,7 @@ dotnu update-docstring-examples tests/assets/module-say/say/hello.nu
 # Let's see the results
 code tests/assets/module-say/say/hello.nu
 
-clear; "generate-nupm-tests" | figlet -f 'phm-largetype.flf' -C utf8 | table
+clear; "generate-nupm-tests" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # To demonstrate another command, let's apply the already familiar `dotnu dependencies`
 # to its own module files
@@ -62,7 +62,7 @@ use /Users/user/git/nupm/nupm; nupm test
 dotnu dependencies dotnu/mod.nu ...(glob tests/*.nu)
 | dotnu filter-commands-with-no-tests
 
-clear; "dotnu set-x" | figlet -f 'phm-largetype.flf' -C utf8 | table
+clear; "dotnu set-x" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
 
 # Let's examine a simple .nu script
 open tests/assets/set-x-demo.nu
@@ -73,6 +73,7 @@ dotnu set-x tests/assets/set-x-demo.nu
 # Let's see the content of a produced file
 open /Users/user/git/dotnu/tests/assets/set-x-demo_setx.nu
 
-clear; "dotnu" | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$' | table | print;
+clear; "dotnu" | str upcase | figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$'
+| fill -a center --width ((term size).columns - 10 | table | print;
 print '' ''
-"thanks for watching!" | figlet -f 'phm-largetype.flf' -C utf8 | table
+"thanks for watching!" | str upcase | figlet -f 'phm-largetype.flf' -C utf8 | table
