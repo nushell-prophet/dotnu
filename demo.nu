@@ -18,7 +18,7 @@ clear
 # as for the moment of presentation
 help modules | where name == 'dotnu' | get commands.0 | sort-by decl_id | reject decl_id
 
-"dotnu dependencies" | print-header
+"dependencies" | print-header
 
 # Let's use a simple example module
 ls tests/assets/module-say/say/
@@ -35,7 +35,7 @@ dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
 dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
 | dotnu filter-commands-with-no-tests
 
-clear; "dotnu parse-docstrings" | print-header
+clear; "parse-docstrings" | print-header
 
 # Let's check an example module file
 open tests/assets/module-say/say/hello.nu | nu-highlight
@@ -43,7 +43,7 @@ open tests/assets/module-say/say/hello.nu | nu-highlight
 # Let's use `dotnu parse-docstrings` with this file
 dotnu parse-docstrings tests/assets/module-say/say/hello.nu | reject input | get 0 | table -e
 
-clear; "dotnu update-docstring-examples" | print-header
+clear; "update-docstring-examples" | print-header
 
 # Let's change some examples for demonstration
 hx tests/assets/module-say/say/hello.nu:4:11
@@ -54,7 +54,7 @@ dotnu update-docstring-examples tests/assets/module-say/say/hello.nu
 # Let's see the results
 hx tests/assets/module-say/say/hello.nu:4:11
 
-clear; "dotnu generate-nupm-tests" | print-header
+clear; "generate-nupm-tests" | print-header
 
 # To demonstrate another command, let's apply the already familiar `dotnu dependencies`
 # to its own module files
@@ -82,7 +82,7 @@ use /Users/user/git/nupm/nupm; nupm test
 dotnu dependencies dotnu/mod.nu ...(glob tests/*.nu)
 | dotnu filter-commands-with-no-tests
 
-clear; "dotnu set-x" | print-header
+clear; "set-x" | print-header
 
 # Let's examine a simple .nu script
 open tests/assets/set-x-demo.nu
