@@ -4,6 +4,10 @@
 
 <p align="center"><em>(A good companion for <a href="https://github.com/nushell-prophet/numd">numd</a>)</em></p>
 
+## dotnu video demo
+
+[![dotnu demo](https://github.com/user-attachments/assets/fdd07bfc-7d77-4dca-8a1c-3e27ac3063f9)](https://youtu.be/-C7_dfLXXrE)
+
 ## Quickstart
 
 ```nushell no-run
