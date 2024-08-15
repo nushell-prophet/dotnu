@@ -1,4 +1,14 @@
-def print-header [] {str upcase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | lines | fill -a center --width ((term size).columns - 4) | table --index false};
+def print-header [
+    --gradient
+] {
+    let content = str upcase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | lines | fill -a center --width ((term size).columns - 4) | table --index false
+    if $gradient {
+        gradient-screen --no_date --echo --rows (((term size).rows - ($content | lines | length)) / 2 | into int)
+        | $in + $content + $in
+    } else {
+        $content
+    }
+};
 $env.PROMPT_COMMAND = {|| "\n> "};
 clear; 'dotnu' |  figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$'
 | fill -a center --width ((term size).columns - 4) | table --index false | ansi strip
@@ -84,4 +94,4 @@ dotnu set-x tests/assets/set-x-demo.nu
 # Let's see the content of a produced file
 open /Users/user/git/dotnu/tests/assets/set-x-demo_setx.nu
 
-clear; "thanks for watching!" | print-header
+clear; "thanks for watching!" | print-header --gradient
