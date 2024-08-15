@@ -4,7 +4,7 @@
 
 <p align="center"><em>(A good companion for <a href="https://github.com/nushell-prophet/numd">numd</a>)</em></p>
 
-![](https://github.com/nushell-prophet/dotnu/raw/video-test/media/dotnu-demo-20240815.mp4)
+https://github.com/nushell-prophet/dotnu/raw/video-test/media/dotnu-demo-20240815.mp4
 
 https://github.com/user-attachments/assets/830dfb2e-64eb-49af-a29f-634af0783fb3
 
