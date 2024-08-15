@@ -308,30 +308,3 @@ export def extract-command-code [
         commandline edit --replace $"^($code_editor) ($filename); commandline edit --replace 'source ($filename)'"
     }
 }
-
-# open a `.nu` file with blocks of tests divided by double new lines, execute each, report problems
-export def test [
-    file: path # path to `.nu` file
-] {
-    let $blocks = open $file
-        | split row -r "\n+\n"
-
-    $blocks
-    | skip
-    | length
-    | $"Number of tests to execute ($in)"
-    | print
-
-    # the first block is to be repeated in every other block execution
-    let $common = $blocks.0
-
-    $blocks
-    | skip
-    | par-each {|i|
-        nu --no-config-file -c $"($common)\n($i)"
-        | complete
-        | if $in.exit_code != 0 {
-            insert command $i
-        }
-    }
-}
