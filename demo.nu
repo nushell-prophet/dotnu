@@ -10,7 +10,7 @@ $env.PROMPT_COMMAND = {|| "\n> "};
 clear; 'dotnu' |  figlet -f 'phm-rounded.flf' -C utf8 | lines | where $it !~ '^\s*$'
 | fill -a center --width ((term size).columns - 4) | table --index false | ansi strip
 | ((ansi green_bold) + "\n\n" + $in + (ansi reset)  + (char nl) +
-    (ansi grey) + ('https://github.com/nushell-prophet/dotnu' | fill -a center --width ((term size).columns - 4)) + "\n" + (date now | format date %F | fill -a center --width ((term size).columns - 4)) +
+    (ansi grey) + ('https://github.com/nushell-prophet/dotnu' | fill -a center --width ((term size).columns)) + "\n" + (date now | format date %F | fill -a center --width ((term size).columns)) +
     (ansi reset ) + "\n\n") | add-gradient | print;
 
 clear
