@@ -6,7 +6,9 @@
 
 ## dotnu video demo
 
-[![dotnu demo](https://github.com/user-attachments/assets/fdd07bfc-7d77-4dca-8a1c-3e27ac3063f9)](https://youtu.be/-C7_dfLXXrE)
+<a href="https://youtu.be/-C7_dfLXXrE">
+  <img src="https://github.com/user-attachments/assets/fdd07bfc-7d77-4dca-8a1c-3e27ac3063f9" alt="dotnu demo" width="100"/>
+</a>
 
 ## Quickstart
 
