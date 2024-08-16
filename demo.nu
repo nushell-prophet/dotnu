@@ -1,3 +1,9 @@
+# This demo was shown using the ancestor of https://github.com/nushell-prophet/nu-cmd-stack
+# Figlet CLI: http://www.figlet.org
+# Cool Figlet fonts: https://github.com/PhMajerus/FIGfonts
+# And some nu-goodie: https://github.com/nushell-prophet/nu-goodies/blob/public/nu-goodies/gradient-screen.nu
+# Thanks for your attention!
+
 def print-header [ ] {
     str upcase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | lines | fill -a center --width ((term size).columns - 4) | table --index false
 };
