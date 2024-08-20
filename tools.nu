@@ -55,6 +55,8 @@ def do_closure_save_results [
     let closure = $in
     let $output_file = ['tests' 'output-yaml' ...$output_path_segments] | path join
 
+    if ($output_file | path exists) {rm $output_file}
+
     view source $closure
     | lines | skip | drop | str trim
     | each {$'# ($in)'}
