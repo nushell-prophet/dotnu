@@ -1,0 +1,19 @@
+# [tests assets c hello-no-output.nu]
+# | path join
+# | path expand
+# | update-docstring-examples $in --no_git_check --echo
+# Output greeting!
+#
+# Say hello to Maxim
+# > hello-no-output Maxim
+# hello Maxim!
+#
+# Say hello to Darren
+# and capitlize letters
+# > hello-no-output Darren
+# | str capitalize
+# Hello Darren!
+export def main [name: string] {
+    $"hello ($name)!"
+}
+

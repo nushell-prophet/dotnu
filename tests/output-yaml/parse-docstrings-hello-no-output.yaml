@@ -1,0 +1,27 @@
+# open $path
+# | parse-docstrings
+# | to yaml
+- command_name: main
+  command_description: Output greeting!
+  examples:
+  - annotation: Say hello to Maxim
+    command: '> hello-no-output Maxim'
+    result: ''
+  - annotation: |-
+      Say hello to Darren
+      and capitlize letters
+    command: |-
+      > hello-no-output Darren
+      | str capitalize
+    result: ''
+  input: |-
+    # Output greeting!
+    #
+    # Say hello to Maxim
+    # > hello-no-output Maxim
+    #
+    # Say hello to Darren
+    # and capitlize letters
+    # > hello-no-output Darren
+    # | str capitalize
+

@@ -11,42 +11,52 @@
   - annotation: ''
     command: '> lscustom'
     result: |-
-      ╭─#─┬──────name──────┬─type─┬──size───┬───modified───╮
-      │ 0 │ LICENSE        │ file │ 1.2 KiB │ 5 months ago │
-      │ 1 │ README.md      │ file │ 5.0 KiB │ 16 hours ago │
-      │ 2 │ dotnu          │ dir  │   128 B │ 16 hours ago │
-      │ 3 │ nupm.nuon      │ file │   123 B │ 2 days ago   │
-      │ 4 │ tests          │ dir  │   192 B │ 2 days ago   │
-      │ 5 │ tools.nu       │ file │ 2.4 KiB │ 2 days ago   │
-      │ 6 │ zzz_md_backups │ dir  │   448 B │ 16 hours ago │
-      ╰───┴────────────────┴──────┴─────────┴──────────────╯
+      ╭───┬───────────┬──────┬──────────┬────────────╮
+      │ # │   name    │ type │   size   │  modified  │
+      ├───┼───────────┼──────┼──────────┼────────────┤
+      │ 0 │ LICENSE   │ file │  1.2 KiB │ a week ago │
+      │ 1 │ README.md │ file │ 10.0 KiB │ 4 days ago │
+      │ 2 │ demo.nu   │ file │  3.7 KiB │ 4 days ago │
+      │ 3 │ dotnu     │ dir  │    128 B │ 4 days ago │
+      │ 4 │ media     │ dir  │     96 B │ 4 days ago │
+      │ 5 │ nupm.nuon │ file │    124 B │ 6 days ago │
+      │ 6 │ tests     │ dir  │    192 B │ 5 days ago │
+      │ 7 │ tools.nu  │ file │  2.3 KiB │ 6 days ago │
+      ╰───┴───────────┴──────┴──────────┴────────────╯
   input: |-
     # Just like `ls` but longer to type
     #
     # > lscustom
-    # ╭─#─┬──────name──────┬─type─┬──size───┬───modified───╮
-    # │ 0 │ LICENSE        │ file │ 1.2 KiB │ 5 months ago │
-    # │ 1 │ README.md      │ file │ 5.0 KiB │ 16 hours ago │
-    # │ 2 │ dotnu          │ dir  │   128 B │ 16 hours ago │
-    # │ 3 │ nupm.nuon      │ file │   123 B │ 2 days ago   │
-    # │ 4 │ tests          │ dir  │   192 B │ 2 days ago   │
-    # │ 5 │ tools.nu       │ file │ 2.4 KiB │ 2 days ago   │
-    # │ 6 │ zzz_md_backups │ dir  │   448 B │ 16 hours ago │
-    # ╰───┴────────────────┴──────┴─────────┴──────────────╯
+    # ╭───┬───────────┬──────┬──────────┬────────────╮
+    # │ # │   name    │ type │   size   │  modified  │
+    # ├───┼───────────┼──────┼──────────┼────────────┤
+    # │ 0 │ LICENSE   │ file │  1.2 KiB │ a week ago │
+    # │ 1 │ README.md │ file │ 10.0 KiB │ 4 days ago │
+    # │ 2 │ demo.nu   │ file │  3.7 KiB │ 4 days ago │
+    # │ 3 │ dotnu     │ dir  │    128 B │ 4 days ago │
+    # │ 4 │ media     │ dir  │     96 B │ 4 days ago │
+    # │ 5 │ nupm.nuon │ file │    124 B │ 6 days ago │
+    # │ 6 │ tests     │ dir  │    192 B │ 5 days ago │
+    # │ 7 │ tools.nu  │ file │  2.3 KiB │ 6 days ago │
+    # ╰───┴───────────┴──────┴──────────┴────────────╯
 - command_name: command-5
   command_description: ''
   examples:
   - annotation: ''
     command: '> command-5'
     result: |-
-      ╭─#─┬───────────name────────────╮
+      ╭───┬───────────────────────────╮
+      │ # │           name            │
+      ├───┼───────────────────────────┤
       │ 0 │ LICENSE                   │
-      │ 1 │ IZMa4BrhlIzQgt38R22S9CGPG │
+      │ 1 │ n7QOeK7sX1YxIIcRxPOuVZBSd │
       ╰───┴───────────────────────────╯
   input: |-
     # > command-5
-    # ╭─#─┬───────────name────────────╮
+    # ╭───┬───────────────────────────╮
+    # │ # │           name            │
+    # ├───┼───────────────────────────┤
     # │ 0 │ LICENSE                   │
-    # │ 1 │ IZMa4BrhlIzQgt38R22S9CGPG │
+    # │ 1 │ n7QOeK7sX1YxIIcRxPOuVZBSd │
     # ╰───┴───────────────────────────╯
 
