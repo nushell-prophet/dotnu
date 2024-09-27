@@ -241,7 +241,7 @@ export def 'dummy-command' [
             | where name == $command
             | get -i signatures.0
             | if $in == null {
-                error make --unspanned {msg: $'no command `($command)` was found'}
+                error make --unspanned {msg: 'no command $command was found'}
             } else {}
             | values
             | get 0
