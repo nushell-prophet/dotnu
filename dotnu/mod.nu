@@ -271,6 +271,10 @@ export def extract-command-code [
     --set_vars: record # set variables for a command
     --code_editor = 'code' # code is my editor of choice to open the result file
 ] {
+    let $command = $command
+        | if $in =~ '\s' and $in !~ "^(\"|')" {
+            $'"($in)"'
+        } else {}
     let $dotnu_vars_delim = '#dotnu-vars-end'
 
     let $extracted_command = dummy-command $command $module_file $dotnu_vars_delim
