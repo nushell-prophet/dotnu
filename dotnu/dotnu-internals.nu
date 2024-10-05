@@ -269,6 +269,7 @@ export def 'dummy-command' [
                             else { $i.syntax_shape }
                     )
                     | if $in == '' {"''"} else {}
+                    | default "''"
                     | into string
 
                 $"let $($param) = ($value)"
