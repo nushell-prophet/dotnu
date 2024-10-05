@@ -285,7 +285,8 @@ export def extract-command-code [
         error make --unspanned {msg: $'no command `($command)` was found'}
     }
 
-    let $filename = $output | default $'($command).nu'
+    let $filename = $output
+        | default $'($command | str trim -c '"' | str trim -c "'").nu'
 
     $extracted_command.0
     | variable-definitions-to-record
@@ -309,6 +310,6 @@ export def extract-command-code [
     } else {
         save -f $filename
 
-        commandline edit --replace $"^($code_editor) ($filename); commandline edit --replace 'source ($filename)'"
+        commandline edit --replace $" ^($code_editor) \"($filename)\"; commandline edit --replace ' source \"($filename)\"'"
     }
 }
