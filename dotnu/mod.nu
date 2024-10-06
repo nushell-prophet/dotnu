@@ -301,7 +301,14 @@ export def extract-command-code [
     | if $set_vars != null {
         merge $set_vars
     } else {}
-    | items {|k v| $'let $($k) = ($v)'}
+    | items {|k v| $v
+        | if $in == null {
+            'null'
+        } else if $in == '' {
+            "''"
+        }
+        | $'let $($k) = ($in)'
+    }
     | append (char nl)
     | str join (char nl)
     | $in + $dotnu_vars_delim + $extracted_command.1 + (char nl)
