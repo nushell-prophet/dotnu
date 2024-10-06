@@ -19,7 +19,7 @@ export def variable-definitions-to-record []: string -> record {
         | uniq
         | each {$'($in): $($in)'}
         | str join ' '
-        | $'{($in)} | to nuon' # this way we ensure the proper formatting for bool, numeric and string vars
+        | '{' + $in + '} | to nuon' # this way we ensure the proper formatting for bool, numeric and string vars
     )"
     | nu -n -c $in
     | from nuon
