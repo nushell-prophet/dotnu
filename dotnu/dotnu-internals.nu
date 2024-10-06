@@ -11,17 +11,20 @@ use std iter scan
 # > "let $a = null" | variable-definitions-to-record | to nuon
 # {a: null}
 export def variable-definitions-to-record []: string -> record {
-    str replace -a ';' ";\n"
-    | $"($in)(char nl)(
-        $in
+    let $script_with_variables_definitnions = str replace -a ';' ";\n"
+        | $in + (char nl)
+
+    let $variables_record = $script_with_variables_definitnions
         | parse -r 'let (?:\$)?(?<var>.*) ='
         | get var
         | uniq
         | each {$'($in): $($in)'}
         | str join ' '
         | '{' + $in + '} | to nuon' # this way we ensure the proper formatting for bool, numeric and string vars
-    )"
-    | nu -n -c $in
+
+    let $script = $script_with_variables_definitnions + $variables_record
+
+    nu -n -c $script
     | from nuon
 }
 
