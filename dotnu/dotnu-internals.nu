@@ -267,7 +267,7 @@ export def 'dummy-command' [
                 let $value = $i.parameter_default?
                     | if $in == null {} else {
                         if $i.syntax_shape in ['string' 'path'] {
-                            $"'($in)'"
+                            to json
                         } else {}
                     }
                     | if $in == null {
