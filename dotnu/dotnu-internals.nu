@@ -14,7 +14,7 @@ export def variable-definitions-to-record []: string -> record {
     str replace -a ';' ";\n"
     | $"($in)(char nl)(
         $in
-        | parse -r 'let (?:\$)*(?<var>.*) ='
+        | parse -r 'let (?:\$)?(?<var>.*) ='
         | get var
         | uniq
         | each {$'($in): $($in)'}
@@ -267,7 +267,7 @@ export def 'dummy-command' [
                 let $value = $i.parameter_default?
                     | default ( if $i.parameter_type == 'switch' { false } )
                     | default ( if $i.is_optional { "'null'" } )
-                    | if $in == '' {"''"} else {}
+                    | if $in == '' {"'null'"} else {}
                     | default "'null'"
                     | into string
 
