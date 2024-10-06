@@ -272,7 +272,7 @@ export def 'dummy-command' [
                     | default "''"
                     | into string
 
-                $"let $($param) = ($value)"
+                $"let $($param)($i.syntax_shape | if $in != null {': ' + $in}) = ($value)"
             }
             | str join "\n"
 
