@@ -7,6 +7,9 @@ use std iter scan
 #
 # > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record | to nuon
 # {a: b, c: d}
+#
+# > "let $a = null" | variable-definitions-to-record | to nuon
+# {a: null}
 export def variable-definitions-to-record []: string -> record {
     str replace -a ';' ";\n"
     | $"($in)(char nl)(
@@ -111,14 +114,18 @@ export def nu-completion-command-name [
 # Extract table with information on which commands use which commands
 #
 # > extract-module-commands tests/assets/b/example-mod1.nu | first 3
-# ╭─#─┬──caller───┬────callee─────┬─filename_of_caller─╮
+# ╭───┬───────────┬───────────────┬────────────────────╮
+# │ # │  caller   │    callee     │ filename_of_caller │
+# ├───┼───────────┼───────────────┼────────────────────┤
 # │ 0 │ command-5 │ command-3     │ example-mod1.nu    │
 # │ 1 │ command-5 │ first-custom  │ example-mod1.nu    │
 # │ 2 │ command-5 │ append-random │ example-mod1.nu    │
 # ╰───┴───────────┴───────────────┴────────────────────╯
 #
 # > extract-module-commands --definitions_only tests/assets/b/example-mod1.nu | first 3
-# ╭─#─┬────caller────┬─filename_of_caller─╮
+# ╭───┬──────────────┬────────────────────╮
+# │ # │    caller    │ filename_of_caller │
+# ├───┼──────────────┼────────────────────┤
 # │ 0 │ example-mod1 │ example-mod1.nu    │
 # │ 1 │ lscustom     │ example-mod1.nu    │
 # │ 2 │ command-5    │ example-mod1.nu    │
@@ -268,7 +275,7 @@ export def 'dummy-command' [
                             else {}
                     )
                     | if $in == '' {"''"} else {}
-                    | default "''"
+                    | default "'null'"
                     | into string
 
                 $"let $($param) = ($value)"
