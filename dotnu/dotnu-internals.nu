@@ -277,7 +277,7 @@ export def 'dummy-command' [
                     | default "'null'"
                     | into string
 
-                $"let $($param) = ($value)"
+                $"let $($param) = ($value) # ($i.syntax_shape)"
             }
             | str join "\n"
 
