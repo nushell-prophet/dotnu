@@ -265,14 +265,7 @@ export def 'dummy-command' [
                 let $param = $i.parameter_name | str replace -a '-' '_' | str replace '$' ''
 
                 let $value = $i.parameter_default?
-                    | if $in == null {} else {
-                        if $i.syntax_shape in ['string' 'path'] {
-                            to json
-                        } else {}
-                    }
-                    | if $in == null {
-                        if $i.parameter_type == 'switch' { false } else {}
-                    } else {}
+                    | default ( if $i.is_optional == 'switch' { false } )
                     | if $in == '' {"''"} else {}
                     | default "'null'"
                     | into string
