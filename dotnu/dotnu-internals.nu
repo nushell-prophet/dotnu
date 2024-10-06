@@ -270,10 +270,9 @@ export def 'dummy-command' [
                             $"'($in)'"
                         } else {}
                     }
-                    | default (
-                        if $i.parameter_type == 'switch' { false }
-                            else {}
-                    )
+                    | if $in == null {
+                        if $i.parameter_type == 'switch' { false } else {}
+                    } else {}
                     | if $in == '' {"''"} else {}
                     | default "'null'"
                     | into string
