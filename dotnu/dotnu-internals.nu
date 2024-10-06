@@ -265,8 +265,7 @@ export def 'dummy-command' [
                     }
                     | default (
                         if $i.parameter_type == 'switch' { false }
-                            else if $i.is_optional { 'null' }
-                            else { $i.syntax_shape }
+                            else {}
                     )
                     | if $in == '' {"''"} else {}
                     | default "''"
