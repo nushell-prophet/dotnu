@@ -269,10 +269,7 @@ export def 'dummy-command' [
 
                 let $value = $i.parameter_default?
                     | default ( if $i.parameter_type == 'switch' { false } )
-                    | default ( if $i.is_optional { "'null'" } )
-                    | if $in == '' {"'null'"} else {}
-                    | default "'null'"
-                    | into string
+                    | to nuon # to handle nuls
 
                 $"let $($param) = ($value) # ($i.syntax_shape)"
             }
