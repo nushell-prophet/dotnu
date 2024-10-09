@@ -54,11 +54,10 @@ export def 'extract-command-name' [
     | if $module_file == null {} else {
         str replace -r '^main( |$)' (
             $module_file
-            | path expand
-            | path split
-            | where $it != mod.nu
-            | last
-            | str replace -r '\.nu$' ' '
+            | path parse
+            | get stem
+            | where $it != mod
+            | $in + ' '
         )
         | str trim
     }
