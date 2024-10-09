@@ -313,3 +313,17 @@ export def extract-command-code [
         commandline edit --replace $" ^($code_editor) \"($filename)\"; commandline edit --replace ' source \"($filename)\"'"
     }
 }
+
+export def 'list-main-commands' [
+    $path: path
+] {
+    open $path -r
+    | lines
+    | where $it =~ '^(export )?def '
+    | extract-command-name
+    | where $it starts-with 'main'
+    | str replace 'main ' ''
+    | input list "Choose a command:"
+    | if $in == 'main' { '' } else {}
+    | commandline edit -r $"nu ($path) ($in)"
+}
