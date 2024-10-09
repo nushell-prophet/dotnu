@@ -324,6 +324,10 @@ export def 'list-main-commands' [
     | where $it starts-with 'main'
     | str replace 'main ' ''
     | input list "Choose a command:"
+    | if ($in | is-empty) {
+        print 'No command found'
+        return
+    } else {}
     | if $in == 'main' { '' } else {}
     | commandline edit -r $"nu ($path) ($in)"
 }
