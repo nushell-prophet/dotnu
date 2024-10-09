@@ -316,18 +316,30 @@ export def extract-command-code [
 
 export def 'list-main-commands' [
     $path: path
+    --export # use only commands that are exported
 ] {
     open $path -r
     | lines
-    | where $it =~ '^(export )?def '
+    | if $export {
+        where $it =~ '^export def '
+    } else {
+        where $it =~ '^(export )?def '
+    }
     | extract-command-name
-    | where $it starts-with 'main'
-    | str replace 'main ' ''
-    | input list "Choose a command:"
+    | if $export {} else {
+        where $it starts-with 'main'
+        | str replace 'main ' ''
+    }
     | if ($in | is-empty) {
         print 'No command found'
         return
     } else {}
+    | input list "Choose a command"
     | if $in == 'main' { '' } else {}
-    | commandline edit -r $"nu ($path) ($in)"
+    | if $export {
+        $"use ($path) '($in)'; ($path | path parse | get stem) ($in)"
+    } else {
+        $"nu ($path) ($in)"
+    }
+    | commandline edit -r $in
 }
