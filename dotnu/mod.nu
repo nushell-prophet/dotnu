@@ -322,12 +322,11 @@ export def 'list-main-commands' [
     | lines
     | if $export {
         where $it =~ '^export def '
+        | extract-command-name $path
     } else {
         where $it =~ '^(export )?def '
-    }
-    | extract-command-name
-    | if $export {} else {
-        where $it starts-with 'main'
+        | extract-command-name
+        | where $it starts-with 'main'
         | str replace 'main ' ''
     }
     | if ($in | is-empty) {
