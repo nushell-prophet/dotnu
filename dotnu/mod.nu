@@ -9,6 +9,7 @@ use dotnu-internals.nu [
     nu-completion-command-name
     parse-example
     prepare-substitutions
+    replace-main-with-module-name
     variable-definitions-to-record
 ]
 
@@ -322,7 +323,8 @@ export def 'list-main-commands' [
     | lines
     | if $export {
         where $it =~ '^export def '
-        | extract-command-name $path
+        | extract-command-name
+        | replace-main-with-module-name $path
     } else {
         where $it =~ '^(export )?def '
         | extract-command-name
@@ -333,7 +335,7 @@ export def 'list-main-commands' [
         print 'No command found'
         return
     } else {}
-    | input list "Choose a command"
+    | input list --fuzzy "Choose a command"
     | if $in == 'main' { '' } else {}
     | if $export {
         $"use ($path) '($in)'; ($path | path parse | get stem) ($in)"

@@ -51,17 +51,22 @@ export def 'extract-command-name' [
     | str replace -ra '(--(env|wrapped) ?)' ''
     | str replace -ra "\"|'|`" ''
     | str trim
-    | if $module_file == null {} else {
-        str replace -r '^main( |$)' (
-            $module_file
-            | path expand
-            | path split
-            | where $it != mod.nu
-            | last
-            | str replace -r '\.nu$' ' '
-        )
-        | str trim
-    }
+}
+
+export def replace-main-with-module-name [
+    $path
+] {
+    let $input = $in
+    let $module_name = $path
+        | path expand
+        | path split
+        | where $it != mod.nu
+        | last
+        | str replace -r '\.nu$' ' '
+
+    $input
+    | str replace -r '^main( |$)' $module_name
+    | str trim
 }
 
 # generate command to execute `>` example command in a new nushell instance
@@ -146,7 +151,8 @@ export def extract-module-commands [
         | wrap line
         | insert caller {|i|
             $i.line
-            | extract-command-name $path
+            | extract-command-name
+            | replace-main-with-module-name $path
         }
         | insert filename_of_caller ($path | path basename)
 
