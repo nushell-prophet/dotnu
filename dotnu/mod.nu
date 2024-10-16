@@ -338,7 +338,7 @@ export def 'list-main-commands' [
     | input list --fuzzy "Choose a command"
     | if $in == 'main' { '' } else {}
     | if $export {
-        $"use ($path) '($in)'; ($path | path parse | get stem) ($in)"
+        $"use ($path) '($in)'; ($in)"
     } else {
         $"nu ($path) ($in)"
     }
