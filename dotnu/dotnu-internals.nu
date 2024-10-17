@@ -10,6 +10,9 @@ use std iter scan
 #
 # > "let $a = null" | variable-definitions-to-record | to nuon
 # {a: null}
+#
+# > "" | variable-definitions-to-record | to nuon
+# {}
 export def variable-definitions-to-record []: string -> record {
     let $script_with_variables_definitnions = str replace -a ';' ";\n"
         | $in + (char nl)
