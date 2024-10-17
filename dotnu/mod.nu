@@ -291,7 +291,7 @@ export def extract-command-code [
         | default $'($command | str trim -c '"' | str trim -c "'").nu'
 
         # here we use defined variables from the previously extracted command to a file
-    let $set_variables_from_file = if ($filename | path exists) and not $clear_vars {
+    let $variables_from_prev_script = if ($filename | path exists) and not $clear_vars {
             open $filename
             | split row $dotnu_vars_delim
             | get 0
@@ -300,7 +300,7 @@ export def extract-command-code [
 
     $extracted_command.0
     | variable-definitions-to-record
-    | merge $set_variables_from_file
+    | merge $variables_from_prev_script
     | merge $set_vars
     | items {|k v| $'let $($k) = ($v | to nuon)' }
     | append (char nl)
