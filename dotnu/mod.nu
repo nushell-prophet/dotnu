@@ -269,7 +269,7 @@ export def extract-command-code [
     --output: path # a file path to save extracted command script
     --clear_vars # clear variables previously set in the extracted .nu file
     --echo # output the command to the terminal
-    --set_vars: record # set variables for a command
+    --set_vars: record = {} # set variables for a command
     --code_editor = 'code' # code is my editor of choice to open the result file
 ] {
     let $command = $command
@@ -301,9 +301,7 @@ export def extract-command-code [
     $extracted_command.0
     | variable-definitions-to-record
     | merge $set_variables_from_file
-    | if $set_vars != null {
-        merge $set_vars
-    } else {}
+    | merge $set_vars
     | items {|k v| $'let $($k) = ($v | to nuon)' }
     | append (char nl)
     | str join (char nl)
