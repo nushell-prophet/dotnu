@@ -303,6 +303,7 @@ export def extract-command-code [
     | merge $variables_from_prev_script
     | merge $set_vars
     | items {|k v| $'let $($k) = ($v | to nuon)' }
+    | prepend $'source ($module_file)'
     | append $dotnu_vars_delim
     | append $extracted_command.1
     | to text
