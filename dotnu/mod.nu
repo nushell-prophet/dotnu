@@ -276,6 +276,7 @@ export def extract-command-code [
         | if $in =~ '\s' and $in !~ "^(\"|')" {
             $'"($in)"'
         } else {}
+
     let $dotnu_vars_delim = '#dotnu-vars-end'
 
     let $extracted_command = dummy-command $command $module_file $dotnu_vars_delim
@@ -289,16 +290,17 @@ export def extract-command-code [
     let $filename = $output
         | default $'($command | str trim -c '"' | str trim -c "'").nu'
 
-    $extracted_command.0
-    | variable-definitions-to-record
-    | if ($filename | path exists) and not $clear_vars {
-        merge ( # here we use defined variables from the previously extracted command to a file
+        # here we use defined variables from the previously extracted command to a file
+    let $set_variables_from_file = if ($filename | path exists) and not $clear_vars {
             open $filename
             | split row $dotnu_vars_delim
             | get 0
             | variable-definitions-to-record
-        )
-    } else {}
+        } else { {} }
+
+    $extracted_command.0
+    | variable-definitions-to-record
+    | merge $set_variables_from_file
     | if $set_vars != null {
         merge $set_vars
     } else {}
