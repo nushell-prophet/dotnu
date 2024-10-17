@@ -303,9 +303,9 @@ export def extract-command-code [
     | merge $variables_from_prev_script
     | merge $set_vars
     | items {|k v| $'let $($k) = ($v | to nuon)' }
-    | append (char nl)
-    | str join (char nl)
-    | $in + $dotnu_vars_delim + $extracted_command.1 + (char nl)
+    | append $dotnu_vars_delim
+    | append $extracted_command.1
+    | to text
     | if $echo {
         return $in
     } else {
