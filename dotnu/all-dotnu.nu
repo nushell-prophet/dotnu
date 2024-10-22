@@ -122,9 +122,7 @@ export def update-docstring-examples [
     | execute-update-example-result --module_file $module_file --use_statement $use_statement
     | prepare-substitutions
     | reject command_description command_name examples -i
-    | reduce -f $raw_module {|i acc|
-        $acc | str replace -a $i.input $i.updated
-    }
+    | reduce -f $raw_module {|i| str replace -a $i.input $i.updated }
     | str replace -r '\n*$' "\n" # add ending new line
     | if $echo {} else { save $module_file --force }
 }
