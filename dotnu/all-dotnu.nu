@@ -191,7 +191,7 @@ export def generate-nupm-tests [
     if $echo {return $tests_script}
 
     let $tests_filename = $'dotnu-examples-test-($module_path | path basename)'
-    let $tests_path = [$root 'tests' $tests_filename] | path join
+    let $tests_path = [ $root 'tests' $tests_filename ] | path join
     let $tests_path_abs = $tests_path | path expand
     let $tests_mod_path = $tests_path | str replace $tests_filename 'mod.nu'
     let $export_statement = $"export use ($tests_filename) *\n"
@@ -356,8 +356,7 @@ export def variable-definitions-to-record []: string -> record {
 
     let $script = $script_with_variables_definitnions + $variables_record
 
-    nu -n -c $script
-    | from nuon
+    nu -n -c $script | from nuon
 }
 
 # parse `>` examples from the parsed docstrings
@@ -443,12 +442,11 @@ export def escape-for-quotes []: string -> string {
 export def nu-completion-command-name [
     context: string
 ] {
-    $context | str replace -r '^.*? extract-command-code ' '' | str trim | split row ' ' | first
+    $context | str replace -r '^.*? extract-command-code ' ''
+    | str trim | split row ' ' | first
     | path expand | open $in -r | lines
     | where $it =~ '^(export )?def '
-    | each {
-        extract-command-name
-    }
+    | each { extract-command-name }
 }
 
 # Extract table with information on which commands use which commands
@@ -549,11 +547,11 @@ export def prepare-substitutions [] {
     insert updated {|e|
         $e.examples
         | each {|i|
-            [$i.annotation $i.command $i.result]
+            [ $i.annotation $i.command $i.result ]
             | compact --empty
             | str join (char nl)
         }
-        | [$e.command_description $in]
+        | [ $e.command_description $in ]
         | flatten
         | compact --empty
         | str join $"(char nl)(char nl)"
