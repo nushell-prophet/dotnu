@@ -120,7 +120,7 @@ export def update-docstring-examples [
     | parse-docstrings
     | where command_name =~ $command_filter
     | execute-update-example-result --module_path $module_path --use_statement $use_statement
-    | insert updated {|e| prepare-substitutions $e.examples $e.command_description}
+    | insert updated {|e| format-substitutions $e.examples $e.command_description}
     | select input updated
     | reduce -f $raw_module {|i| str replace -a $i.input $i.updated }
     | str replace -r '\n*$' "\n" # add ending new line
@@ -543,7 +543,7 @@ export def execute-update-example-result [
 }
 
 # prepare pairs of substituions of old results and new results
-export def prepare-substitutions [
+export def format-substitutions [
     $examples
     $command_description
 ] {
