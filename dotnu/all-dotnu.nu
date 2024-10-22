@@ -118,7 +118,7 @@ export def update-docstring-examples [
 
     $raw_module
     | parse-docstrings
-    | if $command_filter == '' {} else { where command_name =~ $command_filter }
+    | where command_name =~ $command_filter
     | execute-update-example-result --module_file $module_file --use_statement $use_statement
     | prepare-substitutions
     | reject command_description command_name examples -i
