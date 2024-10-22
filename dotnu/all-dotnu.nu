@@ -112,15 +112,9 @@ export def update-docstring-examples [
     --echo # output script to stdout instead of updating the module_file provided
     --no_git_check # don't check for the emptiness of the working tree
 ] {
-    let pwd = pwd
-
-    cd ($module_file | path dirname)
-
     if not $no_git_check { check-clean-working-tree $module_file}
 
     let $raw_module = open $module_file
-
-    cd $pwd
 
     $raw_module
     | parse-docstrings
@@ -325,6 +319,8 @@ export def 'list-main-commands' [
 export def check-clean-working-tree [
     module_file: path
 ] {
+    cd ($module_file | path dirname)
+
     let git_status = git status --short
 
     $git_status
