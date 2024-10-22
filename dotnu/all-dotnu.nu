@@ -120,7 +120,7 @@ export def update-docstring-examples [
     | parse-docstrings
     | where command_name =~ $command_filter
     | execute-update-example-result --module_path $module_path --use_statement $use_statement
-    | prepare-substitutions
+    | insert updated {|e| prepare-substitutions $e.examples $e.command_description}
     | select input updated
     | reduce -f $raw_module {|i| str replace -a $i.input $i.updated }
     | str replace -r '\n*$' "\n" # add ending new line
@@ -543,21 +543,22 @@ export def execute-update-example-result [
 }
 
 # prepare pairs of substituions of old results and new results
-export def prepare-substitutions [] {
-    insert updated {|e|
-        $e.examples
-        | each {|i|
-            [ $i.annotation $i.command $i.result ]
-            | compact --empty
-            | str join (char nl)
-        }
-        | prepend $e.command_description
+export def prepare-substitutions [
+    $examples
+    $command_description
+] {
+    $examples
+    | each {|i|
+        [ $i.annotation $i.command $i.result ]
         | compact --empty
-        | str join $"(char nl)(char nl)"
-        | lines
-        | each {$"# ($in)" | str trim}
         | str join (char nl)
     }
+    | prepend $command_description
+    | compact --empty
+    | str join $"(char nl)(char nl)"
+    | lines
+    | each {$"# ($in)" | str trim}
+    | str join (char nl)
 }
 
 # helper function for use inside of generate
