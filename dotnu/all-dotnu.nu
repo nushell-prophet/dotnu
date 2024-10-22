@@ -551,8 +551,7 @@ export def prepare-substitutions [] {
             | compact --empty
             | str join (char nl)
         }
-        | [ $e.command_description $in ]
-        | flatten
+        | prepend $e.command_description
         | compact --empty
         | str join $"(char nl)(char nl)"
         | lines
