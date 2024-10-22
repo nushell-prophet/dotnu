@@ -63,11 +63,7 @@ export def filter-commands-with-no-tests [] {
 export def parse-docstrings [
     $module_path? # path to a nushell module file
 ] {
-    if $module_path == null {
-        collect
-    } else {
-        $module_path | open | collect
-    }
+    if $module_path == null { collect } else { $module_path | open | collect }
     | parse -r '(?:\n\n|^)(?<definit_line>(?:(?:#.*\n)*)?(?:export def.*))'
     | get definit_line
     | each {
@@ -86,21 +82,19 @@ export def parse-docstrings [
             } else {['']}
 
         let $command_description = $blocks.0
-            | if $in =~ '(^|\n)>' {''} else {
-                str trim --char (char nl)
-            }
+            | if $in =~ '(^|\n)>' {''} else { str trim --char (char nl) }
 
         let $examples = $blocks
-            | if $command_description == '' {} else {
-                skip
-            }
+            | if $command_description == '' {} else { skip }
             | each {parse-example}
             | flatten
 
-        { command_name: $command_name
+        {
+            command_name: $command_name
             command_description: $command_description
             examples: $examples
-            input: ($lines | drop | str join (char nl)) }
+            input: ($lines | drop | str join (char nl))
+        }
     }
 }
 
@@ -152,9 +146,7 @@ export def set-x [
     }
     | prepend 'mut $prev_ts = date now'
     | str join (char nl)
-    | if $echo {
-        return $in
-    } else {
+    | if $echo { return $in } else {
         save -f $out_file
 
         print $'the file ($out_file) is produced. Source it'
