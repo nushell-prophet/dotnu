@@ -144,8 +144,8 @@ export def set-x [
         | ('print ("> ' + $in + '" | nu-highlight)' + (char nl) + $block
             + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
     }
-    | prepend 'mut $prev_ts = date now'
-    | str join (char nl)
+    | prepend 'mut $prev_ts = (date now)'
+    | to text
     | if $echo { return $in } else {
         save -f $out_file
 
