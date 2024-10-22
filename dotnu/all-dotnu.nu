@@ -78,7 +78,7 @@ export def parse-docstrings [
                 drop
                 | str replace --all --regex '^#( ?)|( +$)' ''
                 | split list ''
-                | each {str join (char nl) | $"($in)\n"}
+                | each {to text | $"($in)\n"}
             } else {['']}
 
         let $command_description = $blocks.0
@@ -93,7 +93,7 @@ export def parse-docstrings [
             command_name: $command_name
             command_description: $command_description
             examples: $examples
-            input: ($lines | drop | str join (char nl))
+            input: ($lines | drop | to text)
         }
     }
 }
@@ -124,7 +124,7 @@ export def update-docstring-examples [
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
 #
-# > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | str join (char nl)
+# > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
 # mut $prev_ts = date now
 # print ("> sleep 0.5sec" | nu-highlight)
 # sleep 0.5sec
@@ -208,7 +208,7 @@ export def generate-nupm-tests [
 export def generate-numd [] {
     split row -r "\n+\n"
     | each {$"```nu\n($in)\n```\n"}
-    | str join (char nl)
+    | to text
 }
 
 # extract a code of a command from a module and save it as a `.nu' file, that can be sourced
@@ -601,7 +601,7 @@ export def 'dummy-command' [
 
                 $"let $($param) = ($value) # ($i.syntax_shape)"
             }
-            | str join "\n"
+            | to text
 
         let $main = view source $command
             | lines
@@ -609,13 +609,13 @@ export def 'dummy-command' [
             | drop
             | append '# }'
             | prepend $dotnu_vars_delim
-            | str join "\n"
+            | to text
 
         "source '$file'\n\n" + $params + "\n\n" + $main
     }
 
     view source $dummy_closure
-    | lines | skip | drop | str join "\n"
+    | lines | skip | drop | to text
     | str replace -a '$command' $command
     | str replace -a '$file' $file
     | str replace -a '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
@@ -631,5 +631,5 @@ export def generate-test-command [
         $'export def `($command_name)-($index)-test` [] {'
             ($command | str replace -arm `^(> )?` `    `)
         '}'
-    ] | str join (char nl)
+    ] | to text
 }
