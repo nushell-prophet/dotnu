@@ -116,21 +116,7 @@ export def update-docstring-examples [
 
     cd ($module_file | path dirname)
 
-    if not $no_git_check {
-        let git_status = git status --short
-
-        $git_status
-        | lines
-        | parse '{s} {m} {f}'
-        | where f =~ $'($module_file | path basename)$'
-        | is-not-empty
-        | if $in {
-            error make --unspanned {
-                msg: ("Working tree isn't empty. Please commit or stash changed files, " +
-                        "or use `--no_git_check` flag. Uncommited files:\n" + $git_status)
-            }
-        }
-    }
+    if not $no_git_check { check-clean-working-tree $module_file}
 
     let $raw_module = open $module_file
 
@@ -335,6 +321,24 @@ export def 'list-main-commands' [
 # they used to be separately here from the main code, but I want to experiment with structure
 # so all the commands are in one file now, and all are exported, to be availible in my scripts
 # that can use this file commands with 'use ..', though main commands are exported in mod.nu
+
+export def check-clean-working-tree [
+    module_file: path
+] {
+    let git_status = git status --short
+
+    $git_status
+    | lines
+    | parse '{s} {m} {f}'
+    | where f =~ $'($module_file | path basename)$'
+    | is-not-empty
+    | if $in {
+        error make --unspanned {
+            msg: ("Working tree isn't empty. Please commit or stash changed files, " +
+                    "or use `--no_git_check` flag. Uncommited files:\n" + $git_status)
+        }
+    }
+}
 
 # make a record from code with variable definitions
 #
