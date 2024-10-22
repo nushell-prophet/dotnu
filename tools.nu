@@ -1,5 +1,4 @@
-use dotnu *
-use ('dotnu' | path join dotnu-internals.nu) *
+use ('dotnu' | path join all-dotnu.nu) *
 
 def main [] {}
 
