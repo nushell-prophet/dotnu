@@ -118,9 +118,7 @@ export def update-docstring-examples [
 
     $raw_module
     | parse-docstrings
-    | if $command_filter == '' {} else {
-        where command_name =~ $command_filter
-    }
+    | if $command_filter == '' {} else { where command_name =~ $command_filter }
     | execute-update-example-result --module_file $module_file --use_statement $use_statement
     | prepare-substitutions
     | reject command_description command_name examples -i
@@ -128,9 +126,7 @@ export def update-docstring-examples [
         $acc | str replace -a $i.input $i.updated
     }
     | str replace -r '\n*$' "\n" # add ending new line
-    | if $echo {} else {
-        save $module_file --force
-    }
+    | if $echo {} else { save $module_file --force }
 }
 
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
