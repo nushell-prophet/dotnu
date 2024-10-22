@@ -1,4 +1,4 @@
-use ('dotnu' | path join all-dotnu.nu) *
+use ('dotnu' | path join commands.nu) *
 
 def main [] {}
 

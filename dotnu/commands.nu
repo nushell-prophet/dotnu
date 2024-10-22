@@ -543,6 +543,7 @@ export def format-substitutions [
     | each {|i|
         [ $i.annotation $i.command $i.result ]
         | compact --empty
+        # | do {to nuon | print; $in} $in
         | str join (char nl)
     }
     | prepend $command_description

@@ -1,4 +1,4 @@
-export use all-dotnu.nu [
+export use commands.nu [
     dependencies
     filter-commands-with-no-tests
     parse-docstrings
