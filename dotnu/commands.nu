@@ -102,11 +102,12 @@ export def parse-docstrings [
 export def update-docstring-examples [
     $module_path: path # path to a nushell module file
     --command_filter: string = '' # filter commands by their name to update examples at
-    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically
+    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu').
+                                 # Can be omitted to try to deduce automatically
     --echo # output script to stdout instead of updating the module_path provided
     --no_git_check # don't check for the emptiness of the working tree
 ] {
-    if not $no_git_check { check-clean-working-tree $module_path}
+    if not $no_git_check { check-clean-working-tree $module_path }
 
     let $raw_module = open $module_path
 
@@ -478,7 +479,9 @@ export def extract-module-commands [
         }
         | insert filename_of_caller ($path | path basename)
 
-    if $definitions_only or ($defined_commands | is-empty) {return ($defined_commands | select caller filename_of_caller)}
+    if $definitions_only or ($defined_commands | is-empty) {
+        return ($defined_commands | select caller filename_of_caller)
+    }
 
     let $with_index = $defined_commands
         | insert start {|i| $raw_script | str index-of $i.line}
