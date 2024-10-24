@@ -546,14 +546,14 @@ export def format-substitutions [
     | each {|i|
         [ $i.annotation $i.command $i.result ]
         | compact --empty
-        | to text --no-newline
+        | str join (char nl) # `to text` produces trailing empty line
     }
     | prepend $command_description
     | compact --empty
     | str join $"(char nl)(char nl)"
     | lines
     | each {$"# ($in)" | str trim}
-    | to text --no-newline
+    | str join (char nl)
 }
 
 # helper function for use inside of generate
