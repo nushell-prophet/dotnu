@@ -267,6 +267,8 @@ export def extract-command-code [
     }
 }
 
+# list-main-commands should be completion for nushell
+
 export def 'list-main-commands' [
     $path: path
     --export # use only commands that are exported
