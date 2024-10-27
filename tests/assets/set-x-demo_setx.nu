@@ -12,4 +12,3 @@ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);
 print ("> sleep 0.8sec" | nu-highlight)
 sleep 0.8sec
 print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);
-
