@@ -577,7 +577,7 @@ export def 'dummy-command' [
     $file
     $dotnu_vars_delim
 ] {
-    # the closure below is used as a highlighted in an editor constructor
+    # the closure below is used as highlighted in an editor constructor
     # for the command that will be executed in `nu -c`
     let $dummy_closure = {|function|
         let $params = scope commands
