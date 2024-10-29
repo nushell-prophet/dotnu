@@ -71,7 +71,7 @@ def do_closure_save_results [
     | lines | skip | drop | str trim
     | each {$'# ($in)'}
     | str join (char nl)
-    | $in + (char nl) + (do $closure) + (char nl)
+    | $in + (char nl) + (do $closure)
     | save -fr $output_file
 
     print $'file created/updated ($output_file)'
