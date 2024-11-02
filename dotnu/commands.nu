@@ -2,7 +2,7 @@ use std iter scan
 
 # Check .nu module files to determine which commands depend on other commands.
 #
-# > dependencies ...(glob tests/assets/module-say/say/*.nu)
+# > dependencies ...( glob tests/assets/module-say/say/*.nu )
 # ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
 # │ 0 │ hello    │ hello.nu           │          │    0 │
 # │ 1 │ question │ ask.nu             │          │    0 │
@@ -28,8 +28,8 @@ export def dependencies [
     $callees_to_merge
     | insert step 0
     | generate {|i|
-        if ($i | is-not-empty) {
-            {out: $i, next: ($i | join-next $callees_to_merge)}
+        if ( $i | is-not-empty ) {
+            {out: $i, next: ( $i | join-next $callees_to_merge )}
         }
     } $in
     | flatten
@@ -38,7 +38,7 @@ export def dependencies [
 
 # Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
 #
-# > dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
+# > dependencies ...( glob tests/assets/module-say/say/*.nu ) | filter-commands-with-no-tests
 # ╭─#─┬──caller──┬─filename_of_caller─╮
 # │ 0 │ hello    │ hello.nu           │
 # │ 1 │ question │ ask.nu             │
@@ -74,11 +74,11 @@ export def parse-docstrings [
             | extract-command-name $module_path
 
         let $blocks = $lines
-            | if ($lines | length) > 1 {
+            | if ( $lines | length ) > 1 {
                 drop
                 | str replace --all --regex '^#( ?)|( +$)' ''
                 | split list ''
-                | each {to text | $"($in)\n"}
+                | each {to text | $"( $in )\n"}
             } else {['']}
 
         let $command_description = $blocks.0
@@ -93,7 +93,7 @@ export def parse-docstrings [
             command_name: $command_name
             command_description: $command_description
             examples: $examples
-            input: ($lines | drop | to text)
+            input: ( $lines | drop | to text )
         }
     }
 }
@@ -127,7 +127,7 @@ export def update-docstring-examples [
 #
 # > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
 # mut $prev_ts = date now
-# print ("> sleep 0.5sec" | nu-highlight)
+# print ( "> sleep 0.5sec" | nu-highlight )
 # sleep 0.5sec
 export def set-x [
     file: path # path to `.nu` file
@@ -137,7 +137,7 @@ export def set-x [
     let $out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
 
     open $file
-    | str trim --char (char nl)
+    | str trim --char ( char nl )
     | split row -r $regex
     | each {|block|
         $block
@@ -145,13 +145,13 @@ export def set-x [
         | ('print ("> ' + $in + '" | nu-highlight)' + (char nl) + $block
             + "\nprint $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now);\n\n")
     }
-    | prepend 'mut $prev_ts = (date now)'
+    | prepend 'mut $prev_ts = ( date now )'
     | to text
     | if $echo { return $in } else {
         save -f $out_file
 
-        print $'the file ($out_file) is produced. Source it'
-        commandline edit -r $'source ($out_file)'
+        print $'the file ( $out_file ) is produced. Source it'
+        commandline edit -r $'source ( $out_file )'
     }
 }
 
@@ -161,12 +161,12 @@ export def generate-nupm-tests [
     --echo # output script to stdout instead of updating the module_path provided
 ] {
     let $module_path = $module_path | path expand
-    let $root = find-root ($module_path | if ($in | path type) == file {path dirname} else {})
+    let $root = find-root ( $module_path | if ( $in | path type ) == file {path dirname} else {} )
     let $relative_module_path = $module_path
         | path relative-to $root
         | [.. $in]
         | path join
-        | $'use ($in) *'
+        | $'use ( $in ) *'
 
     let tests_script = parse-docstrings $module_path
         | select command_name examples
@@ -183,21 +183,21 @@ export def generate-nupm-tests [
 
     if $echo {return $tests_script}
 
-    let $tests_filename = $'dotnu-examples-test-($module_path | path basename)'
+    let $tests_filename = $'dotnu-examples-test-( $module_path | path basename )'
     let $tests_path = [ $root 'tests' $tests_filename ] | path join
     let $tests_path_abs = $tests_path | path expand
     let $tests_mod_path = $tests_path | str replace $tests_filename 'mod.nu'
-    let $export_statement = $"export use ($tests_filename) *\n"
+    let $export_statement = $"export use ( $tests_filename ) *\n"
 
-    mkdir ($root | path join 'tests')
+    mkdir ( $root | path join 'tests' )
     $tests_script | save -f $tests_path_abs
 
-    if ($tests_mod_path | path exists) {
+    if ( $tests_mod_path | path exists ) {
         open $tests_mod_path
-        | if ($in | str contains $tests_filename) {
+        | if ( $in | str contains $tests_filename ) {
             return
         } else {
-            $"($in)\n($export_statement)"
+            $"( $in )\n( $export_statement )"
         }
     } else {
         $export_statement
@@ -208,7 +208,7 @@ export def generate-nupm-tests [
 # Generate `.numd` from `.nu` divided on blocks by "\n\n"
 export def generate-numd [] {
     split row -r "\n+\n"
-    | each {$"```nu\n($in)\n```\n"}
+    | each {$"```nu\n( $in )\n```\n"}
     | to text
 }
 
@@ -225,7 +225,7 @@ export def extract-command-code [
 ] {
     let $command = $command
         | if $in =~ '\s' and $in !~ "^(\"|')" {
-            $'"($in)"'
+            $'"( $in )"'
         } else {}
 
     let $dotnu_vars_delim = '#dotnu-vars-end'
@@ -235,14 +235,14 @@ export def extract-command-code [
         | split row $dotnu_vars_delim
 
     if $extracted_command.1? == null {
-        error make --unspanned {msg: $'no command `($command)` was found'}
+        error make --unspanned {msg: $'no command `( $command )` was found'}
     }
 
     let $filename = $output
-        | default $'($command | str trim -c '"' | str trim -c "'").nu'
+        | default $'( $command | str trim -c '"' | str trim -c "'" ).nu'
 
         # here we use defined variables from the previously extracted command to a file
-    let $variables_from_prev_script = if ($filename | path exists) and not $clear_vars {
+    let $variables_from_prev_script = if ( $filename | path exists ) and not $clear_vars {
             open $filename
             | split row $dotnu_vars_delim
             | get 0
@@ -253,8 +253,8 @@ export def extract-command-code [
     | variable-definitions-to-record
     | merge $variables_from_prev_script
     | merge $set_vars
-    | items {|k v| $'let $($k) = ($v | to nuon)' }
-    | prepend $'source ($module_path)'
+    | items {|k v| $'let $( $k ) = ( $v | to nuon )' }
+    | prepend $'source ( $module_path )'
     | append $dotnu_vars_delim
     | append $extracted_command.1
     | to text
@@ -263,7 +263,8 @@ export def extract-command-code [
     } else {
         save -f $filename
 
-        commandline edit --replace $" ^($code_editor) \"($filename)\"; commandline edit --replace ' source \"($filename)\"'"
+        $" ^( $code_editor ) \"( $filename )\"; commandline edit --replace ' source \"( $filename )\"'"
+        | commandline edit --replace $in
     }
 }
 
@@ -280,21 +281,21 @@ export def 'list-main-commands' [
         | extract-command-name
         | replace-main-with-module-name $path
     } else {
-        where $it =~ '^(export )?def '
+        where $it =~ '^( export )?def '
         | extract-command-name
         | where $it starts-with 'main'
         | str replace 'main ' ''
     }
-    | if ($in | is-empty) {
+    | if ( $in | is-empty ) {
         print 'No command found'
         return
     } else {}
     | input list --fuzzy "Choose a command"
     | if $in == 'main' { '' } else {}
     | if $export {
-        $"use ($path) '($in)'; ($in)"
+        $"use ( $path ) '( $in )'; ( $in )"
     } else {
-        $"nu ($path) ($in)"
+        $"nu ( $path ) ( $in )"
     }
     | commandline edit -r $in
 }
@@ -307,19 +308,19 @@ export def 'list-main-commands' [
 export def check-clean-working-tree [
     $module_path: path
 ] {
-    cd ($module_path | path dirname)
+    cd ( $module_path | path dirname )
 
     let git_status = git status --short
 
     $git_status
     | lines
     | parse '{s} {m} {f}'
-    | where f =~ $'($module_path | path basename)$'
+    | where f =~ $'( $module_path | path basename )$'
     | is-not-empty
     | if $in {
         error make --unspanned {
-            msg: ("Working tree isn't empty. Please commit or stash changed files, " +
-                    "or use `--no_git_check` flag. Uncommited files:\n" + $git_status)
+            msg: ( "Working tree isn't empty. Please commit or stash changed files, " +
+                    "or use `--no_git_check` flag. Uncommited files:\n" + $git_status )
         }
     }
 }
@@ -339,13 +340,13 @@ export def check-clean-working-tree [
 # {}
 export def variable-definitions-to-record []: string -> record {
     let $script_with_variables_definitnions = str replace -a ';' ";\n"
-        | $in + (char nl)
+        | $in + ( char nl )
 
     let $variables_record = $script_with_variables_definitnions
-        | parse -r 'let (?:\$)?(?<var>.*) ='
+        | parse -r 'let ( ?:\$ )?( ?<var>.* ) ='
         | get var
         | uniq
-        | each {$'($in): $($in)'}
+        | each {$'( $in ): $( $in )'}
         | str join ' '
         | '{' + $in + '} | to nuon' # this way we ensure the proper formatting for bool, numeric and string vars
 
@@ -364,7 +365,7 @@ export def parse-example [] {
         ')' +
         '(?s)(?<result>.*)?'
     )
-    | str trim --char (char nl) annotation command result
+    | str trim --char ( char nl ) annotation command result
 }
 
 # > 'export def --env "test" --wrapped' | lines | last | extract-command-name
@@ -408,14 +409,14 @@ export def gen-example-exec-command [
     # the logic to deduce the use statement is very fragile and are better to be remade
     if $use_statement != '' {
         $use_statement
-    } else if ($example_command | str contains $'($module_stem) ($command_name)') {
-        $'use "($module_path)"'
+    } else if ( $example_command | str contains $'( $module_stem ) ( $command_name )' ) {
+        $'use "( $module_path )"'
     } else if $module_stem == 'mod' {
-        $'use "($module_path | path dirname)" *'
+        $'use "( $module_path | path dirname )" *'
     } else {
-        $'use "($module_path)" *'
+        $'use "( $module_path )" *'
     }
-    | $"($in);\n($example_command)"
+    | $"( $in );\n( $example_command )"
 }
 
 # Escapes symbols to be printed unchanged inside a `print "something"` statement.
@@ -479,10 +480,10 @@ export def extract-module-commands [
             | extract-command-name
             | replace-main-with-module-name $path
         }
-        | insert filename_of_caller ($path | path basename)
+        | insert filename_of_caller ( $path | path basename )
 
-    if $definitions_only or ($defined_commands | is-empty) {
-        return ($defined_commands | select caller filename_of_caller)
+    if $definitions_only or ( $defined_commands | is-empty ) {
+        return ( $defined_commands | select caller filename_of_caller )
     }
 
     let $with_index = $defined_commands
@@ -509,7 +510,7 @@ export def extract-module-commands [
 
     let $commands_with_no_deps = $defined_commands
         | select caller filename_of_caller
-        | where caller not-in ($dependencies.caller | uniq)
+        | where caller not-in ( $dependencies.caller | uniq )
         | insert callee null
 
     $dependencies | append $commands_with_no_deps
@@ -530,11 +531,11 @@ export def execute-update-example-result [
             nu --no-newline --commands $example_command
             | complete
             | if $in.exit_code == 0 {get stdout} else {
-                print $"the next command has failed:\n`($example_command)`\n\n($in.stderr)"
+                print $"the next command has failed:\n`( $example_command )`\n\n( $in.stderr )"
                 'example update failed'
             }
             | ansi strip
-            | str trim --char (char nl)
+            | str trim --char ( char nl )
         }
     }
 }
@@ -548,14 +549,14 @@ export def format-substitutions [
     | each {|i|
         [ $i.annotation $i.command $i.result ]
         | compact --empty
-        | str join (char nl) # `to text` produces trailing empty line
+        | str join ( char nl ) # `to text` produces trailing empty line
     }
     | prepend $command_description
     | compact --empty
-    | str join $"(char nl)(char nl)"
+    | str join $"( char nl )( char nl )"
     | lines
-    | each {$"# ($in)" | str trim}
-    | str join (char nl)
+    | each {$"# ( $in )" | str trim}
+    | str join ( char nl )
 }
 
 # helper function for use inside of generate
@@ -584,14 +585,15 @@ export def 'dummy-command' [
             | where name == $command
             | get -i signatures.0
             | if $in == null {
-                error make --unspanned {msg: 'no command $command was found'}
+                error make --unspanned { msg: 'no command $command was found' }
             } else {}
             | values
             | get 0
             | each {
-                if ($in.parameter_type == 'rest') {
-                    if ($in.parameter_name == '') {
-                        upsert parameter_name 'rest'  # if rest parameters named $rest, in the signatures it doesn't have a name
+                if ( $in.parameter_type == 'rest' ) {
+                    if ( $in.parameter_name == '' ) {
+                        # if rest parameters named $rest, in the signatures it doesn't have a name
+                        upsert parameter_name 'rest'
                     } else {}
                     | default [] parameter_default
                 } else {}
@@ -604,7 +606,7 @@ export def 'dummy-command' [
                     | default ( if $i.parameter_type == 'switch' { false } )
                     | to nuon # to handle nuls
 
-                $"let $($param) = ($value) # ($i.syntax_shape)"
+                $"let $( $param ) = ( $value ) # ( $i.syntax_shape )"
             }
             | to text
 
@@ -633,8 +635,8 @@ export def generate-test-command [
     $command
 ] {
     [
-        $'export def `($command_name)-($index)-test` [] {'
-            ($command | str replace -arm `^(> )?` `    `)
+        $'export def `( $command_name )-( $index )-test` [] {'
+            ( $command | str replace -arm `^( > )?` `    ` )
         '}'
     ] | to text
 }
