@@ -1,4 +1,4 @@
-use ('dotnu' | path join commands.nu) *
+use ( 'dotnu' | path join 'commands.nu' ) *
 
 def main [] {}
 
@@ -62,7 +62,7 @@ def 'test-execute-update-examples-no-output' [] {
 def do_closure_save_results [
     ...output_path_segments
 ] {
-    let closure = $in
+    let $closure = $in
     let $output_file = ['tests' 'output-yaml' ...$output_path_segments] | path join
 
     if ($output_file | path exists) {rm $output_file}
@@ -78,7 +78,7 @@ def do_closure_save_results [
 }
 
 def 'main release' [] {
-    let $git_info = (gh repo view --json description,name | from json);
+    let $git_info = gh repo view --json description,name | from json
     let $git_tag = git tag
         | lines
         | prepend '0.0.0'
@@ -89,7 +89,7 @@ def 'main release' [] {
         | update 2 {$in + 1}
         | str join '.'
 
-    let $desc = ($git_info | get description)
+    let $desc = $git_info | get description
 
     open nupm.nuon
     | update description ($desc | str replace -r $'^($git_info.name) - ' '')
