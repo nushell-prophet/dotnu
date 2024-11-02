@@ -168,7 +168,7 @@ export def generate-nupm-tests [
         | path join
         | $'use ( $in ) *'
 
-    let tests_script = parse-docstrings $module_path
+    let $tests_script = parse-docstrings $module_path
         | select command_name examples
         | where examples != []
         | each {|i|
@@ -399,10 +399,10 @@ export def replace-main-with-module-name [
 # generate command to execute `>` example command in a new nushell instance
 # in case of any problems - use `--use_statement` flag
 export def gen-example-exec-command [
-    example_command
-    command_name
-    use_statement
-    module_path
+    $example_command
+    $command_name
+    $use_statement
+    $module_path
 ] {
     let $module_stem = $module_path | path parse | get stem
 
