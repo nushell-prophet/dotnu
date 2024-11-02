@@ -74,7 +74,7 @@ def do_closure_save_results [
     | $in + (char nl) + (do $closure)
     | save -fr $output_file
 
-    print $'file created/updated ($output_file)'
+    print $'( ansi green )file updated( ansi reset ) ($output_file)'
 }
 
 def 'main release' [] {
