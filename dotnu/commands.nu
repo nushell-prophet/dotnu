@@ -82,7 +82,7 @@ export def parse-docstrings [
             } else {['']}
 
         let $command_description = $blocks.0
-            | if $in =~ '(^|\n)>' {''} else { str trim --char (char nl) }
+            | if $in =~ '(^|\n)>' { '' } else { str trim --char (char nl) }
 
         let $examples = $blocks
             | if $command_description == '' {} else { skip }
