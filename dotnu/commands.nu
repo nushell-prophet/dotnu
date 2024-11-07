@@ -316,7 +316,7 @@ export def embed-in-script [] {
 }
 
 # Inserts captured output back into the script at capture points
-export def insert-captured-output [
+export def update-embeds [
     file
 ] {
     let script = open $file
