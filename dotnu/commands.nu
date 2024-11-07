@@ -300,6 +300,41 @@ export def 'list-main-commands' [
     | commandline edit -r $in
 }
 
+# Prints output that will be embedded back into the script
+export def embed-in-script [] {
+    let $input = table -e
+        | into string
+        | ansi strip
+        | str trim -c "\n"
+        | str replace -arm '^' '#: '
+
+    capture-marker
+    | append $input
+    | append (capture-marker --close)
+    | to text
+    | print
+}
+
+# Inserts captured output back into the script at capture points
+export def insert-captured-output [
+    file
+] {
+    let script = open $file
+        | remove-annotations
+
+    let $results = extract-captured-output $file
+
+    let $replacements = $script
+        | find-capture-points
+        | zip $results
+
+    $replacements
+    | reduce --fold $script {|it| str replace $it.0 ($it.0 + "\n" + $it.1)}
+    | str replace -ar '\n{3,}' "\n\n"
+    | str replace -r "\n*$" "\n"
+    | save -f $file
+}
+
 #### helpers
 # they used to be separately here from the main code, but I want to experiment with structure
 # so all the commands are in one file now, and all are exported, to be availible in my scripts
@@ -639,4 +674,37 @@ export def generate-test-command [
             ( $command | str replace -arm `^( > )?` `    ` )
         '}'
     ] | to text
+}
+
+# Extracts captured output from a script file execution result
+export def extract-captured-output [
+    path: path
+] {
+    nu $path
+    | ansi strip
+    | parse -r ( '(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close) )
+    | get capture0
+}
+
+# Finds lines where embed-in-script is used in the script
+export def find-capture-points [] {
+    lines | where $it =~ '\|\s?embed-in-script'
+}
+
+# Removes annotation lines starting with '#:' from the script
+export def remove-annotations [] {
+    lines
+    | where not ($it starts-with '#:')
+    | to text
+}
+
+
+def capture-marker [
+    --close
+] {
+    if not $close {
+        (char --unicode '200B') + (char --unicode '200C')
+    } else {
+        (char --unicode '200C') + (char --unicode '200B')
+    }
 }
