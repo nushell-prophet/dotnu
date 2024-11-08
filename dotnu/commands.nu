@@ -688,7 +688,7 @@ export def extract-captured-output [
 
 # Finds lines where embed-in-script is used in the script
 export def find-capture-points [] {
-    lines | where $it =~ '\|\s?embed-in-script'
+    lines | where $it =~ '\|\s?(dotnu )?embed-in-script'
 }
 
 # Removes annotation lines starting with '#:' from the script
