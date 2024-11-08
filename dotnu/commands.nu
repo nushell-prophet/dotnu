@@ -319,8 +319,7 @@ export def 'embed-in-script' [] {
 export def 'update-embeds' [
     file
 ] {
-    let script = open $file
-        | remove-annotations
+    let $script = open $file | remove-annotations
 
     let $results = extract-captured-output $file
 
