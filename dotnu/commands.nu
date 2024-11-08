@@ -685,7 +685,7 @@ export def extract-captured-output [
         | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
 
     let $script_upd = $script
-        | str replace -ar '\| print \$in' '| embed-in-script'
+        | str replace -arm '\| *print +\$in *$' '| embed-in-script'
         | prepend $embed_in_script_src
         | to text
 
