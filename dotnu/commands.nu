@@ -302,9 +302,16 @@ export def 'list-main-commands' [
 
 # Inserts captured output back into the script at capture points
 export def 'update-embeds' [
-    file
+    file?: path
 ] {
-    let $script = open $file | remove-annotations
+    let $input = $in
+
+    if $input == null and $file == null {
+        error make {msg: 'pipe in a script or provide a path'}
+    }
+
+    let $script = if $input == null { open $file } else { $input }
+        | remove-annotations
 
     let $results = extract-captured-output $script
 
@@ -316,7 +323,7 @@ export def 'update-embeds' [
     | reduce --fold $script {|it| str replace $it.0 ($it.0 + "\n" + $it.1)}
     | str replace -ar '\n{3,}' "\n\n"
     | str replace -r "\n*$" "\n"
-    | save -f $file
+    | if $input == null {save -f $file} else {}
 }
 
 #### helpers
