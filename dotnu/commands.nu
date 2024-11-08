@@ -321,7 +321,7 @@ export def 'update-embeds' [
 ] {
     let $script = open $file | remove-annotations
 
-    let $results = extract-captured-output $file
+    let $results = extract-captured-output $script
 
     let $replacements = $script
         | find-capture-points
@@ -677,9 +677,15 @@ export def generate-test-command [
 
 # Extracts captured output from a script file execution result
 export def extract-captured-output [
-    path: path
+    script: string
 ] {
-    nu $path
+    let $script_upd = $script
+        | str replace -ar '\|\s?print \$in *$' '| embed-in-script'
+        | prepend (view source 'embed-in-script')
+        | prepend (view source 'capture-marker')
+        | to text
+
+    nu -c $script_upd
     | ansi strip
     | parse -r ( '(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close) )
     | get capture0
@@ -687,7 +693,8 @@ export def extract-captured-output [
 
 # Finds lines where embed-in-script is used in the script
 export def find-capture-points [] {
-    lines | where $it =~ '\|\s?(dotnu )?embed-in-script'
+    lines
+    | where $it =~ '\|\s?print \$in *$'
 }
 
 # Removes annotation lines starting with '#:' from the script
