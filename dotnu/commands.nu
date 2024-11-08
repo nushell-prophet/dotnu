@@ -300,21 +300,6 @@ export def 'list-main-commands' [
     | commandline edit -r $in
 }
 
-# Prints output that will be embedded back into the script
-export def 'embed-in-script' [] {
-    let $input = table -e
-        | into string
-        | ansi strip
-        | str trim -c "\n"
-        | str replace -arm '^' '#: '
-
-    capture-marker
-    | append $input
-    | append (capture-marker --close)
-    | to text
-    | print
-}
-
 # Inserts captured output back into the script at capture points
 export def 'update-embeds' [
     file
@@ -679,10 +664,29 @@ export def generate-test-command [
 export def extract-captured-output [
     script: string
 ] {
+    # Prints output that will be embedded back into the script
+    let embed_in_script = {
+        let $input = table -e
+            | into string
+            | ansi strip
+            | str trim -c "\n"
+            | str replace -arm '^' '#: '
+
+        capture-marker
+        | append $input
+        | append (capture-marker --close)
+        | to text
+        | print
+    }
+
+    let $embed_in_script_src = view source $embed_in_script
+        | 'def embed-in-script [] ' + $in
+        | str replace 'capture-marker' $"'(capture-marker)'"
+        | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
+
     let $script_upd = $script
-        | str replace -ar '\|\s?print \$in *$' '| embed-in-script'
-        | prepend (view source 'embed-in-script')
-        | prepend (view source 'capture-marker')
+        | str replace -ar '\| print \$in' '| embed-in-script'
+        | prepend $embed_in_script_src
         | to text
 
     nu -c $script_upd

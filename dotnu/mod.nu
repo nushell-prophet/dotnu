@@ -9,7 +9,6 @@ export use commands.nu [
     extract-command-code
     list-main-commands
     update-embeds
-    embed-in-script
 ]
 
 use ('..' | path join tests nupm utils dirs.nu) find-root
