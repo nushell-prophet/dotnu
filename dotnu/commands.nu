@@ -12,7 +12,7 @@ use std iter scan
 # │ 5 │ hi       │ mod.nu             │          │    0 │
 # │ 6 │ test-hi  │ test-hi.nu         │ hi       │    0 │
 # ╰───┴──────────┴────────────────────┴──────────┴──────╯
-export def dependencies [
+export def 'dependencies' [
     ...paths: path # paths to nushell module files
     --keep_builtins # keep builtin commands in the result page
     --definitions_only # output only commands' names definitions
@@ -44,7 +44,7 @@ export def dependencies [
 # │ 1 │ question │ ask.nu             │
 # │ 2 │ say      │ mod.nu             │
 # ╰───┴──────────┴────────────────────╯
-export def filter-commands-with-no-tests [] {
+export def 'filter-commands-with-no-tests' [] {
     let $input = $in
     let $covered_with_tests = $input
         | where caller =~ 'test'
@@ -60,7 +60,7 @@ export def filter-commands-with-no-tests [] {
 }
 
 # Parse commands definitions with their docstrings, output a table.
-export def parse-docstrings [
+export def 'parse-docstrings' [
     $module_path? # path to a nushell module file
 ] {
     if $module_path == null { collect } else { $module_path | open | collect }
@@ -99,7 +99,7 @@ export def parse-docstrings [
 }
 
 # Execute examples in the docstrings of the module commands and update the results accordingly.
-export def update-docstring-examples [
+export def 'update-docstring-examples' [
     $module_path: path # path to a nushell module file
     --command_filter: string = '' # filter commands by their name to update examples at
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu').
@@ -129,7 +129,7 @@ export def update-docstring-examples [
 # mut $prev_ts = date now
 # print ( "> sleep 0.5sec" | nu-highlight )
 # sleep 0.5sec
-export def set-x [
+export def 'set-x' [
     file: path # path to `.nu` file
     --regex: string = "\n+\n" # regex to use to split .nu on blocks
     --echo # output script to terminal
@@ -156,7 +156,7 @@ export def set-x [
 }
 
 # Generate nupm tests from examples in docstrings
-export def generate-nupm-tests [
+export def 'generate-nupm-tests' [
     $module_path: path # path to a nushell module file
     --echo # output script to stdout instead of updating the module_path provided
 ] {
@@ -206,7 +206,7 @@ export def generate-nupm-tests [
 }
 
 # Generate `.numd` from `.nu` divided on blocks by "\n\n"
-export def generate-numd [] {
+export def 'generate-numd' [] {
     split row -r "\n+\n"
     | each {$"```nu\n( $in )\n```\n"}
     | to text
@@ -214,7 +214,7 @@ export def generate-numd [] {
 
 # extract a code of a command from a module and save it as a `.nu' file, that can be sourced
 # by executing this `.nu` file you'll have all variables in your environment for debuging or development
-export def extract-command-code [
+export def 'extract-command-code' [
     $module_path: path # path to a nushell module file
     $command: string@nu-completion-command-name # the name of the command to extract
     --output: path # a file path to save extracted command script
@@ -301,7 +301,7 @@ export def 'list-main-commands' [
 }
 
 # Prints output that will be embedded back into the script
-export def embed-in-script [] {
+export def 'embed-in-script' [] {
     let $input = table -e
         | into string
         | ansi strip
@@ -316,7 +316,7 @@ export def embed-in-script [] {
 }
 
 # Inserts captured output back into the script at capture points
-export def update-embeds [
+export def 'update-embeds' [
     file
 ] {
     let script = open $file
