@@ -582,7 +582,7 @@ export def format-substitutions [
     | str join $"( char nl )( char nl )"
     | lines
     | each {$"# ( $in )" | str trim}
-    | str join ( char nl )
+    | to text
 }
 
 # helper function for use inside of generate
