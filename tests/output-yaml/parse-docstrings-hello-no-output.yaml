@@ -14,7 +14,7 @@
       > hello-no-output Darren
       | str capitalize
     result: ''
-  input: |-
+  input: |
     # Output greeting!
     #
     # Say hello to Maxim

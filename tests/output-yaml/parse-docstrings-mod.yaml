@@ -7,7 +7,7 @@
   - annotation: ''
     command: '> hi there'
     result: hi there!
-  input: |-
+  input: |
     # Greet informally
     #
     # > hi there
@@ -21,7 +21,7 @@
       - hello Darren!
       - hi Maxim!
       - have you heard about a fancy new shell?
-  input: |-
+  input: |
     # > say
     # - hello Darren!
     # - hi Maxim!

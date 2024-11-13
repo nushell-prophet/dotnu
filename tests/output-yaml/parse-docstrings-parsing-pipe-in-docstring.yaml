@@ -37,7 +37,7 @@
   - annotation: Some random example multiline
     command: '> ls'
     result: ''
-  input: |-
+  input: |
     # Add the same text particle into the 'from' or 'to' column of the temp cyberlinks table
     #
     # > [[from_text, to_text]; ['cyber-prophet' null] ['tweet' 'cy is cool!']]
@@ -76,10 +76,11 @@
   - annotation: Some random example multiline 2
     command: '> ls'
     result: ''
-  input: |-
+  input: |
     # Some random example multiline 2
     # > ls
 - command_name: test
   command_description: no example provided
   examples: []
-  input: '# no example provided'
+  input: |
+    # no example provided

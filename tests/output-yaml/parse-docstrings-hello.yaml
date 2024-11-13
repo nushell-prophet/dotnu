@@ -14,7 +14,7 @@
       > hello Darren
       | str capitalize
     result: Hello Darren!
-  input: |-
+  input: |
     # Output greeting!
     #
     # Say hello to Maxim

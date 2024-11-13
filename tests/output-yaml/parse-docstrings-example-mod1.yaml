@@ -23,7 +23,7 @@
       │ 6 │ tests     │ dir  │    192 B │ 5 days ago │
       │ 7 │ tools.nu  │ file │  2.3 KiB │ 6 days ago │
       ╰───┴───────────┴──────┴──────────┴────────────╯
-  input: |-
+  input: |
     # Just like `ls` but longer to type
     #
     # > lscustom
@@ -51,7 +51,7 @@
       │ 0 │ LICENSE                   │
       │ 1 │ n7QOeK7sX1YxIIcRxPOuVZBSd │
       ╰───┴───────────────────────────╯
-  input: |-
+  input: |
     # > command-5
     # ╭───┬───────────────────────────╮
     # │ # │           name            │
