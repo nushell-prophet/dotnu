@@ -43,7 +43,7 @@ def 'test-dependencies' [] {
 def 'test-dependencies-keep_builtins' [] {
     {
         glob ([tests assets b *] | path join)
-        | dependencies ...$in --keep_builtins
+        | dependencies ...$in --keep-builtins
         | to yaml
     }
     | do_closure_save_results 'dependencies --keep_bulitins.yaml'

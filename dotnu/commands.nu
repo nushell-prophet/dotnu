@@ -14,12 +14,12 @@ use std iter scan
 # ╰───┴──────────┴────────────────────┴──────────┴──────╯
 export def 'dependencies' [
     ...paths: path # paths to nushell module files
-    --keep_builtins # keep builtin commands in the result page
-    --definitions_only # output only commands' names definitions
+    --keep-builtins # keep builtin commands in the result page
+    --definitions-only # output only commands' names definitions
 ] {
     let $callees_to_merge = $paths
         | each {
-            extract-module-commands $in --keep_builtins=$keep_builtins --definitions_only=$definitions_only
+            extract-module-commands $in --keep-builtins=$keep_builtins --definitions-only=$definitions_only
         }
         | flatten
 
@@ -101,8 +101,8 @@ export def 'parse-docstrings' [
 # Execute examples in the docstrings of the module commands and update the results accordingly.
 export def 'update-docstring-examples' [
     $module_path: path # path to a nushell module file
-    --command_filter: string = '' # filter commands by their name to update examples at
-    --use_statement: string = '' # use statement to execute examples with (like 'use module.nu').
+    --command-filter: string = '' # filter commands by their name to update examples at
+    --use-statement: string = '' # use statement to execute examples with (like 'use module.nu').
                                  # Can be omitted to try to deduce automatically
     --echo # output script to stdout instead of updating the module_path provided
     --no-git-check # don't check for the emptiness of the working tree
@@ -114,7 +114,7 @@ export def 'update-docstring-examples' [
     $raw_module
     | parse-docstrings
     | where command_name =~ $command_filter
-    | execute-update-example-result --module_path $module_path --use_statement $use_statement
+    | execute-update-example-result --module-path $module_path --use-statement $use_statement
     | insert updated {|e| format-substitutions $e.examples $e.command_description}
     | select input updated
     | reduce -f $raw_module {|i| str replace -a $i.input $i.updated }
@@ -218,10 +218,10 @@ export def 'extract-command-code' [
     $module_path: path # path to a nushell module file
     $command: string@nu-completion-command-name # the name of the command to extract
     --output: path # a file path to save extracted command script
-    --clear_vars # clear variables previously set in the extracted .nu file
+    --clear-vars # clear variables previously set in the extracted .nu file
     --echo # output the command to the terminal
-    --set_vars: record = {} # set variables for a command
-    --code_editor = 'code' # code is my editor of choice to open the result file
+    --set-vars: record = {} # set variables for a command
+    --code-editor = 'code' # code is my editor of choice to open the result file
 ] {
     let $command = $command
         | if $in =~ '\s' and $in !~ "^(\"|')" {
@@ -423,7 +423,7 @@ export def replace-main-with-module-name [
 }
 
 # generate command to execute `>` example command in a new nushell instance
-# in case of any problems - use `--use_statement` flag
+# in case of any problems - use `--use-statement` flag
 export def gen-example-exec-command [
     $example_command
     $command_name
@@ -482,7 +482,7 @@ export def nu-completion-command-name [
 # │ 2 │ command-5 │ append-random │ example-mod1.nu    │
 # ╰───┴───────────┴───────────────┴────────────────────╯
 #
-# > extract-module-commands --definitions_only tests/assets/b/example-mod1.nu | first 3
+# > extract-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
 # ╭───┬──────────────┬────────────────────╮
 # │ # │    caller    │ filename_of_caller │
 # ├───┼──────────────┼────────────────────┤
@@ -492,8 +492,8 @@ export def nu-completion-command-name [
 # ╰───┴──────────────┴────────────────────╯
 export def extract-module-commands [
     path: path # path to a .nu module file.
-    --keep_builtins # keep builtin commands in the result page
-    --definitions_only # output only commands' names definitions
+    --keep-builtins # keep builtin commands in the result page
+    --definitions-only # output only commands' names definitions
 ] {
     let $raw_script = open $path -r
 
@@ -544,8 +544,8 @@ export def extract-module-commands [
 
 # update examples column with results of execution commands
 export def execute-update-example-result [
-    --module_path: string = ''
-    --use_statement: string = ''
+    --module-path: string = ''
+    --use-statement: string = ''
 ] {
     update examples {|row|
         $row.examples
