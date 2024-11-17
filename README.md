@@ -23,49 +23,67 @@
 
 ```nushell
 > dotnu dependencies --help | numd parse-help
-Description:
-  Check .nu module files to determine which commands depend on other commands.
-
-Usage:
-  > dependencies {flags} ...(paths)
-
-Flags:
-  --keep_builtins - keep builtin commands in the result page
-  --definitions_only - output only commands' names definitions
-
-Parameters:
-  ...paths <path>: paths to nushell module files
-
-Examples:
-  > dependencies ...(glob tests/assets/module-say/say/*.nu)
-  ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
-  │ 0 │ hello    │ hello.nu           │          │    0 │
-  │ 1 │ question │ ask.nu             │          │    0 │
-  │ 2 │ say      │ mod.nu             │ hello    │    0 │
-  │ 3 │ say      │ mod.nu             │ hi       │    0 │
-  │ 4 │ say      │ mod.nu             │ question │    0 │
-  │ 5 │ hi       │ mod.nu             │          │    0 │
-  │ 6 │ test-hi  │ test-hi.nu         │ hi       │    0 │
-  ╰───┴──────────┴────────────────────┴──────────┴──────╯
+// Description:
+//   Check .nu module files to determine which commands depend on other commands.
+//
+//
+// Usage:
+//   > dependencies {flags} ...(paths)
+//
+//
+// Flags:
+//   --keep_builtins: keep builtin commands in the result page
+//   --definitions_only: output only commands' names definitions
+//
+//
+// Parameters:
+//   ...paths <path>: paths to nushell module files
+//
+//
+// Input/output types:
+//   ╭─#─┬─input─┬─output─╮
+//   │ 0 │ any   │ any    │
+//   ╰─#─┴─input─┴─output─╯
+//
+//
+// Examples:
+//   > dependencies ...( glob tests/assets/module-say/say/*.nu )
+//   ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
+//   │ 0 │ hello    │ hello.nu           │          │    0 │
+//   │ 1 │ question │ ask.nu             │          │    0 │
+//   │ 2 │ say      │ mod.nu             │ hello    │    0 │
+//   │ 3 │ say      │ mod.nu             │ hi       │    0 │
+//   │ 4 │ say      │ mod.nu             │ question │    0 │
+//   │ 5 │ hi       │ mod.nu             │          │    0 │
+//   │ 6 │ test-hi  │ test-hi.nu         │ hi       │    0 │
+//   ╰───┴──────────┴────────────────────┴──────────┴──────╯
 ```
 
 ### dotnu filter-commands-with-no-tests
 
 ```nushell
 > dotnu filter-commands-with-no-tests --help | numd parse-help
-Description:
-  Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
-
-Usage:
-  > filter-commands-with-no-tests
-
-Examples:
-  > dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
-  ╭─#─┬──caller──┬─filename_of_caller─╮
-  │ 0 │ hello    │ hello.nu           │
-  │ 1 │ question │ ask.nu             │
-  │ 2 │ say      │ mod.nu             │
-  ╰───┴──────────┴────────────────────╯
+// Description:
+//   Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
+//
+//
+// Usage:
+//   > filter-commands-with-no-tests
+//
+//
+// Input/output types:
+//   ╭─#─┬─input─┬─output─╮
+//   │ 0 │ any   │ any    │
+//   ╰─#─┴─input─┴─output─╯
+//
+//
+// Examples:
+//   > dependencies ...( glob tests/assets/module-say/say/*.nu ) | filter-commands-with-no-tests
+//   ╭─#─┬──caller──┬─filename_of_caller─╮
+//   │ 0 │ hello    │ hello.nu           │
+//   │ 1 │ question │ ask.nu             │
+//   │ 2 │ say      │ mod.nu             │
+//   ╰───┴──────────┴────────────────────╯
 ```
 
 ### dotnu parse-docstrings
@@ -100,7 +118,7 @@ And now let's use `dotnu parse-docstrings` and see its structured output (I get 
 ```nushell
 > dotnu parse-docstrings $hello_module_path | reject input | get 0 | table -e
 ╭─────────────────────┬──────────────────────────────────────────────────────────────────╮
-│ command_name        │ hello                                                            │
+│ command_name        │ main                                                             │
 │ command_description │ Output greeting!                                                 │
 │                     │ ╭─#─┬──────annotation───────┬─────command──────┬────result─────╮ │
 │ examples            │ │ 0 │ Say hello to Maxim    │ > hello Maxim    │ hello Maxim!  │ │
@@ -126,20 +144,30 @@ If an example produces an error, this error is printed to the terminal output, a
 
 ```nushell
 > dotnu update-docstring-examples --help | numd parse-help
-Description:
-  Execute examples in the docstrings of the module commands and update the results accordingly.
-
-Usage:
-  > update-docstring-examples {flags} <module_file>
-
-Flags:
-  --command_filter <String> - filter commands by their name to update examples at (default: '')
-  --use_statement <String> - use statement to execute examples with (like 'use module.nu'). Can be omitted to try to deduce automatically (default: '')
-  --echo - output script to stdout instead of updating the module_file provided
-  --no_git_check - don't check for the emptiness of the working tree
-
-Parameters:
-  module_file <path>: path to a nushell module file
+// Description:
+//   Execute examples in the docstrings of the module commands and update the results accordingly.
+//
+//
+// Usage:
+//   > update-docstring-examples {flags} <$module_path>
+//
+//
+// Flags:
+//   --command_filter <string>: filter commands by their name to update examples at (default: '')
+//   --use_statement <string>: use statement to execute examples with (like 'use module.nu').
+//   Can be omitted to try to deduce automatically (default: '')
+//   --echo: output script to stdout instead of updating the module_path provided
+//   --no-git-check: don't check for the emptiness of the working tree
+//
+//
+// Parameters:
+//   $module_path <path>: path to a nushell module file
+//
+//
+// Input/output types:
+//   ╭─#─┬─input─┬─output─╮
+//   │ 0 │ any   │ any    │
+//   ╰─#─┴─input─┴─output─╯
 ```
 
 ### dotnu set-x
@@ -165,7 +193,7 @@ Let's see how `dotnu set-x` will modify this script
 ```nushell
 > dotnu set-x $filename --echo | lines | table -i false
 ╭─────────────────────────────────────────────────────────────────────────────────╮
-│ mut $prev_ts = date now                                                         │
+│ mut $prev_ts = ( date now )                                                     │
 │ print ("> sleep 0.5sec" | nu-highlight)                                         │
 │ sleep 0.5sec                                                                    │
 │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
@@ -180,6 +208,7 @@ Let's see how `dotnu set-x` will modify this script
 │ sleep 0.8sec                                                                    │
 │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
 │                                                                                 │
+│                                                                                 │
 ╰─────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -187,15 +216,24 @@ Let's see how `dotnu set-x` will modify this script
 
 ```nushell
 > dotnu generate-nupm-tests --help | numd parse-help
-Description:
-  Generate nupm tests from examples in docstrings
-
-Usage:
-  > generate-nupm-tests {flags} <$module_file>
-
-Flags:
-  --echo - output script to stdout instead of updating the module_file provided
-
-Parameters:
-  $module_file <path>: path to a nushell module file
+// Description:
+//   Generate nupm tests from examples in docstrings
+//
+//
+// Usage:
+//   > generate-nupm-tests {flags} <$module_path>
+//
+//
+// Flags:
+//   --echo: output script to stdout instead of updating the module_path provided
+//
+//
+// Parameters:
+//   $module_path <path>: path to a nushell module file
+//
+//
+// Input/output types:
+//   ╭─#─┬─input─┬─output─╮
+//   │ 0 │ any   │ any    │
+//   ╰─#─┴─input─┴─output─╯
 ```
