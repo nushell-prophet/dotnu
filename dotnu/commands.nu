@@ -105,7 +105,7 @@ export def 'update-docstring-examples' [
     --use_statement: string = '' # use statement to execute examples with (like 'use module.nu').
                                  # Can be omitted to try to deduce automatically
     --echo # output script to stdout instead of updating the module_path provided
-    --no_git_check # don't check for the emptiness of the working tree
+    --no-git-check # don't check for the emptiness of the working tree
 ] {
     if not ($no_git_check or $echo) { check-clean-working-tree $module_path }
 
@@ -346,7 +346,7 @@ export def check-clean-working-tree [
     | if $in {
         error make --unspanned {
             msg: ( "Working tree isn't empty. Please commit or stash changed files, " +
-                    "or use `--no_git_check` flag. Uncommited files:\n" + $git_status )
+                    "or use `--no-git-check` flag. Uncommited files:\n" + $git_status )
         }
     }
 }

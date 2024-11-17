@@ -54,7 +54,7 @@ def 'test-execute-update-examples-no-output' [] {
         [tests assets c hello-no-output.nu]
         | path join
         | path expand
-        | update-docstring-examples $in --no_git_check --echo
+        | update-docstring-examples $in --no-git-check --echo
     }
     | do_closure_save_results hello-no-output.txt
 }
