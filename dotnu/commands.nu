@@ -107,7 +107,7 @@ export def 'update-docstring-examples' [
     --echo # output script to stdout instead of updating the module_path provided
     --no_git_check # don't check for the emptiness of the working tree
 ] {
-    if not $no_git_check or not $echo { check-clean-working-tree $module_path }
+    if not ($no_git_check or $echo) { check-clean-working-tree $module_path }
 
     let $raw_module = open $module_path
 
