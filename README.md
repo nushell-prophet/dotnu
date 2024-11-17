@@ -32,8 +32,8 @@
 //
 //
 // Flags:
-//   --keep_builtins: keep builtin commands in the result page
-//   --definitions_only: output only commands' names definitions
+//   --keep-builtins: keep builtin commands in the result page
+//   --definitions-only: output only commands' names definitions
 //
 //
 // Parameters:
@@ -153,8 +153,8 @@ If an example produces an error, this error is printed to the terminal output, a
 //
 //
 // Flags:
-//   --command_filter <string>: filter commands by their name to update examples at (default: '')
-//   --use_statement <string>: use statement to execute examples with (like 'use module.nu').
+//   --command-filter <string>: filter commands by their name to update examples at (default: '')
+//   --use-statement <string>: use statement to execute examples with (like 'use module.nu').
 //   Can be omitted to try to deduce automatically (default: '')
 //   --echo: output script to stdout instead of updating the module_path provided
 //   --no-git-check: don't check for the emptiness of the working tree
