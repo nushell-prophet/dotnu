@@ -1,5 +1,5 @@
 # glob ([tests assets b *] | path join)
-# | dependencies ...$in --keep_builtins
+# | dependencies ...$in --keep-builtins
 # | to yaml
 - caller: example-mod1
   callee: export def
