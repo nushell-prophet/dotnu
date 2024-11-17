@@ -7,6 +7,11 @@ def 'main test' [] {
     test-dependencies
     test-dependencies-keep_builtins
     test-execute-update-examples-no-output
+
+    # Not everyone yet uses numd
+    if (help modules | where name == 'numd' | is-not-empty) {
+        numd run README.md
+    }
 }
 
 def 'main test-nupm' [] {
