@@ -301,7 +301,7 @@ export def 'list-main-commands' [
 }
 
 # Inserts captured output back into the script at capture points
-export def 'update-embeds' [
+export def 'embeds-update' [
     file?: path
 ] {
     let $input = $in
@@ -311,7 +311,7 @@ export def 'update-embeds' [
     }
 
     let $script = if $input == null { open $file } else { $input }
-        | remove-annotations
+        | embeds-remove
 
     let $results = extract-captured-output $script
 
@@ -709,7 +709,7 @@ export def find-capture-points [] {
 }
 
 # Removes annotation lines starting with '#:' from the script
-export def remove-annotations [] {
+export def embeds-remove [] {
     lines
     | where not ($it starts-with '#:')
     | to text

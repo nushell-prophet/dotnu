@@ -8,7 +8,8 @@ export use commands.nu [
     generate-numd
     extract-command-code
     list-main-commands
-    update-embeds
+    embeds-update
+    embeds-remove
 ]
 
 use ('..' | path join tests nupm utils dirs.nu) find-root
