@@ -696,7 +696,7 @@ export def extract-captured-output [
         | prepend $embed_in_script_src
         | to text
 
-    nu -c $script_upd
+    ^$nu.current-exe --config $nu.config-path --env-config $nu.env-path -c $script_upd
     | ansi strip
     | parse -r ( '(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close) )
     | get capture0
