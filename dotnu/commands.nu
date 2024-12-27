@@ -379,6 +379,13 @@ export def 'capture append-last-command' [] {
 # so all the commands are in one file now, and all are exported, to be availible in my scripts
 # that can use this file commands with 'use ..', though main commands are exported in mod.nu
 
+export def 'git-autocommit-dotnu-capture' [] {
+        let $path = get-dotnu-capture-path
+
+        git add $path
+        git commit --only $path -m 'dotnu capture autocommit'
+}
+
 export def 'get-last-command' [
     --index: int = 2
 ] {
