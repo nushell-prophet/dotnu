@@ -345,8 +345,7 @@ export def --env 'capture setup' [
     if $auto_commit {
         touch $env.dotnu.path
 
-        git add $env.dotnu.path
-        git commit --only $env.dotnu.path -m 'dotnu capture autocommit'
+        git-autocommit-dotnu-capture
 
         $env.dotnu.auto-commit = true
     }
@@ -372,8 +371,11 @@ export def 'capture append-last-command' [] {
 
     $"\n($command) | print $in\n($input)"
     | save -a $path
-}
 
+    if $env.dotnu?.auto-commit? == true {
+        git-autocommit-dotnu-capture
+    }
+}
 #### helpers
 # they used to be separately here from the main code, but I want to experiment with structure
 # so all the commands are in one file now, and all are exported, to be availible in my scripts
