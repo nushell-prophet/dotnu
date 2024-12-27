@@ -331,6 +331,10 @@ export def 'embeds-update' [
 # so all the commands are in one file now, and all are exported, to be availible in my scripts
 # that can use this file commands with 'use ..', though main commands are exported in mod.nu
 
+export def 'get-last-command' [] {
+    history | last 2 | first | get command
+}
+
 export def check-clean-working-tree [
     $module_path: path
 ] {
