@@ -328,6 +328,31 @@ export def 'embeds-update' [
 
 export def 'capture start' [] {}
 
+export def --env 'capture setup' [
+    $path?: path
+    --auto-commit
+] {
+    $env.dotnu.path = (
+        $path
+        | default $env.dotnu?.path?
+        | if $in == null {
+            'dotnu-capture.nu'
+        } else {}
+        | path expand
+        | str replace -r '(\.nu)?$' '.nu' # make sure that the script has .nu extension
+    )
+
+    if $auto_commit {
+        touch $env.dotnu.path
+
+        git add $env.dotnu.path
+        git commit --only $env.dotnu.path -m 'dotnu capture autocommit'
+
+        $env.dotnu.auto-commit = true
+    }
+
+}
+
 export def 'capture append-last-command' [] {
     let $path = $env.dotnu?.path? | default dotnu-capture.nu
 
