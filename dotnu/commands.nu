@@ -328,7 +328,7 @@ export def 'embeds-update' [
 
 export def 'capture start' [] {}
 
-export def --env 'capture setup' [
+export def --env 'embeds-setup' [
     $path?: path
     --auto-commit
 ] {

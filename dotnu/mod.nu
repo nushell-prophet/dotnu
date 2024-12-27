@@ -11,7 +11,7 @@ export use commands.nu [
     embeds-update
     embeds-remove
     'embed-add'
-    'capture setup'
+    'embeds-setup'
 ]
 
 use ('..' | path join tests nupm utils dirs.nu) find-root
