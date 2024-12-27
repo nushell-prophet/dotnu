@@ -326,6 +326,8 @@ export def 'embeds-update' [
     | if $input == null {save -f $file} else {}
 }
 
+export def 'capture start' [] {}
+
 export def 'capture append-last-command' [] {
     let $path = $env.dotnu?.path? | default dotnu-capture.nu
 
