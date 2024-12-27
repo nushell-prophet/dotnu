@@ -354,10 +354,23 @@ export def --env 'capture setup' [
 }
 
 export def 'capture append-last-command' [] {
+    let $input = $in
+        | if $in == null {} else {
+            table -e --width 160
+            | comment-hash-colon
+            | $"\n($in)\n"
+        }
+
     let $path = $env.dotnu?.path? | default dotnu-capture.nu
 
-    get-last-command
-    | $"\n($in) | print $in\n"
+    let $command = if $input == null {
+        get-last-command
+    } else {
+        get-last-command --index 1
+        | str replace -r '(?s)\| ?dotnu capture append-last-command.*$' ''
+    }
+
+    $"\n($command) | print $in\n($input)"
     | save -a $path
 }
 
