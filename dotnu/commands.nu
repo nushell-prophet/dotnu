@@ -334,12 +334,12 @@ export def --env 'capture setup' [
 ] {
     $env.dotnu.path = (
         $path
-        | default $env.dotnu?.path?
         | if $in == null {
-            'dotnu-capture.nu'
-        } else {}
+            get-dotnu-capture-path
+        } else {
+            str replace -r '(\.nu)?$' '.nu' # make sure that the script has .nu extension
+        }
         | path expand
-        | str replace -r '(\.nu)?$' '.nu' # make sure that the script has .nu extension
     )
 
     if $auto_commit {
@@ -361,7 +361,7 @@ export def 'capture append-last-command' [] {
             | $"\n($in)\n"
         }
 
-    let $path = $env.dotnu?.path? | default dotnu-capture.nu
+    let $path = get-dotnu-capture-path
 
     let $command = if $input == null {
         get-last-command
