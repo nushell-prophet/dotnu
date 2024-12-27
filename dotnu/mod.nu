@@ -10,7 +10,7 @@ export use commands.nu [
     list-main-commands
     embeds-update
     embeds-remove
-    'embed-command'
+    'embed-add'
     'capture setup'
 ]
 
