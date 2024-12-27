@@ -10,6 +10,8 @@ export use commands.nu [
     list-main-commands
     embeds-update
     embeds-remove
+    'capture append-last-command'
+    'capture setup'
 ]
 
 use ('..' | path join tests nupm utils dirs.nu) find-root
