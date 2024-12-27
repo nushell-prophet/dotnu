@@ -706,6 +706,13 @@ export def generate-test-command [
     ] | to text
 }
 
+export def 'comment-hash-colon' [] {
+    into string
+    | ansi strip
+    | str trim -c "\n"
+    | str replace -arm '^' '#: '
+}
+
 # Extracts captured output from a script file execution result
 export def extract-captured-output [
     script: string
@@ -713,10 +720,7 @@ export def extract-captured-output [
     # Prints output that will be embedded back into the script
     let embed_in_script = {
         let $input = table -e
-            | into string
-            | ansi strip
-            | str trim -c "\n"
-            | str replace -arm '^' '#: '
+            | comment-hash-colon
 
         capture-marker
         | append $input
