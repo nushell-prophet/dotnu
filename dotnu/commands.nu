@@ -352,7 +352,7 @@ export def --env 'capture setup' [
 
 }
 
-export def 'capture append-last-command' [] {
+export def 'embed-command' [] {
     let $input = $in
         | if $in == null {} else {
             table -e --width 160
@@ -366,7 +366,7 @@ export def 'capture append-last-command' [] {
         get-last-command
     } else {
         get-last-command --index 1
-        | str replace -r '(?s)\| ?dotnu capture append-last-command.*$' ''
+        | str replace -r '(?s)\| ?dotnu embed-command.*$' ''
     }
 
     $"\n($command) | print $in\n($input)"
