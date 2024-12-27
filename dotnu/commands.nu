@@ -326,6 +326,14 @@ export def 'embeds-update' [
     | if $input == null {save -f $file} else {}
 }
 
+export def 'capture append-last-command' [] {
+    let $path = $env.dotnu?.path? | default dotnu-capture.nu
+
+    get-last-command
+    | $"\n($in) | print $in\n"
+    | save -a $path
+}
+
 #### helpers
 # they used to be separately here from the main code, but I want to experiment with structure
 # so all the commands are in one file now, and all are exported, to be availible in my scripts
