@@ -734,11 +734,23 @@ export def generate-test-command [
     ] | to text
 }
 
-export def 'comment-hash-colon' [] {
-    into string
-    | ansi strip
-    | str trim -c "\n"
-    | str replace -arm '^' '#: '
+export def 'comment-hash-colon' [
+    --source-code
+] {
+    let $input = $in
+    let $closure = {|i| $i |
+        into string | ansi strip | str trim -c "\n" | str replace -arm '^' '#: '
+    }
+
+    if $source_code {
+        view source $closure
+        | lines
+        | skip
+        | drop
+        | to text
+    } else {
+        do $closure $input
+    }
 }
 
 # Extracts captured output from a script file execution result
