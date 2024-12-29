@@ -1,4 +1,3 @@
-use std iter scan
 
 # Check .nu module files to determine which commands depend on other commands.
 #
@@ -807,5 +806,44 @@ def capture-marker [
         (char --unicode '200B') + (char --unicode '200C')
     } else {
         (char --unicode '200C') + (char --unicode '200B')
+    }
+}
+
+# I hardcode scan from 0.101 version here, as there were a breaking change
+# to give chance for execution in previous untested nushell versions
+
+# Returns a list of intermediate steps performed by `reduce`
+# (`fold`). It takes two arguments, an initial value to seed the
+# initial state and a closure that takes two arguments, the first
+# being the list element in the current iteration and the second
+# the internal state.
+# The internal state is also provided as pipeline input.
+#
+# # Example
+# ```
+# use std ["assert equal" "iter scan"]
+# let scanned = ([1 2 3] | iter scan 0 {|x, y| $x + $y})
+#
+# assert equal $scanned [0, 1, 3, 6]
+#
+# # use the --noinit(-n) flag to remove the initial value from
+# # the final result
+# let scanned = ([1 2 3] | iter scan 0 {|x, y| $x + $y} -n)
+#
+# assert equal $scanned [1, 3, 6]
+# ```
+export def scan [ # -> list<any>
+    init: any            # initial value to seed the initial state
+    fn: closure          # the closure to perform the scan
+    --noinit(-n)         # remove the initial value from the result
+] {
+    reduce --fold [$init] {|it, acc|
+        let acc_last = $acc | last
+        $acc ++ [($acc_last | do $fn $it $acc_last)]
+    }
+    | if $noinit {
+        $in | skip
+    } else {
+        $in
     }
 }
