@@ -773,6 +773,7 @@ export def extract-captured-output [
         | 'def embed-in-script [] ' + $in
         | str replace 'capture-marker' $"'(capture-marker)'"
         | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
+        | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
 
     let $script_upd = $script
         | str replace -arm '\| *print +\$in *$' '| embed-in-script'
