@@ -312,7 +312,7 @@ export def 'embeds-update' [
     let $script = if $input == null { open $file } else { $input }
         | embeds-remove
 
-    let $results = extract-captured-output $script
+    let $results = execute-and-parse-results $script
 
     let $replacements = $script
         | find-capture-points
@@ -753,7 +753,7 @@ export def 'comment-hash-colon' [
 }
 
 # Extracts captured output from a script file execution result
-export def extract-captured-output [
+export def execute-and-parse-results [
     script: string
 ] {
     # Prints output that will be embedded back into the script
