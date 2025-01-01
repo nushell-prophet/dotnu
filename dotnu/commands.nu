@@ -299,6 +299,8 @@ export def 'list-main-commands' [
     | commandline edit -r $in
 }
 
+#todo: make configuration like --autocommit in file itself
+
 # Inserts captured output back into the script at capture points
 export def 'embeds-update' [
     file?: path
