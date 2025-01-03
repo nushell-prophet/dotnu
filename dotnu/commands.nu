@@ -805,9 +805,9 @@ def capture-marker [
     --close
 ] {
     if not $close {
-        (char --unicode '200B') + (char --unicode '200C')
+        "\u{200B}\u{200C}"
     } else {
-        (char --unicode '200C') + (char --unicode '200B')
+        "\u{200C}\u{200B}"
     }
 }
 
