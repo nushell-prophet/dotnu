@@ -777,7 +777,7 @@ export def execute-and-parse-results [
         | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
 
     let $script_upd = $script
-        | str replace -arm '(^\s*[^#].*)\| *print +\$in *$' '$1| embed-in-script'
+        | str replace -arm '^(\s*[^#].*)\| *print +\$in *$' '$1| embed-in-script'
         | prepend $embed_in_script_src
         | to text
 
