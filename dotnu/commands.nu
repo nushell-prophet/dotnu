@@ -795,7 +795,7 @@ export def execute-and-parse-results [
 # Finds lines where embed-in-script is used in the script
 export def find-capture-points [] {
     lines
-    | where $it =~ '\|\s?print \$in *$'
+    | where $it !~ '^\s*#' and $it =~ '\|\s?print \$in *$'
 }
 
 # Removes annotation lines starting with '#:' from the script
