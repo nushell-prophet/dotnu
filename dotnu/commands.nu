@@ -780,7 +780,7 @@ export def execute-and-parse-results [
         | lines
         | each {
             if $in =~ '^\s*#' {} else {
-                str replace -r '\| *print +\$in *$' '| embed-in-script'
+                str replace -r '\| *print +\$in *' '| embed-in-script'
             }
         }
         | prepend $embed_in_script_src
