@@ -777,7 +777,7 @@ export def execute-and-parse-results [
         | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
 
     let $script_upd = $script
-        | str replace -arm '\| *print +\$in *$' '| embed-in-script'
+        | str replace -arm '(^\s*[^#].*)\| *print +\$in *$' '$1| embed-in-script'
         | prepend $embed_in_script_src
         | to text
 
@@ -843,9 +843,5 @@ export def scan [ # -> list<any>
         let acc_last = $acc | last
         $acc ++ [($acc_last | do $fn $it $acc_last)]
     }
-    | if $noinit {
-        $in | skip
-    } else {
-        $in
-    }
+    | if $noinit { skip } else { }
 }
