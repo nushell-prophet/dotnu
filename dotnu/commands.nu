@@ -356,6 +356,8 @@ export def --env 'embeds-setup' [
 export def 'embed-add' [
     --pipe-further (-p) # output input further to the pipeline
     --published # output the published representation into terminal
+    --not-print-to-file
+    #todo: --
 ] {
     let $input = $in
 
@@ -377,16 +379,21 @@ export def 'embed-add' [
 
     # $"\n($command) | print $in\n($input_table)"
 
-    char nl
-    | append $command
-    | append ' | print $in'
-    | append $input_table
-    | to text
-    | save -a $path
+    let $script_with_output = ''
+        | append $command
+        | append ' | print $in'
+        | append $input_table
+        | to text
+
 
     if $env.dotnu?.auto-commit? == true {
         git-autocommit-dotnu-capture
     }
+
+    if not $not_print_to_file {$script_with_output | save -a $path }
+
+    if $published { return $script_with_output }
+    if $pipe_further { return $input }
 }
 #### helpers
 # they used to be separately here from the main code, but I want to experiment with structure
