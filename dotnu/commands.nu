@@ -353,7 +353,10 @@ export def --env 'embeds-setup' [
 
 }
 
-export def 'embed-add' [] {
+export def 'embed-add' [
+    --pipe-further (-p) # output input further to the pipeline
+    --published # output the published representation into terminal
+] {
     let $input = $in
 
     let $path = get-dotnu-capture-path
