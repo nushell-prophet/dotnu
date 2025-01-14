@@ -355,12 +355,6 @@ export def --env 'embeds-setup' [
 
 export def 'embed-add' [] {
     let $input = $in
-    let $input_table = $input
-        | if $in == null {} else {
-            table -e --width 160
-            | comment-hash-colon
-            | $"\n($in)\n"
-        }
 
     let $path = get-dotnu-capture-path
 
@@ -371,7 +365,20 @@ export def 'embed-add' [] {
         | str replace -r '(?s)\| ?dotnu embed-add.*$' ''
     }
 
-    $"\n($command) | print $in\n($input_table)"
+    let $input_table = $input
+        | if $in == null {} else {
+            table -e --width 160
+            | comment-hash-colon
+            | $"\n($in)\n"
+        }
+
+    # $"\n($command) | print $in\n($input_table)"
+
+    char nl
+    | append $command
+    | append ' | print $in'
+    | append $input_table
+    | to text
     | save -a $path
 
     if $env.dotnu?.auto-commit? == true {
