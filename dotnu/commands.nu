@@ -608,7 +608,7 @@ export def extract-module-commands [
         | merge (
             $in
             | select caller filename_of_caller
-            | scan {} --noinit {|prev curr| if $curr.caller? == null {$prev} else {$curr}}
+            | scan {} --noinit {|curr prev| if $curr.caller? == null {$prev} else {$curr}}
         )
         | where shape in ['shape_internalcall' 'shape_external']
         | if $keep_builtins {} else {
