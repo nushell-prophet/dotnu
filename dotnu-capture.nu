@@ -112,3 +112,21 @@ ls | sort-by modified -r  | print $in
 #: ╰─#──┴───────name───────┴─type─┴───size───┴────modified────╯
 
 # that was cool | print $in
+
+ls 
+ | print $in
+
+#: ╭─#──┬───────name───────┬─type─┬───size───┬────modified────╮
+#: │ 0  │ LICENSE          │ file │  1.2 KiB │ 2 weeks ago    │
+#: │ 1  │ README.md        │ file │ 10.9 KiB │ 2 months ago   │
+#: │ 2  │ demo.nu          │ file │  3.7 KiB │ 2 months ago   │
+#: │ 3  │ dotnu            │ dir  │    128 B │ 27 minutes ago │
+#: │ 4  │ dotnu-capture.nu │ file │  7.9 KiB │ 2 weeks ago    │
+#: │ 5  │ media            │ dir  │     96 B │ 5 months ago   │
+#: │ 6  │ nupm.nuon        │ file │    125 B │ 2 months ago   │
+#: │ 7  │ test.nu          │ file │     45 B │ 2 months ago   │
+#: │ 8  │ tests            │ dir  │    192 B │ 5 months ago   │
+#: │ 9  │ tools.nu         │ file │  2.8 KiB │ 2 months ago   │
+#: │ 10 │ zzz_md_backups   │ dir  │    160 B │ 2 months ago   │
+#: ╰─#──┴───────name───────┴─type─┴───size───┴────modified────╯
+
