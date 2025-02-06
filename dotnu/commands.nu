@@ -26,10 +26,9 @@ export def 'dependencies' [
 
     generate {|i|
         if ( $i | is-not-empty ) {
-            {
-                out: $i,
-                next: ( $i | join-next $callees_to_merge )
-            }
+            $i | join-next $callees_to_merge
+            | {next: $in}
+            | merge {out: $i}
         }
     } ($callees_to_merge | insert step 0)
     | flatten
