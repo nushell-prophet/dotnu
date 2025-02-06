@@ -31,7 +31,7 @@ export def 'dependencies' [
                 next: ( $i | join-next $callees_to_merge )
             }
         }
-    } ($callees_to_merge | insert step 0)
+    } $callees_to_merge
     | flatten
     | uniq-by caller callee
 }
@@ -682,6 +682,7 @@ export def 'join-next' [
     join -l $callees_to_merge callee caller
     | select caller callee_ step filename_of_caller
     | rename caller callee
+    | default 0 step
     | upsert step {|i| $i.step + 1}
     | where callee != null
 }
