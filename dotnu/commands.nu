@@ -24,13 +24,11 @@ export def 'dependencies' [
 
     if $definitions_only {return $callees_to_merge}
 
-    $callees_to_merge
-    | insert step 0
-    | generate {|i|
+    generate {|i|
         if ( $i | is-not-empty ) {
             {out: $i, next: ( $i | join-next $callees_to_merge )}
         }
-    } $in
+    } ($callees_to_merge | insert step 0)
     | flatten
     | uniq-by caller callee
 }
