@@ -767,7 +767,7 @@ export def generate-test-command [
 # #: ╰───┴───╯
 export def 'comment-hash-colon' [
     --source-code
-] {
+]: string -> string {
     let $input = $in
     let $closure = {|i| $i |
         into string | ansi strip | str trim -c "\n" | str replace -arm '^' '#: '
