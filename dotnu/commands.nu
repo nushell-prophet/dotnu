@@ -759,6 +759,7 @@ export def generate-test-command [
     ] | to text
 }
 
+# > [[a];[b]] | table | comment-hash-colon
 export def 'comment-hash-colon' [
     --source-code
 ] {
