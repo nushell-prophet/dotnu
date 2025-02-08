@@ -212,8 +212,8 @@ export def 'generate-numd' [] {
     | to text
 }
 
-# extract a code of a command from a module and save it as a `.nu' file, that can be sourced
-# by executing this `.nu` file you'll have all variables in your environment for debuging or development
+# Extract a code of a command from a module and save it as a `.nu` file that can be sourced.
+# By executing this `.nu` file, you'll have all variables in your environment for debugging or development.
 export def 'extract-command-code' [
     $module_path: path # path to a nushell module file
     $command: string@nu-completion-command-name # the name of the command to extract
