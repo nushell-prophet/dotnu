@@ -327,7 +327,7 @@ export def 'embeds-update' [
         | zip $results
 
     $replacements
-    | reduce --fold $script {|it| str replace $it.0 ($it.0 + "\n" + $it.1)}
+    | reduce --fold $script {|it| str replace ("\n" + $it.0) ("\n" + $it.0 + "\n" + $it.1)}
     | str replace -ar '\n{3,}' "\n\n"
     | str replace -r "\n*$" "\n"
     | if $input == null {save -f $file} else {}
