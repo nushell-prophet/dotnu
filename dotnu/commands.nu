@@ -819,6 +819,9 @@ export def execute-and-parse-results [
     ^$nu.current-exe --config $nu.config-path --env-config $nu.env-path -c $script_updated
     | ansi strip
     | parse -r ( '(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close) )
+    # Parsing here presupposes capturing only the output of a script command,
+    # so it won't be able to capture content inside custom command definitions correctly
+    # (if they were executed more than once).
     | get capture0
 }
 
