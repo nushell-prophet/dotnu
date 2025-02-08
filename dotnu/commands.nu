@@ -268,7 +268,7 @@ export def 'extract-command-code' [
     }
 }
 
-# list-main-commands should be completion for nushell
+# todo: `list-main-commands` should be a completion for nushell cli
 
 export def 'list-main-commands' [
     $path: path
