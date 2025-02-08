@@ -760,6 +760,11 @@ export def generate-test-command [
 }
 
 # > [[a];[b]] | table | comment-hash-colon
+# #: ╭───┬───╮
+# #: │ # │ a │
+# #: ├───┼───┤
+# #: │ 0 │ b │
+# #: ╰───┴───╯
 export def 'comment-hash-colon' [
     --source-code
 ] {
