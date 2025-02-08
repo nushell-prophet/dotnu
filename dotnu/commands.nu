@@ -458,7 +458,7 @@ export def variable-definitions-to-record []: string -> record {
         | $in + ( char nl )
 
     let $variables_record = $script_with_variables_definitnions
-        | parse -r 'let ( ?:\$ )?( ?<var>.* ) ='
+        | parse -r 'let \$?(?<var>.*) ='
         | get var
         | uniq
         | each {$'( $in ): $( $in )'}
