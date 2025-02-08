@@ -806,7 +806,7 @@ export def execute-and-parse-results [
         | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
         | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
 
-    let $script_upd = $script
+    let $script_updated = $script
         | lines
         | each {
             if $in !~ '^\s*#' { # don't search for `print $in` inside of commented lines
@@ -816,7 +816,7 @@ export def execute-and-parse-results [
         | prepend $embed_in_script_src
         | to text
 
-    ^$nu.current-exe --config $nu.config-path --env-config $nu.env-path -c $script_upd
+    ^$nu.current-exe --config $nu.config-path --env-config $nu.env-path -c $script_updated
     | ansi strip
     | parse -r ( '(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close) )
     | get capture0
