@@ -406,10 +406,10 @@ export def 'get-dotnu-capture-path' [] {
 }
 
 export def 'git-autocommit-dotnu-capture' [] {
-        let $path = get-dotnu-capture-path
+    let $path = get-dotnu-capture-path
 
-        git add $path
-        git commit --only $path -m 'dotnu capture autocommit'
+    git add $path
+    git commit --only $path -m 'dotnu capture autocommit'
 }
 
 export def 'get-last-command' [
