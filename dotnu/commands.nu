@@ -798,9 +798,9 @@ export def execute-and-parse-results [
     let $script_upd = $script
         | lines
         | each {
-            if $in =~ '^\s*#' {} else {
+            if $in !~ '^\s*#' { # don't search for `print $in` inside of commented lines
                 str replace -r '\| *print +\$in *' '| embed-in-script'
-            }
+            } else {}
         }
         | prepend $embed_in_script_src
         | to text
