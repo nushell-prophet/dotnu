@@ -326,10 +326,12 @@ export def 'embeds-update' [
         | find-capture-points
         | zip $results
 
+    let $prevent_second_replacement = " # to-not-be-replaced-again"
+
     $replacements
     | reduce --fold $script {|it|
-        str replace ("\n" + $it.0 + "\n") ("\n" + $it.0 + " # to-not-be-replaced-again\n" + $it.1 + "\n")}
-    | str replace -a ' # to-not-be-replaced-again' ''
+        str replace ("\n" + $it.0 + "\n") ("\n" + $it.0 + $prevent_second_replacement + "\n" + $it.1 + "\n")}
+    | str replace -a $prevent_second_replacement ''
     | str replace -ar '\n{3,}' "\n\n"
     | str replace -r "\n*$" "\n"
     | if $input == null {save -f $file} else {}
