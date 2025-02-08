@@ -39,7 +39,9 @@ export def 'dependencies' [
 # Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
 #
 # > dependencies ...( glob tests/assets/module-say/say/*.nu ) | filter-commands-with-no-tests
-# ╭─#─┬──caller──┬─filename_of_caller─╮
+# ╭───┬──────────┬────────────────────╮
+# │ # │  caller  │ filename_of_caller │
+# ├───┼──────────┼────────────────────┤
 # │ 0 │ hello    │ hello.nu           │
 # │ 1 │ question │ ask.nu             │
 # │ 2 │ say      │ mod.nu             │
