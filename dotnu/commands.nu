@@ -330,7 +330,8 @@ export def 'embeds-update' [
 
     $replacements
     | reduce --fold $script {|it|
-        str replace ("\n" + $it.0 + "\n") ("\n" + $it.0 + $prevent_second_replacement + "\n" + $it.1 + "\n")}
+        str replace ("\n" + $it.0 + "\n") ("\n" + $it.0 + $prevent_second_replacement + "\n" + $it.1 + "\n")
+    }
     | str replace -a $prevent_second_replacement ''
     | str replace -ar '\n{3,}' "\n\n"
     | str replace -r "\n*$" "\n"
