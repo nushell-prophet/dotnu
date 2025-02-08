@@ -2,7 +2,9 @@
 # Check .nu module files to determine which commands depend on other commands.
 #
 # > dependencies ...( glob tests/assets/module-say/say/*.nu )
-# ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
+# ╭───┬──────────┬────────────────────┬──────────┬──────╮
+# │ # │  caller  │ filename_of_caller │  callee  │ step │
+# ├───┼──────────┼────────────────────┼──────────┼──────┤
 # │ 0 │ hello    │ hello.nu           │          │    0 │
 # │ 1 │ question │ ask.nu             │          │    0 │
 # │ 2 │ say      │ mod.nu             │ hello    │    0 │
@@ -128,8 +130,8 @@ export def 'update-docstring-examples' [
 # that will print the code of each block before executing it, and print the timings of each block's execution.
 #
 # > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
-# mut $prev_ts = date now
-# print ( "> sleep 0.5sec" | nu-highlight )
+# mut $prev_ts = ( date now )
+# print ("> sleep 0.5sec" | nu-highlight)
 # sleep 0.5sec
 export def 'set-x' [
     file: path # path to `.nu` file
