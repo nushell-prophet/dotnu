@@ -1,6 +1,6 @@
 # this is a typical nushell script
 
-ls | sort-by modified -r | first 2 | print $in
+ls | sort-by modified -r | last 2 | print $in
 
 #: ╭─#─┬───────name───────┬─type─┬──size──┬────modified────╮
 #: │ 0 │ dotnu-capture.nu │ file │  201 B │ 15 seconds ago │
