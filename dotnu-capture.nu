@@ -16,6 +16,8 @@ random int | print $in
 
 #: 6970240173764648305
 
-'Say hello to the core team of the Nushell' | str replace 'Nushell' 'Best shell' | print $in
+'Say hello to the core team of the Nushell'
+| str replace 'Nushell' 'Best shell'
+| print $in
 
 #: Say hello to the core team of the Best shell
