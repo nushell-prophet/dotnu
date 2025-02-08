@@ -789,7 +789,7 @@ export def execute-and-parse-results [
     script: string
 ] {
     # Prints output that will be embedded back into the script
-    let embed_in_script = {
+    let $embed_in_script = {
         let $input = table -e
             | comment-hash-colon
 
