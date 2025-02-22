@@ -840,7 +840,8 @@ export def find-capture-points [] {
 
 # Removes annotation lines starting with '#:' from the script
 export def embeds-remove [] {
-    lines
+    str replace -a "\n\n#:" "\n#:"
+    | lines
     | where not ($it starts-with '#:')
     | to text
 }
