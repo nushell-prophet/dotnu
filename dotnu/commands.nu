@@ -344,7 +344,7 @@ export def --env 'embeds-setup' [
     $path?: path
     --auto-commit
 ] {
-    $env.dotnu.path = (
+    $env.dotnu.embeds-capture-path = (
         $path
         | if $in == null {
             get-dotnu-capture-path
@@ -355,7 +355,7 @@ export def --env 'embeds-setup' [
     )
 
     if $auto_commit {
-        touch $env.dotnu.path
+        touch $env.dotnu.embeds-capture-path
 
         git-autocommit-dotnu-capture
 
@@ -413,7 +413,7 @@ export def 'embed-add' [
 # that can use this file commands with 'use ..', though main commands are exported in mod.nu
 
 export def 'get-dotnu-capture-path' [] {
-    $env.dotnu?.path? | default dotnu-capture.nu
+    $env.dotnu?.embeds-capture-path? | default dotnu-embeds-capture.nu
 }
 
 export def 'git-autocommit-dotnu-capture' [] {
