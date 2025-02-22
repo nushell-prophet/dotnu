@@ -286,7 +286,7 @@ export def 'list-main-commands' [
         | extract-command-name
         | replace-main-with-module-name $path
     } else {
-        where $it =~ '^( export )?def '
+        where $it =~ '^(export )?def '
         | extract-command-name
         | where $it starts-with 'main'
         | str replace 'main ' ''
