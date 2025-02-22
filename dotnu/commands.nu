@@ -406,6 +406,7 @@ export def 'embed-add' [
     if $published { return $script_with_output }
     if $pipe_further or $dry_run { return $input }
 }
+
 #### helpers
 # they used to be separately here from the main code, but I want to experiment with structure
 # so all the commands are in one file now, and all are exported, to be availible in my scripts
