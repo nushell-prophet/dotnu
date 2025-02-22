@@ -310,6 +310,7 @@ export def 'list-main-commands' [
 # Inserts captured output back into the script at capture points
 export def 'embeds-update' [
     file?: path
+    --echo # output updates to stdout
 ] {
     let $input = $in
 
@@ -335,7 +336,7 @@ export def 'embeds-update' [
     | str replace -a $prevent_second_replacement ''
     | str replace -ar '\n{3,}' "\n\n"
     | str replace -r "\n*$" "\n"
-    | if $input == null {save -f $file} else {}
+    | if $echo or ($input != null) {} else {save -f $file}
 }
 
 export def 'capture start' [] {}
