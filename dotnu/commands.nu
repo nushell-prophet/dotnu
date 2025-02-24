@@ -543,7 +543,11 @@ export def gen-example-exec-command [
     } else {
         $'use "( $module_path )" *'
     }
-    | $"( $in );\n( $example_command )"
+    | $"$env.config.table.mode = 'rounded';
+        $env.config.table.header_on_separator = true;
+        ($in);
+        ($example_command)
+    "
 }
 
 # Escapes symbols to be printed unchanged inside a `print "something"` statement.
