@@ -3,9 +3,7 @@ use std iter scan
 # Check .nu module files to determine which commands depend on other commands.
 #
 # > dependencies ...( glob tests/assets/module-say/say/*.nu )
-# ╭───┬──────────┬────────────────────┬──────────┬──────╮
-# │ # │  caller  │ filename_of_caller │  callee  │ step │
-# ├───┼──────────┼────────────────────┼──────────┼──────┤
+# ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
 # │ 0 │ hello    │ hello.nu           │          │    0 │
 # │ 1 │ question │ ask.nu             │          │    0 │
 # │ 2 │ say      │ mod.nu             │ hello    │    0 │
@@ -42,9 +40,7 @@ export def 'dependencies' [
 # Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
 #
 # > dependencies ...( glob tests/assets/module-say/say/*.nu ) | filter-commands-with-no-tests
-# ╭───┬──────────┬────────────────────╮
-# │ # │  caller  │ filename_of_caller │
-# ├───┼──────────┼────────────────────┤
+# ╭─#─┬──caller──┬─filename_of_caller─╮
 # │ 0 │ hello    │ hello.nu           │
 # │ 1 │ question │ ask.nu             │
 # │ 2 │ say      │ mod.nu             │
@@ -579,18 +575,14 @@ export def nu-completion-command-name [
 # Extract table with information on which commands use which commands
 #
 # > extract-module-commands tests/assets/b/example-mod1.nu | first 3
-# ╭───┬───────────┬───────────────┬────────────────────╮
-# │ # │  caller   │    callee     │ filename_of_caller │
-# ├───┼───────────┼───────────────┼────────────────────┤
+# ╭─#─┬──caller───┬────callee─────┬─filename_of_caller─╮
 # │ 0 │ command-5 │ command-3     │ example-mod1.nu    │
 # │ 1 │ command-5 │ first-custom  │ example-mod1.nu    │
 # │ 2 │ command-5 │ append-random │ example-mod1.nu    │
 # ╰───┴───────────┴───────────────┴────────────────────╯
 #
 # > extract-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
-# ╭───┬──────────────┬────────────────────╮
-# │ # │    caller    │ filename_of_caller │
-# ├───┼──────────────┼────────────────────┤
+# ╭─#─┬────caller────┬─filename_of_caller─╮
 # │ 0 │ example-mod1 │ example-mod1.nu    │
 # │ 1 │ lscustom     │ example-mod1.nu    │
 # │ 2 │ command-5    │ example-mod1.nu    │
@@ -773,9 +765,7 @@ export def generate-test-command [
 }
 
 # > [[a];[b]] | table | comment-hash-colon
-# #: ╭───┬───╮
-# #: │ # │ a │
-# #: ├───┼───┤
+# #: ╭─#─┬─a─╮
 # #: │ 0 │ b │
 # #: ╰───┴───╯
 export def 'comment-hash-colon' [
