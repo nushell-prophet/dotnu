@@ -217,8 +217,8 @@ export def 'generate-numd' [] {
     | to text
 }
 
-# Extract a code of a command from a module and save it as a `.nu` file that can be sourced.
-# By executing this `.nu` file, you'll have all variables in your environment for debugging or development.
+# Extract a command code from a module and save it as a `.nu` file that can be sourced.
+# By executing this `.nu` file, you'll have all the variables in your environment for debugging or development.
 export def 'extract-command-code' [
     $module_path: path # path to a nushell module file
     $command: string@nu-completion-command-name # the name of the command to extract
@@ -341,6 +341,7 @@ export def 'embeds-update' [
 
 export def 'capture start' [] {}
 
+# Set environment variables to operate with embeds
 export def --env 'embeds-setup' [
     $path?: path
     --auto-commit
@@ -365,6 +366,7 @@ export def --env 'embeds-setup' [
 
 }
 
+# Embed stdin together with its command into the file
 export def 'embed-add' [
     --pipe-further (-p) # output input further to the pipeline
     --published # output the published representation into terminal
