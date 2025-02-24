@@ -7,14 +7,14 @@
 
 ls | sort-by modified -r | last 2 | print $in
 
-#: ╭──#──┬───────name───────┬──type──┬───size───┬───modified────╮
-#: │ 0   │ LICENSE          │ file   │   1.2 kB │ 2 months ago  │
-#: │ 1   │ zzz_md_backups   │ dir    │    160 B │ 3 months ago  │
-#: ╰──#──┴───────name───────┴──type──┴───size───┴───modified────╯
+#: ╭─#─┬──────name──────┬─type─┬──size──┬───modified───╮
+#: │ 0 │ LICENSE        │ file │ 1.2 kB │ 2 months ago │
+#: │ 1 │ zzz_md_backups │ dir  │  160 B │ 3 months ago │
+#: ╰─#─┴──────name──────┴─type─┴──size──┴───modified───╯
 
 random int | print $in
 
-#: 4504024437814639857
+#: 8077574741879556293
 
 'Say hello to the core team of the Nushell'
 | str replace 'Nushell' 'Best shell'
