@@ -1,4 +1,5 @@
 use ( 'dotnu' | path join 'commands.nu' ) *
+use dotnu
 
 def main [] {}
 
@@ -7,6 +8,9 @@ def 'main test' [] {
     test-dependencies
     test-dependencies-keep_builtins
     test-execute-update-examples-no-output
+
+    test-embeds-remove
+    test-embeds-update
 
     # Not everyone yet uses numd
     if (help modules | where name == 'numd' | is-not-empty) {
@@ -80,6 +84,14 @@ def do_closure_save_results [
     | save -fr $output_file
 
     print $'( ansi green )file updated( ansi reset ) ($output_file)'
+}
+
+def 'test-embeds-remove' [] {
+     open tests/assets/dotnu-capture.nu | dotnu embeds-remove | save -f tests/assets/dotnu-capture-clean.nu
+}
+
+def 'test-embeds-update' [] {
+    dotnu embeds-update tests/assets/dotnu-capture.nu --echo | save -f tests/assets/dotnu-capture-updated.nu
 }
 
 def 'main release' [] {
