@@ -1,4 +1,4 @@
-use std iter scan
+use std/iter scan
 
 # Check .nu module files to determine which commands depend on other commands.
 #
@@ -62,7 +62,7 @@ export def 'filter-commands-with-no-tests' [] {
 
 # Parse commands definitions with their docstrings, output a table.
 export def 'parse-docstrings' [
-    $module_path? # path to a nushell module file
+    module_path? # path to a nushell module file
 ] {
     if $module_path == null { collect } else { $module_path | open | collect }
     | parse -r '(?:\n\n|^)(?<definit_line>(?:(?:#.*\n)*)?(?:export def.*))'
@@ -339,7 +339,7 @@ export def 'embeds-update' [
 
 # Set environment variables to operate with embeds
 export def --env 'embeds-setup' [
-    $path?: path
+    path?: path
     --auto-commit
 ] {
     $env.dotnu.embeds-capture-path = (
