@@ -167,7 +167,7 @@ export def 'generate-nupm-tests' [
     let $root = find-root ($module_path | if ($in | path type) == file { path dirname } else { })
     let $relative_module_path = $module_path
     | path relative-to $root
-    | [..$in]
+    | ['..' $in]
     | path join
     | $'use ($in) *'
 
