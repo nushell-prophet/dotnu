@@ -782,6 +782,7 @@ export def 'comment-hash-colon' [
         view source $closure
         | lines
         | skip
+        | str replace '$i ' ''
         | drop
         | to text
     } else {
