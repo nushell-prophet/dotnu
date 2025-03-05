@@ -408,21 +408,21 @@ export def 'embed-add' [
 
 # start capturing commands and their outputs into a file
 export def --env 'capture start' [
-    file: path = 'numd_capture.md'
+    file: path = 'dotnu_capture.nu'
     --separate # don't use `>` notation, create separate blocks for each pipeline
 ]: nothing -> nothing {
-    cprint $'numd commands capture has been started.
+    cprint $'dotnu commands capture has been started.
         Commands and their outputs of the current nushell instance
         will be appended to the *($file)* file.
 
         Beware that your `display_output` hook has been changed.
-        It will be reverted when you use `numd capture stop`'
+        It will be reverted when you use `dotnu capture stop`'
 
-    $env.numd.status = 'running'
-    $env.numd.path = ($file | path expand)
-    $env.numd.separate-blocks = $separate
+    $env.dotnu.status = 'running'
+    $env.dotnu.path = ($file | path expand)
+    $env.dotnu.separate-blocks = $separate
 
-    if not $separate { "```nushell\n" | save -a $env.numd.path }
+    if not $separate { "```nushell\n" | save -a $env.dotnu.path }
 
     $env.backup.hooks.display_output = (
         $env.config.hooks?.display_output?
@@ -440,16 +440,16 @@ export def --env 'capture start' [
         | into string
         | ansi strip
         | default (char nl)
-        | if $env.numd.separate-blocks {
-            $"```nushell\n($command)\n```\n```output-numd\n($in)\n```\n\n"
+        | if $env.dotnu.separate-blocks {
+            $"```nushell\n($command)\n```\n```output-dotnu\n($in)\n```\n\n"
             | str replace --regex --all "[\n\r ]+```\n" "\n```\n"
         } else {
             $"> ($command)\n($in)\n\n"
         }
         | str replace --regex "\n{3,}$" "\n\n"
-        | if ($in !~ 'numd capture') {
-            # don't save numd capture managing commands
-            save --append --raw $env.numd.path
+        | if ($in !~ 'dotnu capture') {
+            # don't save dotnu capture managing commands
+            save --append --raw $env.dotnu.path
         }
 
         print -n $input # without the `-n` flag new line is added to an output
@@ -460,17 +460,17 @@ export def --env 'capture start' [
 export def --env 'capture stop' []: nothing -> nothing {
     $env.config.hooks.display_output = $env.backup.hooks.display_output
 
-    let file = $env.numd.path
+    let file = $env.dotnu.path
 
-    if not $env.numd.separate-blocks {
+    if not $env.dotnu.separate-blocks {
         $"(open $file)```\n"
         | clean-markdown
         | save --force $file
     }
 
-    cprint $'numd commands capture to the *($file)* file has been stopped.'
+    cprint $'dotnu commands capture to the *($file)* file has been stopped.'
 
-    $env.numd.status = 'stopped'
+    $env.dotnu.status = 'stopped'
 }
 
 #### helpers
