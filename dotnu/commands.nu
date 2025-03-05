@@ -409,7 +409,6 @@ export def 'embed-add' [
 # start capturing commands and their outputs into a file
 export def --env 'capture start' [
     file: path = 'dotnu_capture.nu'
-    --separate # don't use `>` notation, create separate blocks for each pipeline
 ]: nothing -> nothing {
     cprint $'dotnu commands capture has been started.
         Commands and their outputs of the current nushell instance
@@ -420,9 +419,6 @@ export def --env 'capture start' [
 
     $env.dotnu.status = 'running'
     $env.dotnu.path = ($file | path expand)
-    $env.dotnu.separate-blocks = $separate
-
-    if not $separate { "```nushell\n" | save -a $env.dotnu.path }
 
     $env.backup.hooks.display_output = (
         $env.config.hooks?.display_output?
@@ -440,12 +436,7 @@ export def --env 'capture start' [
         | into string
         | ansi strip
         | default (char nl)
-        | if $env.dotnu.separate-blocks {
-            $"```nushell\n($command)\n```\n```output-dotnu\n($in)\n```\n\n"
-            | str replace --regex --all "[\n\r ]+```\n" "\n```\n"
-        } else {
-            $"> ($command)\n($in)\n\n"
-        }
+        | $"($command) | print $in\n($in)\n\n"
         | str replace --regex "\n{3,}$" "\n\n"
         | if ($in !~ 'dotnu capture') {
             # don't save dotnu capture managing commands
@@ -461,12 +452,6 @@ export def --env 'capture stop' []: nothing -> nothing {
     $env.config.hooks.display_output = $env.backup.hooks.display_output
 
     let file = $env.dotnu.path
-
-    if not $env.dotnu.separate-blocks {
-        $"(open $file)```\n"
-        | clean-markdown
-        | save --force $file
-    }
 
     cprint $'dotnu commands capture to the *($file)* file has been stopped.'
 
