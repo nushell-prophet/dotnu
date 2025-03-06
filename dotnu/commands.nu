@@ -435,6 +435,7 @@ export def --env 'capture start' [
         | if (term size).columns >= 100 { table -e } else { table }
         | into string
         | ansi strip
+        | comment-hash-colon
         | default (char nl)
         | $"($command) | print $in\n($in)\n\n"
         | str replace --regex "\n{3,}$" "\n\n"
