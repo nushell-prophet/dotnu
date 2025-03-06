@@ -416,9 +416,9 @@ export def --env 'capture-start' [
 
     $env.backup.hooks.display_output = (
         $env.config.hooks?.display_output?
-        | default {
+        | if $in == null {
             if (term size).columns >= 100 { table -e } else { table }
-        }
+        } else { }
     )
 
     $env.config.hooks.display_output = {
