@@ -408,7 +408,7 @@ export def 'embed-add' [
 
 # start capturing commands and their outputs into a file
 export def --env 'capture start' [
-    file: path = 'dotnu_capture.nu'
+    file: path = 'dotnu-capture.nu'
 ]: nothing -> nothing {
     cprint $'dotnu commands capture has been started.
         Commands and their outputs of the current nushell instance
