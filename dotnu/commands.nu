@@ -479,7 +479,7 @@ export def 'get-last-command' [
 ] {
     if $env.config.history.file_format == 'sqlite' {
         open $nu.history-path
-        | query db "select * from history order by id desc limit ?" -p [$index]
+        | query db "select command_line from history order by id desc limit ?" -p [$index]
         | get command_line
         | last
     } else {
