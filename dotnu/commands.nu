@@ -429,7 +429,7 @@ export def --env 'capture start' [
 
     $env.config.hooks.display_output = {
         let input = $in
-        let command = history | last | get command
+        let command = get-last-command --index 1
 
         $input
         | if (term size).columns >= 100 { table -e } else { table }
