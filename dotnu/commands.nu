@@ -375,7 +375,7 @@ export def 'embed-add' [
     let path = get-dotnu-capture-path
 
     let command = if $input == null {
-        get-last-command
+        get-last-command --index 2
     } else {
         get-last-command --index 1
         | str replace -r '(?s)\| ?dotnu embed-add.*$' ''
