@@ -432,6 +432,7 @@ export def --env 'capture start' [
         let command = get-last-command --index 1
 
         $input
+        | default ''
         | if (term size).columns >= 100 { table -e } else { table }
         | into string
         | ansi strip
