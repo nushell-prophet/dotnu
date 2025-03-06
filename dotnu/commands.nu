@@ -446,6 +446,12 @@ export def --env 'capture-start' [
 
 # stop capturing commands and their outputs
 export def --env 'capture-stop' []: nothing -> nothing {
+
+    if $env.dotnu?.status? != 'running' {
+        cprint "dotnu capture hasn't been active"
+        return
+    }
+
     $env.config.hooks.display_output = $env.backup.hooks.display_output
 
     let file = $env.dotnu.embeds-capture-path
