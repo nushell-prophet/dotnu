@@ -435,8 +435,10 @@ export def --env 'capture start' [
         | if (term size).columns >= 100 { table -e } else { table }
         | into string
         | ansi strip
-        | comment-hash-colon
-        | $"($command) | print $in\n($in)\n\n"
+        | if $in == '' { $"\n($command)\n" } else {
+            comment-hash-colon
+            | $"\n($command) | print $in\n($in)\n\n"
+        }
         | str replace --regex "\n{3,}$" "\n\n"
         | if ($in !~ 'dotnu capture') {
             # don't save dotnu capture managing commands
