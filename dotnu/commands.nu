@@ -373,9 +373,9 @@ export def 'embed-add' [
     let path = get-dotnu-capture-path
 
     let command = if $input == null {
-        get-command-from-hist 'previous'
+        get-command-from-hist | get previous
     } else {
-        get-command-from-hist 'current'
+        get-command-from-hist | get current
         | str replace -r '(?s)\| ?dotnu embed-add.*$' ''
     }
 
@@ -421,7 +421,7 @@ export def --env 'embeds-capture-start' [
 
     $env.config.hooks.display_output = {
         let input = $in
-        let command = get-command-from-hist 'current'
+        let command = get-command-from-hist | get current
 
         $input
         | default ''
@@ -475,14 +475,12 @@ export def 'git-autocommit-dotnu-capture' [] {
     git commit --only $path -m 'dotnu capture autocommit'
 }
 
-export def 'get-command-from-hist' [
-    type: string
-] {
+export def 'get-command-from-hist' [] {
     if $env.config.history.file_format == 'sqlite' {
         open $nu.history-path
         | query db "select command_line from history order by id desc limit 2"
         | get command_line
-        | if $type == 'previous' { last } else if $type == 'current' { first }
+        | {previous: $in.1 current: $in.0}
     } else {
         # history | last $index | get command | first # returns the previous command
         print 'txt history file format is not supported'
