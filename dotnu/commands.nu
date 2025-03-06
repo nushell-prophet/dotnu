@@ -908,3 +908,13 @@ def capture-marker [
         "\u{200C}\u{200B}"
     }
 }
+
+def last-command-fast [] {
+    if $env.config.history.file_format == 'sqlite' {
+        open $nu.history-path
+        | query db "select * from history order by id desc limit 1"
+        | get command_line.0
+    } else {
+        history | last | get command
+    }
+}
