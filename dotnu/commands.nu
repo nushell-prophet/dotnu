@@ -418,7 +418,7 @@ export def --env 'capture start' [
         It will be reverted when you use `dotnu capture stop`'
 
     $env.dotnu.status = 'running'
-    $env.dotnu.path = ($file | path expand)
+    $env.dotnu.embeds-capture-path = ($file | path expand)
 
     $env.backup.hooks.display_output = (
         $env.config.hooks?.display_output?
@@ -440,7 +440,7 @@ export def --env 'capture start' [
         | str replace --regex "\n{3,}$" "\n\n"
         | if ($in !~ 'dotnu capture') {
             # don't save dotnu capture managing commands
-            save --append --raw $env.dotnu.path
+            save --append --raw $env.dotnu.embeds-capture-path
         }
 
         print -n $input # without the `-n` flag new line is added to an output
@@ -451,7 +451,7 @@ export def --env 'capture start' [
 export def --env 'capture stop' []: nothing -> nothing {
     $env.config.hooks.display_output = $env.backup.hooks.display_output
 
-    let file = $env.dotnu.path
+    let file = $env.dotnu.embeds-capture-path
 
     cprint $'dotnu commands capture to the *($file)* file has been stopped.'
 
