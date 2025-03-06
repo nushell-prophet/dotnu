@@ -477,7 +477,15 @@ export def 'git-autocommit-dotnu-capture' [] {
 export def 'get-last-command' [
     --index: int = 2
 ] {
-    history | last $index | first | get command
+    if $env.config.history.file_format == 'sqlite' {
+        open $nu.history-path
+        | query db "select * from history order by id desc limit ?" -p [$index]
+        | get command_line
+        | last
+    } else {
+        # history | last $index | get command | first # returns the previous command
+        print 'txt history file format is not supported'
+    }
 }
 
 export def check-clean-working-tree [
@@ -906,15 +914,5 @@ def capture-marker [
         "\u{200B}\u{200C}"
     } else {
         "\u{200C}\u{200B}"
-    }
-}
-
-def last-command-fast [] {
-    if $env.config.history.file_format == 'sqlite' {
-        open $nu.history-path
-        | query db "select * from history order by id desc limit 1"
-        | get command_line.0
-    } else {
-        history | last | get command
     }
 }
