@@ -388,13 +388,7 @@ export def 'embed-add' [
         | $"\n($in)\n"
     }
 
-    # $"\n($command) | print $in\n($input_table)"
-
-    let script_with_output = ''
-    | append $command
-    | append ' | print $in'
-    | append $input_table
-    | to text
+    let script_with_output = $"\n($command) | print $in\n($input_table)"
 
     if $env.dotnu?.auto-commit? == true {
         git-autocommit-dotnu-capture
