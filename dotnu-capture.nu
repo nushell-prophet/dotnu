@@ -43,8 +43,6 @@ ls | print $in
 # => │ 11 │ zzz_md_backups          │ dir  │   160 B │ 3 months ago │
 # => ╰─#──┴──────────name───────────┴─type─┴──size───┴───modified───╯
 
-hx dotnu-embeds-capture.nu
-
 ls | print $in
 # => ╭─#──┬──────────name───────────┬─type─┬──size───┬────modified────╮
 # => │ 0  │ LICENSE                 │ file │  1.2 kB │ 2 months ago   │
@@ -69,8 +67,6 @@ open dotnu-embeds-capture.nu | print $in
 # => # => │ 1 │ dotnu               │ a minute ago   │
 # => # => │ 2 │ dotnu-embed.demo.nu │ a week ago     │
 # => # => ╰─#─┴────────name─────────┴────modified────╯
-
-hx dotnu-embeds-capture.nu
 
 ls | print $in
 # => ╭─#──┬──────────name───────────┬─type─┬──size───┬────modified────╮
