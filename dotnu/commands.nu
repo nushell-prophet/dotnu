@@ -337,8 +337,6 @@ export def 'embeds-update' [
     | if $echo or ($input != null) { } else { save -f $file }
 }
 
-# export def 'embeds-capture-start' [] {}
-
 # Set environment variables to operate with embeds
 export def --env 'embeds-setup' [
     path?: path
