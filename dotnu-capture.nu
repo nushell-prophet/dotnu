@@ -59,15 +59,6 @@ ls | print $in
 # => │ 11 │ zzz_md_backups          │ dir  │   160 B │ 3 months ago   │
 # => ╰─#──┴──────────name───────────┴─type─┴──size───┴────modified────╯
 
-open dotnu-embeds-capture.nu | print $in
-# => ls | sort-by modified -r | reject type size | first 3 | print $in
-# =>
-# => # => ╭─#─┬────────name─────────┬────modified────╮
-# => # => │ 0 │ dotnu-capture.nu    │ 12 seconds ago │
-# => # => │ 1 │ dotnu               │ a minute ago   │
-# => # => │ 2 │ dotnu-embed.demo.nu │ a week ago     │
-# => # => ╰─#─┴────────name─────────┴────modified────╯
-
 ls | print $in
 # => ╭─#──┬──────────name───────────┬─type─┬──size───┬────modified────╮
 # => │ 0  │ LICENSE                 │ file │  1.2 kB │ 2 months ago   │
