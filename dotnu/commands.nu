@@ -401,7 +401,7 @@ export def 'embed-add' [
 }
 
 # start capturing commands and their outputs into a file
-export def --env 'capture start' [
+export def --env 'capture-start' [
     file: path = 'dotnu-capture.nu'
 ]: nothing -> nothing {
     cprint $'dotnu commands capture has been started.
@@ -409,7 +409,7 @@ export def --env 'capture start' [
         will be appended to the *($file)* file.
 
         Beware that your `display_output` hook has been changed.
-        It will be reverted when you use `dotnu capture stop`'
+        It will be reverted when you use `dotnu capture-stop`'
 
     $env.dotnu.status = 'running'
     $env.dotnu.embeds-capture-path = ($file | path expand)
@@ -445,7 +445,7 @@ export def --env 'capture start' [
 }
 
 # stop capturing commands and their outputs
-export def --env 'capture stop' []: nothing -> nothing {
+export def --env 'capture-stop' []: nothing -> nothing {
     $env.config.hooks.display_output = $env.backup.hooks.display_output
 
     let file = $env.dotnu.embeds-capture-path
