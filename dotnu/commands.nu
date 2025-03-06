@@ -835,7 +835,7 @@ export def 'comment-hash-colon' [
 ] {
     let input = $in
     let closure = {|i|
-        $i | into string | ansi strip | str trim -c "\n" | str replace -arm '^' '#: '
+        $i | into string | ansi strip | str trim -c "\n" | str replace -arm '^' "# => "
     }
 
     if $source_code {
@@ -899,11 +899,11 @@ export def find-capture-points [] {
     | where $it !~ '^\s*#' and $it =~ '\|\s?print \$in *$'
 }
 
-# Removes annotation lines starting with '#:' from the script
+# Removes annotation lines starting with "# => " from the script
 export def embeds-remove [] {
-    str replace -a "\n\n#:" "\n#:"
+    str replace -a "\n\n# => " "\n# => "
     | lines
-    | where not ($it starts-with '#:')
+    | where not ($it starts-with "# => ")
     | to text
 }
 
