@@ -19,7 +19,7 @@ export def 'dependencies' [
 ] {
     let callees_to_merge = $paths
     | each {
-        extract-module-commands $in --keep-builtins=$keep_builtins --definitions-only=$definitions_only
+        list-module-commands $in --keep-builtins=$keep_builtins --definitions-only=$definitions_only
     }
     | flatten
 
@@ -635,20 +635,20 @@ export def nu-completion-command-name [
 
 # Extract table with information on which commands use which commands
 #
-# > extract-module-commands tests/assets/b/example-mod1.nu | first 3
+# > list-module-commands tests/assets/b/example-mod1.nu | first 3
 # ╭─#─┬──caller───┬────callee─────┬─filename_of_caller─╮
 # │ 0 │ command-5 │ command-3     │ example-mod1.nu    │
 # │ 1 │ command-5 │ first-custom  │ example-mod1.nu    │
 # │ 2 │ command-5 │ append-random │ example-mod1.nu    │
 # ╰───┴───────────┴───────────────┴────────────────────╯
 #
-# > extract-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
+# > list-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
 # ╭─#─┬────caller────┬─filename_of_caller─╮
 # │ 0 │ example-mod1 │ example-mod1.nu    │
 # │ 1 │ lscustom     │ example-mod1.nu    │
 # │ 2 │ command-5    │ example-mod1.nu    │
 # ╰───┴──────────────┴────────────────────╯
-export def extract-module-commands [
+export def list-module-commands [
     path: path # path to a .nu module file.
     --keep-builtins # keep builtin commands in the result page
     --definitions-only # output only commands' names definitions
