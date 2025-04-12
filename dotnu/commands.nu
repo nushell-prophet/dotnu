@@ -649,33 +649,33 @@ export def nu-completion-command-name [
 # │ 2 │ command-5    │ example-mod1.nu    │
 # ╰───┴──────────────┴────────────────────╯
 export def list-module-commands [
-    path: path # path to a .nu module file.
+    module_path: path # path to a .nu module file.
     --keep-builtins # keep builtin commands in the result page
     --definitions-only # output only commands' names definitions
 ] {
-    let raw_script = open $path -r
+    let script_content = open $module_path -r
 
-    let defined_commands = $raw_script
+    let defined_defs = $script_content
     | lines
     | where $it =~ '^(export )?def.*\['
     | wrap line
     | insert caller {|i|
         $i.line
         | extract-command-name
-        | replace-main-with-module-name $path
+        | replace-main-with-module-name $module_path
     }
-    | insert filename_of_caller ($path | path basename)
+    | insert filename_of_caller ($module_path | path basename)
 
-    if $definitions_only or ($defined_commands | is-empty) {
-        return ($defined_commands | select caller filename_of_caller)
+    if $definitions_only or ($defined_defs | is-empty) {
+        return ($defined_defs | select caller filename_of_caller)
     }
 
-    let with_index = $defined_commands
-    | insert start {|i| $raw_script | str index-of $i.line }
+    let defs_with_index = $defined_defs
+    | insert start {|i| $script_content | str index-of $i.line }
 
-    let dependencies = ast --flatten $raw_script
+    let calls = ast --flatten $script_content
     | flatten span
-    | join $with_index start -l
+    | join $defs_with_index start -l
     | merge (
         $in
         | select caller filename_of_caller
@@ -691,12 +691,12 @@ export def list-module-commands [
     | rename --column {content: callee}
     | where caller != null
 
-    let commands_with_no_deps = $defined_commands
+    let defs_without_calls = $defined_defs
     | select caller filename_of_caller
-    | where caller not-in ($dependencies.caller | uniq)
+    | where caller not-in ($calls.caller | uniq)
     | insert callee null
 
-    $dependencies | append $commands_with_no_deps
+    $calls | append $defs_without_calls
 }
 
 # update examples column with results of execution commands
