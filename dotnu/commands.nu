@@ -673,8 +673,7 @@ export def list-module-commands [
     let with_index = $defined_commands
     | insert start {|i| $raw_script | str index-of $i.line }
 
-    let dependencies = nu --ide-ast $path
-    | from json
+    let dependencies = ast --flatten $raw_script
     | flatten span
     | join $with_index start -l
     | merge (
