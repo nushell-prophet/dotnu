@@ -703,7 +703,7 @@ export def 'define-command-lines' [
     module_path: path # path to a Nushell module file
 ] {
     let script_content = open $module_path -r
-    let lines_wrapped = $script_content | lines | wrap line
+    let lines_wrapped = $script_content | lines | enumerate | each {|it| { index: $it.index, line: $it.item } }
     let commands = $lines_wrapped
     | each {|i|
         if $i.line =~ '^(export )?def ' {
