@@ -723,7 +723,14 @@ export def 'define-command-lines' [
         }
         | wrap command
     )
-    | insert module_path ($module_path | path basename)
+    | group-by command
+    | items {|k v|
+        $v.line | reverse | skip until {|i| $i == '}' }
+        | reverse
+        | to text
+        | {$k: $in}
+    }
+    | into record
 }
 
 # update examples column with results of execution commands
