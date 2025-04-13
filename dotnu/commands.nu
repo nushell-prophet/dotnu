@@ -60,69 +60,6 @@ export def 'filter-commands-with-no-tests' [] {
     | where caller not-in $covered_with_tests
 }
 
-# Parse commands definitions with their docstrings, output a table.
-export def 'parse-docstrings' [
-    module_path? # path to a nushell module file
-] {
-    if $module_path == null { collect } else { $module_path | open | collect }
-    | parse -r '(?:\n\n|^)(?<definit_line>(?:(?:#.*\n)*)?(?:export def.*))'
-    | get definit_line
-    | each {
-        let lines = lines
-
-        let command_name = $lines
-        | last
-        | extract-command-name $module_path
-
-        let blocks = $lines
-        | if ($lines | length) > 1 {
-            drop
-            | str replace --all --regex '^#( ?)|( +$)' ''
-            | split list ''
-            | each { to text | $"($in)\n" }
-        } else { [''] }
-
-        let command_description = $blocks.0
-        | if $in =~ '(^|\n)>' { '' } else { str trim --char (char nl) }
-
-        let examples = $blocks
-        | if $command_description == '' { } else { skip }
-        | each { parse-example }
-        | flatten
-
-        {
-            command_name: $command_name
-            command_description: $command_description
-            examples: $examples
-            input: ($lines | drop | to text)
-        }
-    }
-}
-
-# Execute examples in the docstrings of the module commands and update the results accordingly.
-export def 'update-docstring-examples' [
-    $module_path: path # path to a nushell module file
-    --command-filter: string = '' # filter commands by their name to update examples at
-    --use-statement: string = '' # use statement to execute examples with (like 'use module.nu').
-    # Can be omitted to try to deduce automatically
-    --echo # output script to stdout instead of updating the module_path provided
-    --no-git-check # don't check for the emptiness of the working tree
-] {
-    if not ($no_git_check or $echo) { check-clean-working-tree $module_path }
-
-    let raw_module = open $module_path
-
-    $raw_module
-    | parse-docstrings
-    | where command_name =~ $command_filter
-    | execute-update-example-result --module-path $module_path --use-statement $use_statement
-    | insert updated {|e| format-substitutions $e.examples $e.command_description }
-    | select input updated
-    | reduce -f $raw_module {|i| str replace -a $i.input $i.updated }
-    | str replace -r '\n*$' "\n" # add ending new line
-    | if $echo { } else { save $module_path --force }
-}
-
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
 #
@@ -156,56 +93,6 @@ export def 'set-x' [
         print $'the file ($out_file) is produced. Source it'
         commandline edit -r $'source ($out_file)'
     }
-}
-
-# Generate nupm tests from examples in docstrings
-export def 'generate-nupm-tests' [
-    $module_path: path # path to a nushell module file
-    --echo # output script to stdout instead of updating the module_path provided
-] {
-    let module_path = $module_path | path expand
-    let root = find-root ($module_path | if ($in | path type) == file { path dirname } else { })
-    let relative_module_path = $module_path
-    | path relative-to $root
-    | ['..' $in]
-    | path join
-    | $'use ($in) *'
-
-    let tests_script = parse-docstrings $module_path
-    | select command_name examples
-    | where examples != []
-    | each {|i|
-        $i.examples
-        | enumerate
-        | each {|e| generate-test-command $i.command_name $e.index $e.item.command }
-    }
-    | flatten
-    | prepend $relative_module_path
-    | str join "\n\n"
-    | str replace -r "\n*$" "\n"
-
-    if $echo { return $tests_script }
-
-    let tests_filename = $'dotnu-examples-test-($module_path | path basename)'
-    let tests_path = [$root 'tests' $tests_filename] | path join
-    let tests_path_abs = $tests_path | path expand
-    let tests_mod_path = $tests_path | str replace $tests_filename 'mod.nu'
-    let export_statement = $"export use ($tests_filename) *\n"
-
-    mkdir ($root | path join 'tests')
-    $tests_script | save -f $tests_path_abs
-
-    if ($tests_mod_path | path exists) {
-        open $tests_mod_path
-        | if ($in | str contains $tests_filename) {
-            return
-        } else {
-            $"($in)\n($export_statement)"
-        }
-    } else {
-        $export_statement
-    }
-    | save -f $tests_mod_path
 }
 
 # Generate `.numd` from `.nu` divided on blocks by "\n\n"
@@ -539,19 +426,6 @@ export def variable-definitions-to-record []: string -> record {
     nu -n -c $script | from nuon
 }
 
-# parse `>` examples from the parsed docstrings
-export def parse-example [] {
-    parse -r (
-        '(?<annotation>^(?:[^\n>]*\n)+)??' +
-        '(?<command>' +
-        '> (?:[^\n]*\n)' +
-        '(?:(?:\||;|>)[^\n]*\n)*' +
-        ')' +
-        '(?s)(?<result>.*)?'
-    )
-    | str trim --char (char nl) annotation command result
-}
-
 # > 'export def --env "test" --wrapped' | lines | last | extract-command-name
 # test
 export def 'extract-command-name' [
@@ -578,33 +452,6 @@ export def replace-main-with-module-name [
     $input
     | str replace -r '^main( |$)' $module_name
     | str trim
-}
-
-# generate command to execute `>` example command in a new nushell instance
-# in case of any problems - use `--use-statement` flag
-export def gen-example-exec-command [
-    $example_command
-    $command_name
-    $use_statement
-    $module_path
-] {
-    let module_stem = $module_path | path parse | get stem
-
-    # the logic to deduce the use statement is very fragile and are better to be remade
-    if $use_statement != '' {
-        $use_statement
-    } else if ($example_command | str contains $'($module_stem) ($command_name)') {
-        $'use "($module_path)"'
-    } else if $module_stem == 'mod' {
-        $'use "($module_path | path dirname)" *'
-    } else {
-        $'use "($module_path)" *'
-    }
-    | $"$env.config.table.mode = 'rounded';
-        $env.config.table.header_on_separator = true;
-        ($in);
-        ($example_command)
-    "
 }
 
 # Escapes symbols to be printed unchanged inside a `print "something"` statement.
@@ -732,30 +579,6 @@ export def 'module-commands-code-to-record' [
     | into record
 }
 
-# update examples column with results of execution commands
-export def execute-update-example-result [
-    --module-path: string = ''
-    --use-statement: string = ''
-] {
-    update examples {|row|
-        $row.examples
-        | upsert result {|i|
-            let example_command = $i.command
-            | str replace -arm '^> ' ''
-            | gen-example-exec-command $in $row.command_name $use_statement $module_path
-
-            nu --no-newline --commands $example_command
-            | complete
-            | if $in.exit_code == 0 { get stdout } else {
-                print $"the next command has failed:\n`($example_command)`\n\n($in.stderr)"
-                'example update failed'
-            }
-            | ansi strip
-            | str trim --char (char nl)
-        }
-    }
-}
-
 # prepare pairs of substituions of old results and new results
 export def format-substitutions [
     $examples
@@ -843,18 +666,6 @@ export def 'dummy-command' [
     | str replace -a '$file' $file
     | str replace -a '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
     | $"source ($file)\n\n($in)"
-}
-
-export def generate-test-command [
-    $command_name
-    $index
-    $command
-] {
-    [
-        $'export def `($command_name)-($index)-test` [] {'
-        ($command | str replace -arm `^( > )?` `    `)
-        '}'
-    ] | to text
 }
 
 # > [[a];[b]] | table | comment-hash-colon
