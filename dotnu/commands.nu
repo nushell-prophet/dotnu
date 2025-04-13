@@ -699,6 +699,33 @@ export def list-module-commands [
     $calls | append $defs_without_calls
 }
 
+# Extract the specified command and all its dependencies, outputting them to stdout
+export def 'define-command-lines' [
+    module_path: path # path to a Nushell module file
+] {
+
+    let script_content = open $module_path -r
+
+    $script_content
+    | lines
+    | wrap line
+    | insert command {|i|
+        if $i.line =~ '^(export )?def ' {
+            $i.line
+            | extract-command-name
+            | replace-main-with-module-name $module_path
+        } else { null }
+    }
+    | merge (
+        $in.command
+        | scan --noinit null {|i acc|
+            if $i == null { $acc } else { $i }
+        }
+        | wrap command
+    )
+    | insert module_path ($module_path | path basename)
+}
+
 # update examples column with results of execution commands
 export def execute-update-example-result [
     --module-path: string = ''

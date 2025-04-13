@@ -7,6 +7,7 @@ export use commands.nu [
     generate-nupm-tests
     generate-numd
     extract-command-code
+    define-command-lines
     list-main-commands
     embeds-update
     embeds-remove
