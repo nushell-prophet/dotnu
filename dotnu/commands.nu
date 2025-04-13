@@ -700,10 +700,9 @@ export def list-module-commands [
 }
 
 # Extract the specified command and all its dependencies, outputting them to stdout
-export def 'define-command-lines' [
+export def 'module-commands-code-to-record' [
     module_path: path # path to a Nushell module file
 ] {
-
     let script_content = open $module_path -r
 
     $script_content
