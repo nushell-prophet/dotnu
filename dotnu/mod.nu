@@ -1,10 +1,7 @@
 export use commands.nu [
     dependencies
     filter-commands-with-no-tests
-    parse-docstrings
-    update-docstring-examples
     set-x
-    generate-nupm-tests
     generate-numd
     extract-command-code
     module-commands-code-to-record
