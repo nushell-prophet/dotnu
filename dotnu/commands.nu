@@ -450,13 +450,9 @@ export def escape-for-quotes []: string -> string {
 }
 
 # context aware completions for defined command names in nushell module files
-#
-# > nu-completion-command-name 'dotnu extract-command-code tests/assets/b/example-mod1.nu' | first 3
-# ╭───┬───────────╮
-# │ 0 │ main      │
-# │ 1 │ lscustom  │
-# │ 2 │ command-5 │
-# ╰───┴───────────╯
+@example '' {
+    nu-completion-command-name 'dotnu extract-command-code tests/assets/b/example-mod1.nu' | first 3
+} --result ["main","lscustom","command-5"]
 export def nu-completion-command-name [
     context: string
 ] {
@@ -468,20 +464,12 @@ export def nu-completion-command-name [
 }
 
 # Extract table with information on which commands use which commands
-#
-# > list-module-commands tests/assets/b/example-mod1.nu | first 3
-# ╭─#─┬──caller───┬────callee─────┬─filename_of_caller─╮
-# │ 0 │ command-5 │ command-3     │ example-mod1.nu    │
-# │ 1 │ command-5 │ first-custom  │ example-mod1.nu    │
-# │ 2 │ command-5 │ append-random │ example-mod1.nu    │
-# ╰───┴───────────┴───────────────┴────────────────────╯
-#
-# > list-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
-# ╭─#─┬────caller────┬─filename_of_caller─╮
-# │ 0 │ example-mod1 │ example-mod1.nu    │
-# │ 1 │ lscustom     │ example-mod1.nu    │
-# │ 2 │ command-5    │ example-mod1.nu    │
-# ╰───┴──────────────┴────────────────────╯
+@example '' {
+    list-module-commands tests/assets/b/example-mod1.nu | first 3
+} --result [{caller: command-5, callee: command-3, filename_of_caller: "example-mod1.nu"}, {caller: command-5, callee: first-custom, filename_of_caller: "example-mod1.nu"}, {caller: command-5, callee: append-random, filename_of_caller: "example-mod1.nu"}]
+@example '' {
+    list-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
+} --result [{caller: example-mod1, filename_of_caller: "example-mod1.nu"}, {caller: lscustom, filename_of_caller: "example-mod1.nu"}, {caller: command-5, filename_of_caller: "example-mod1.nu"}]
 export def list-module-commands [
     module_path: path # path to a .nu module file.
     --keep-builtins # keep builtin commands in the result page
@@ -655,10 +643,12 @@ export def 'dummy-command' [
     | $"source ($file)\n\n($in)"
 }
 
-# > [[a];[b]] | table | comment-hash-colon
-# # => ╭─#─┬─a─╮
-# # => │ 0 │ b │
-# # => ╰───┴───╯
+@example '' {
+    [[a];[b]] | table | comment-hash-colon
+} --result '# => ╭─#─┬─a─╮
+# => │ 0 │ b │
+# => ╰───┴───╯
+'
 export def 'comment-hash-colon' [
     --source-code
 ] {
