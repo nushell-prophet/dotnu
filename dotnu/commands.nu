@@ -1,17 +1,9 @@
 use std/iter scan
 
 # Check .nu module files to determine which commands depend on other commands.
-#
-# > dependencies ...( glob tests/assets/module-say/say/*.nu )
-# ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
-# │ 0 │ hello    │ hello.nu           │          │    0 │
-# │ 1 │ question │ ask.nu             │          │    0 │
-# │ 2 │ say      │ mod.nu             │ hello    │    0 │
-# │ 3 │ say      │ mod.nu             │ hi       │    0 │
-# │ 4 │ say      │ mod.nu             │ question │    0 │
-# │ 5 │ hi       │ mod.nu             │          │    0 │
-# │ 6 │ test-hi  │ test-hi.nu         │ hi       │    0 │
-# ╰───┴──────────┴────────────────────┴──────────┴──────╯
+@example '' {
+    dependencies ...( glob tests/assets/module-say/say/*.nu )
+} --result [{caller: hello, filename_of_caller: "hello.nu", callee: null, step: 0}, {caller: question, filename_of_caller: "ask.nu", callee: null, step: 0}, {caller: say, callee: hello, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: hi, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: question, filename_of_caller: "mod.nu", step: 0}, {caller: hi, filename_of_caller: "mod.nu", callee: null, step: 0}, {caller: test-hi, callee: hi, filename_of_caller: "test-hi.nu", step: 0}]
 export def 'dependencies' [
     ...paths: path # paths to nushell module files
     --keep-builtins # keep builtin commands in the result page
