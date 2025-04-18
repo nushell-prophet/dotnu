@@ -386,18 +386,15 @@ export def check-clean-working-tree [
 }
 
 # make a record from code with variable definitions
-#
-# > "let $quiet = false; let no_timestamp = false" | variable-definitions-to-record | to nuon
-# {quiet: false, no_timestamp: false}
-#
-# > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record | to nuon
-# {a: b, c: d}
-#
-# > "let $a = null" | variable-definitions-to-record | to nuon
-# {a: null}
-#
-# > "" | variable-definitions-to-record | to nuon
-# {}
+@example '' {
+    "let $quiet = false; let no_timestamp = false" | variable-definitions-to-record
+} --result {quiet: false, no_timestamp: false}
+@example '' {
+    "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record
+} --result {a: b, c: d}
+@example '' {
+    "let $a = null" | variable-definitions-to-record
+} --result {a: null}
 export def variable-definitions-to-record []: string -> record {
     let script_with_variables_definitnions = str replace -a ';' ";\n"
     | $in + (char nl)
