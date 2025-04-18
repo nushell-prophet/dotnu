@@ -442,9 +442,9 @@ export def replace-main-with-module-name [
 }
 
 # Escapes symbols to be printed unchanged inside a `print "something"` statement.
-#
-# > 'abcd"dfdaf" "' | escape-for-quotes
-# abcd\"dfdaf\" \"
+@example '' {
+    'abcd"dfdaf" "' | escape-for-quotes
+} --result "abcd\"dfdaf\" \""
 export def escape-for-quotes []: string -> string {
     str replace --all --regex '(\\|\")' '\$1'
 }
