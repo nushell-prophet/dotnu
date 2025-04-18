@@ -30,13 +30,9 @@ export def 'dependencies' [
 }
 
 # Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
-#
-# > dependencies ...( glob tests/assets/module-say/say/*.nu ) | filter-commands-with-no-tests
-# ╭─#─┬──caller──┬─filename_of_caller─╮
-# │ 0 │ hello    │ hello.nu           │
-# │ 1 │ question │ ask.nu             │
-# │ 2 │ say      │ mod.nu             │
-# ╰───┴──────────┴────────────────────╯
+@example '' {
+    dependencies ...( glob tests/assets/module-say/say/*.nu ) | filter-commands-with-no-tests
+} --result [{caller: hello, filename_of_caller: "hello.nu"}, {caller: question, filename_of_caller: "ask.nu"}, {caller: say, filename_of_caller: "mod.nu"}]
 export def 'filter-commands-with-no-tests' [] {
     let input = $in
     let covered_with_tests = $input
