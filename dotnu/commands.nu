@@ -412,8 +412,9 @@ export def variable-definitions-to-record []: string -> record {
     nu -n -c $script | from nuon
 }
 
-# > 'export def --env "test" --wrapped' | lines | last | extract-command-name
-# test
+@example '' {
+    'export def --env "test" --wrapped' | lines | last | extract-command-name
+} --result test
 export def 'extract-command-name' [
     module_path? # path to a nushell module file
 ] {
