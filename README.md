@@ -147,29 +147,3 @@ Let's see how `dotnu set-x` will modify this script
 │                                                                                 │
 ╰─────────────────────────────────────────────────────────────────────────────────╯
 ```
-
-### dotnu generate-nupm-tests
-
-```nushell
-> dotnu generate-nupm-tests --help | numd parse-help
-// Description:
-//   Generate nupm tests from examples in docstrings
-//
-//
-// Usage:
-//   > generate-nupm-tests {flags} <$module_path>
-//
-//
-// Flags:
-//   --echo: output script to stdout instead of updating the module_path provided
-//
-//
-// Parameters:
-//   $module_path <path>: path to a nushell module file
-//
-//
-// Input/output types:
-//   ╭─#─┬─input─┬─output─╮
-//   │ 0 │ any   │ any    │
-//   ╰─#─┴─input─┴─output─╯
-```
