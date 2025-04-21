@@ -21,13 +21,6 @@
 
 `dotnu` lets you write **literate Nushell**: ordinary Nushell scripts that include the real command output right after each pipeline ending in `| print $in`. See the [capture example](/dotnu-capture.nu) to grasp the idea quickly.
 
-Embed helpers automate three steps:
-
-1. **Capture** – run the command and collect whatever it prints.
-2. **Format** – turn that output into comment lines that start with `# => `.
-3. **Insert / refresh** – put those lines below the command, or update them later.
-
-All of this is pure Nushell—no external tools.
 
 ### The `dotnu embeds-update` command
 
