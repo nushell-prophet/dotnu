@@ -185,7 +185,7 @@ export def 'list-main-commands' [
 export def 'embeds-update' [
     file?: path
     --echo # output updates to stdout
-] {
+]: [string -> nothing string -> string nothing -> string nothing -> nothing] {
     let input = $in
 
     if $input == null and $file == null {
