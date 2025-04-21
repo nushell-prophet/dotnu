@@ -23,9 +23,9 @@
 
 The `| print $in` suffix lets scripts run directly without loading the `dotnu` module.
 
-### The `dotnu embeds-update` command
+The main command is `dotnu embeds-update`.
 
-`embeds-update` takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
+`dotnu embeds-update` takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
 
 You can run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
 
