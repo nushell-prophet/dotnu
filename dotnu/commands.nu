@@ -1,17 +1,9 @@
 use std/iter scan
 
 # Check .nu module files to determine which commands depend on other commands.
-#
-# > dependencies ...( glob tests/assets/module-say/say/*.nu )
-# ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
-# │ 0 │ hello    │ hello.nu           │          │    0 │
-# │ 1 │ question │ ask.nu             │          │    0 │
-# │ 2 │ say      │ mod.nu             │ hello    │    0 │
-# │ 3 │ say      │ mod.nu             │ hi       │    0 │
-# │ 4 │ say      │ mod.nu             │ question │    0 │
-# │ 5 │ hi       │ mod.nu             │          │    0 │
-# │ 6 │ test-hi  │ test-hi.nu         │ hi       │    0 │
-# ╰───┴──────────┴────────────────────┴──────────┴──────╯
+@example '' {
+    dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
+} --result [{caller: hello filename_of_caller: "hello.nu" callee: null step: 0} {caller: question filename_of_caller: "ask.nu" callee: null step: 0} {caller: say callee: hello filename_of_caller: "mod.nu" step: 0} {caller: say callee: hi filename_of_caller: "mod.nu" step: 0} {caller: say callee: question filename_of_caller: "mod.nu" step: 0} {caller: hi filename_of_caller: "mod.nu" callee: null step: 0} {caller: test-hi callee: hi filename_of_caller: "test-hi.nu" step: 0}]
 export def 'dependencies' [
     ...paths: path # paths to nushell module files
     --keep-builtins # keep builtin commands in the result page
@@ -38,13 +30,9 @@ export def 'dependencies' [
 }
 
 # Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
-#
-# > dependencies ...( glob tests/assets/module-say/say/*.nu ) | filter-commands-with-no-tests
-# ╭─#─┬──caller──┬─filename_of_caller─╮
-# │ 0 │ hello    │ hello.nu           │
-# │ 1 │ question │ ask.nu             │
-# │ 2 │ say      │ mod.nu             │
-# ╰───┴──────────┴────────────────────╯
+@example '' {
+    dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
+} --result [{caller: hello filename_of_caller: "hello.nu"} {caller: question filename_of_caller: "ask.nu"} {caller: say filename_of_caller: "mod.nu"}]
 export def 'filter-commands-with-no-tests' [] {
     let input = $in
     let covered_with_tests = $input
@@ -62,11 +50,12 @@ export def 'filter-commands-with-no-tests' [] {
 
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
-#
-# > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
-# mut $prev_ts = ( date now )
-# print ("> sleep 0.5sec" | nu-highlight)
-# sleep 0.5sec
+@example '' {
+    set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
+} --result 'mut $prev_ts = ( date now )
+print ("> sleep 0.5sec" | nu-highlight)
+sleep 0.5sec
+'
 export def 'set-x' [
     file: path # path to `.nu` file
     --regex: string = "\n+\n" # regex to use to split .nu on blocks
@@ -397,18 +386,15 @@ export def check-clean-working-tree [
 }
 
 # make a record from code with variable definitions
-#
-# > "let $quiet = false; let no_timestamp = false" | variable-definitions-to-record | to nuon
-# {quiet: false, no_timestamp: false}
-#
-# > "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record | to nuon
-# {a: b, c: d}
-#
-# > "let $a = null" | variable-definitions-to-record | to nuon
-# {a: null}
-#
-# > "" | variable-definitions-to-record | to nuon
-# {}
+@example '' {
+    "let $quiet = false; let no_timestamp = false" | variable-definitions-to-record
+} --result {quiet: false no_timestamp: false}
+@example '' {
+    "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record
+} --result {a: b c: d}
+@example '' {
+    "let $a = null" | variable-definitions-to-record
+} --result {a: null}
 export def variable-definitions-to-record []: string -> record {
     let script_with_variables_definitnions = str replace -a ';' ";\n"
     | $in + (char nl)
@@ -426,8 +412,9 @@ export def variable-definitions-to-record []: string -> record {
     nu -n -c $script | from nuon
 }
 
-# > 'export def --env "test" --wrapped' | lines | last | extract-command-name
-# test
+@example '' {
+    'export def --env "test" --wrapped' | lines | last | extract-command-name
+} --result test
 export def 'extract-command-name' [
     module_path? # path to a nushell module file
 ] {
@@ -455,21 +442,17 @@ export def replace-main-with-module-name [
 }
 
 # Escapes symbols to be printed unchanged inside a `print "something"` statement.
-#
-# > 'abcd"dfdaf" "' | escape-for-quotes
-# abcd\"dfdaf\" \"
+@example '' {
+    'abcd"dfdaf" "' | escape-for-quotes
+} --result "abcd\"dfdaf\" \""
 export def escape-for-quotes []: string -> string {
     str replace --all --regex '(\\|\")' '\$1'
 }
 
 # context aware completions for defined command names in nushell module files
-#
-# > nu-completion-command-name 'dotnu extract-command-code tests/assets/b/example-mod1.nu' | first 3
-# ╭───┬───────────╮
-# │ 0 │ main      │
-# │ 1 │ lscustom  │
-# │ 2 │ command-5 │
-# ╰───┴───────────╯
+@example '' {
+    nu-completion-command-name 'dotnu extract-command-code tests/assets/b/example-mod1.nu' | first 3
+} --result ["main" "lscustom" "command-5"]
 export def nu-completion-command-name [
     context: string
 ] {
@@ -481,20 +464,12 @@ export def nu-completion-command-name [
 }
 
 # Extract table with information on which commands use which commands
-#
-# > list-module-commands tests/assets/b/example-mod1.nu | first 3
-# ╭─#─┬──caller───┬────callee─────┬─filename_of_caller─╮
-# │ 0 │ command-5 │ command-3     │ example-mod1.nu    │
-# │ 1 │ command-5 │ first-custom  │ example-mod1.nu    │
-# │ 2 │ command-5 │ append-random │ example-mod1.nu    │
-# ╰───┴───────────┴───────────────┴────────────────────╯
-#
-# > list-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
-# ╭─#─┬────caller────┬─filename_of_caller─╮
-# │ 0 │ example-mod1 │ example-mod1.nu    │
-# │ 1 │ lscustom     │ example-mod1.nu    │
-# │ 2 │ command-5    │ example-mod1.nu    │
-# ╰───┴──────────────┴────────────────────╯
+@example '' {
+    list-module-commands tests/assets/b/example-mod1.nu | first 3
+} --result [{caller: command-5 callee: command-3 filename_of_caller: "example-mod1.nu"} {caller: command-5 callee: first-custom filename_of_caller: "example-mod1.nu"} {caller: command-5 callee: append-random filename_of_caller: "example-mod1.nu"}]
+@example '' {
+    list-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
+} --result [{caller: example-mod1 filename_of_caller: "example-mod1.nu"} {caller: lscustom filename_of_caller: "example-mod1.nu"} {caller: command-5 filename_of_caller: "example-mod1.nu"}]
 export def list-module-commands [
     module_path: path # path to a .nu module file.
     --keep-builtins # keep builtin commands in the result page
@@ -599,9 +574,9 @@ export def format-substitutions [
 }
 
 # helper function for use inside of generate
-#
-# > [[caller callee step filename_of_caller]; [a b 0 test] [b c 0 test]] | join-next $in | to nuon
-# [[caller, callee, step, filename_of_caller]; [a, c, 1, test]]
+@example '' {
+    [[caller callee step filename_of_caller]; [a b 0 test] [b c 0 test]] | join-next $in
+} --result [[caller callee step filename_of_caller]; [a c 1 test]]
 export def 'join-next' [
     callees_to_merge
 ] {
@@ -668,10 +643,12 @@ export def 'dummy-command' [
     | $"source ($file)\n\n($in)"
 }
 
-# > [[a];[b]] | table | comment-hash-colon
-# # => ╭─#─┬─a─╮
-# # => │ 0 │ b │
-# # => ╰───┴───╯
+@example '' {
+    [[a]; [b]] | table | comment-hash-colon
+} --result '# => ╭─#─┬─a─╮
+# => │ 0 │ b │
+# => ╰───┴───╯
+'
 export def 'comment-hash-colon' [
     --source-code
 ] {
