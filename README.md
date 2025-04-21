@@ -17,6 +17,28 @@
 > use dotnu
 ```
 
+## Embeds — keeping examples in sync
+
+`dotnu` lets you write literate Nushell: regular nushell scripts, that contain commented nushell outputs in places where `| print $in` was used. You can understand the mechanics easier looking into the [example](/dotnu-capture.nu)
+
+
+The embed helpers automate three things:
+	1.	Capture Run a command and grab the table / text it prints.
+	2.	Format Turn that output into comment lines starting with # => .
+	3.	Insert / Refresh Place or update those comment lines exactly where you want them.
+
+Everything is implemented in plain Nushell; no external tooling is required.
+
+The main command is `dotnu embeds-update`.
+
+
+It parses a specifies script, alternates lines that contain `print $in` command, so their output will be easy to parse from stdout during execution, executes alternated script, parses results, and rewrites their output blocks in the original script with fresh content. Works both by piping a script in or by pointing it at a file.
+
+
+```nushell
+> dotnu embeds-update --help
+```
+
 ## Commands
 
 ### dotnu dependencies
