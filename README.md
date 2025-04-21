@@ -48,9 +48,12 @@ All of this is pure Nushell—no external tools.
 # =>   file <path>:  (optional)
 # =>
 # => Input/output types:
-# =>   ╭─#─┬─input─┬─output─╮
-# =>   │ 0 │ any   │ any    │
-# =>   ╰─#─┴─input─┴─output─╯
+# =>   ╭─#─┬──input──┬─output──╮
+# =>   │ 0 │ string  │ nothing │
+# =>   │ 1 │ string  │ string  │
+# =>   │ 2 │ nothing │ string  │
+# =>   │ 3 │ nothing │ nothing │
+# =>   ╰─#─┴──input──┴─output──╯
 # =>
 ```
 
@@ -60,12 +63,65 @@ All of this is pure Nushell—no external tools.
 
 ```nushell
 > dotnu dependencies --help
+# => Check .nu module files to determine which commands depend on other commands.
+# =>
+# => Usage:
+# =>   > dependencies {flags} ...(paths)
+# =>
+# => Flags:
+# =>   --keep-builtins: keep builtin commands in the result page
+# =>   --definitions-only: output only commands' names definitions
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Parameters:
+# =>   ...paths <path>: paths to nushell module files
+# =>
+# => Input/output types:
+# =>   ╭─#─┬─input─┬─output─╮
+# =>   │ 0 │ any   │ any    │
+# =>   ╰─#─┴─input─┴─output─╯
+# =>
+# => Examples:
+# =>
+# =>   > dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
+# =>   ╭─#──┬──caller───┬─filename_of_caller──┬──callee───┬─step──╮
+# =>   │ 0  │ hello     │ hello.nu            │           │     0 │
+# =>   │ 1  │ question  │ ask.nu              │           │     0 │
+# =>   │ 2  │ say       │ mod.nu              │ hello     │     0 │
+# =>   │ 3  │ say       │ mod.nu              │ hi        │     0 │
+# =>   │ 4  │ say       │ mod.nu              │ question  │     0 │
+# =>   │ 5  │ hi        │ mod.nu              │           │     0 │
+# =>   │ 6  │ test-hi   │ test-hi.nu          │ hi        │     0 │
+# =>   ╰─#──┴──caller───┴─filename_of_caller──┴──callee───┴─step──╯
+# =>
 ```
 
 ### dotnu filter-commands-with-no-tests
 
 ```nushell
 > dotnu filter-commands-with-no-tests --help
+# => Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
+# =>
+# => Usage:
+# =>   > filter-commands-with-no-tests
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Input/output types:
+# =>   ╭─#─┬─input─┬─output─╮
+# =>   │ 0 │ any   │ any    │
+# =>   ╰─#─┴─input─┴─output─╯
+# =>
+# => Examples:
+# =>
+# =>   > dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
+# =>   ╭─#─┬──caller──┬─filename_of_caller─╮
+# =>   │ 0 │ hello    │ hello.nu           │
+# =>   │ 1 │ question │ ask.nu             │
+# =>   │ 2 │ say      │ mod.nu             │
+# =>   ╰─#─┴──caller──┴─filename_of_caller─╯
+# =>
 ```
 
 ### dotnu set-x
