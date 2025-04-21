@@ -33,6 +33,8 @@ All of this is pure Nushell—no external tools.
 
 `embeds-update` takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
 
+You can run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
+
 ```nushell
 > dotnu embeds-update --help
 # => Inserts captured output back into the script at capture points
