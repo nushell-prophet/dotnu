@@ -24,13 +24,6 @@
 `dotnu` lets you write **literate Nushell**: ordinary Nushell scripts that include the real command output right after each pipeline ending in `| print $in`. See the [capture example](/dotnu-capture.nu) to grasp the idea quickly.
 
 The `| print $in` suffix acts as a simple `print` in native Nushell and as a capture marker for dotnu, so scripts remain valid and functional even when run without loading the `dotnu` module.
-### Key embed commands
-
-* `embeds-setup <file>` – define or change the capture file (add `--auto-commit` to auto‑commit snapshots).
-* `embeds-capture-start` / `embeds-capture-stop` – record every result printed in the interactive session.
-* `embeds-add` – capture only the pipeline you run it on; useful for fine‑grained examples.
-* `embeds-update` – re‑execute marked pipelines and refresh the `# =>` blocks (see below).
-* `embeds-remove` – strip all captured output, leaving clean code.
 
 The main command is `dotnu embeds-update`.
 
@@ -68,6 +61,8 @@ While it is easy to write scripts in editor, there are several convenience helpe
 
 ### `dotnu embeds-setup`
 
+define or change the capture file (add `--auto-commit` to auto‑commit snapshots).
+
 ```nu
 > dotnu embeds-setup --help
 # => Set environment variables to operate with embeds
@@ -91,6 +86,8 @@ While it is easy to write scripts in editor, there are several convenience helpe
 
 ### `dotnu embeds-capture-start` and `dotnu embeds-capture-stop`
 
+record every result printed in the interactive session.
+
 ```nu
 > dotnu embeds-capture-start --help
 # => start capturing commands and their outputs into a file
@@ -113,6 +110,8 @@ While it is easy to write scripts in editor, there are several convenience helpe
 
 ### `dotnu embed-add`
 
+capture only the pipeline you run it on; useful for fine‑grained examples.
+
 ```nu
 > dotnu embed-add --help
 # => Embed stdin together with its command into the file
@@ -131,6 +130,14 @@ While it is easy to write scripts in editor, there are several convenience helpe
 # =>   │ 0 │ any   │ any    │
 # =>   ╰─#─┴─input─┴─output─╯
 # =>
+```
+
+### `dotnu embeds-remove`
+
+strip all captured output, leaving clean code.
+
+```nu
+> dotnu embeds-remove --help
 ```
 
 ## Commands
