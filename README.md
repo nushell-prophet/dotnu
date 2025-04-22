@@ -24,6 +24,13 @@
 `dotnu` lets you write **literate Nushell**: ordinary Nushell scripts that include the real command output right after each pipeline ending in `| print $in`. See the [capture example](/dotnu-capture.nu) to grasp the idea quickly.
 
 The `| print $in` suffix acts as a simple `print` in native Nushell and as a capture marker for dotnu, so scripts remain valid and functional even when run without loading the `dotnu` module.
+### Key embed commands
+
+* `embeds-setup <file>` – define or change the capture file (add `--auto-commit` to auto‑commit snapshots).
+* `embeds-capture-start` / `embeds-capture-stop` – record every result printed in the interactive session.
+* `embeds-add` – capture only the pipeline you run it on; useful for fine‑grained examples.
+* `embeds-update` – re‑execute marked pipelines and refresh the `# =>` blocks (see below).
+* `embeds-remove` – strip all captured output, leaving clean code.
 
 The main command is `dotnu embeds-update`.
 
