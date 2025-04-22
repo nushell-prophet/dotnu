@@ -53,6 +53,77 @@ You can run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or 
 # =>
 ```
 
+### Embeds helper commands
+
+While it is easy to write scripts in editor, there are several convenience helper commands that facilitate populating script files from terminal.
+
+### `dotnu embeds-setup`
+
+```nu
+> dotnu embeds-setup --help
+# => Set environment variables to operate with embeds
+# =>
+# => Usage:
+# =>   > embeds-setup {flags} (path)
+# =>
+# => Flags:
+# =>   --auto-commit
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Parameters:
+# =>   path <path>:  (optional)
+# =>
+# => Input/output types:
+# =>   ╭─#─┬─input─┬─output─╮
+# =>   │ 0 │ any   │ any    │
+# =>   ╰─#─┴─input─┴─output─╯
+# =>
+```
+
+### `dotnu embeds-capture-start` and `dotnu embeds-capture-stop`
+
+```nu
+> dotnu embeds-capture-start --help
+# => start capturing commands and their outputs into a file
+# =>
+# => Usage:
+# =>   > embeds-capture-start (file)
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Parameters:
+# =>   file <path>:  (optional, default: 'dotnu-capture.nu')
+# =>
+# => Input/output types:
+# =>   ╭─#─┬──input──┬─output──╮
+# =>   │ 0 │ nothing │ nothing │
+# =>   ╰─#─┴──input──┴─output──╯
+# =>
+```
+
+### `dotnu embed-add`
+
+```nu
+> dotnu embed-add --help
+# => Embed stdin together with its command into the file
+# =>
+# => Usage:
+# =>   > embed-add {flags}
+# =>
+# => Flags:
+# =>   -p, --pipe-further: output input further to the pipeline
+# =>   --published: output the published representation into terminal
+# =>   --dry_run: todo: --
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Input/output types:
+# =>   ╭─#─┬─input─┬─output─╮
+# =>   │ 0 │ any   │ any    │
+# =>   ╰─#─┴─input─┴─output─╯
+# =>
+```
+
 ## Commands
 
 ### dotnu dependencies
