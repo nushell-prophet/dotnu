@@ -21,7 +21,7 @@
 
 `dotnu` lets you write **literate Nushell**: ordinary Nushell scripts that include the real command output right after each pipeline ending in `| print $in`. See the [capture example](/dotnu-capture.nu) to grasp the idea quickly.
 
-The `| print $in` suffix lets scripts run directly without loading the `dotnu` module.
+The `| print $in` suffix acts as a simple `print` in native Nushell and as a capture marker for dotnu, so scripts remain valid and functional even when run without loading the `dotnu` module.
 
 The main command is `dotnu embeds-update`.
 
