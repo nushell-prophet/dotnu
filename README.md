@@ -138,6 +138,19 @@ strip all captured output, leaving clean code.
 
 ```nu
 > dotnu embeds-remove --help
+# => Removes annotation lines starting with "# => " from the script
+# =>
+# => Usage:
+# =>   > embeds-remove
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Input/output types:
+# =>   ╭─#─┬─input─┬─output─╮
+# =>   │ 0 │ any   │ any    │
+# =>   ╰─#─┴─input─┴─output─╯
+# =>
 ```
 
 ## Commands
