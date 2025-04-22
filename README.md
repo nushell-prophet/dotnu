@@ -4,6 +4,8 @@
 
 <p align="center"><em>(A good companion for <a href="https://github.com/nushell-prophet/numd">numd</a>)</em></p>
 
+<p align="center">dotnu augments Nushell with helpers for literate programming, dependency analysis, and script profiling.</p>
+
 ## dotnu video demo
 
 <a href="https://youtu.be/-C7_dfLXXrE">
