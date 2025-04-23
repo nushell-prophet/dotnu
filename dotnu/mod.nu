@@ -1,17 +1,17 @@
 export use commands.nu [
-    dependencies
-    filter-commands-with-no-tests
-    set-x
-    generate-numd
-    extract-command-code
-    module-commands-code-to-record
-    list-exported-commands
-    embeds-update
-    embeds-remove
-    'embed-add'
-    'embeds-setup'
-    'embeds-capture-start'
-    'embeds-capture-stop'
+    "dependencies"
+    "embed-add"
+    "embeds-capture-start"
+    "embeds-capture-stop"
+    "embeds-remove"
+    "embeds-setup"
+    "embeds-update"
+    "extract-command-code"
+    "filter-commands-with-no-tests"
+    "generate-numd"
+    "list-exported-commands"
+    "module-commands-code-to-record"
+    "set-x"
 ]
 
 use ('..' | path join tests nupm utils dirs.nu) find-root
