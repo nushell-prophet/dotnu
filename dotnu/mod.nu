@@ -5,7 +5,7 @@ export use commands.nu [
     generate-numd
     extract-command-code
     module-commands-code-to-record
-    list-main-commands
+    list-exported-commands
     embeds-update
     embeds-remove
     'embed-add'
