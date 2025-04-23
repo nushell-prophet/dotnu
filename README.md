@@ -4,6 +4,8 @@
 
 <p align="center"><em>(A good companion for <a href="https://github.com/nushell-prophet/numd">numd</a>)</em></p>
 
+<p align="center">dotnu augments Nushell with helpers for literate programming, dependency analysis, and script profiling.</p>
+
 ## dotnu video demo
 
 <a href="https://youtu.be/-C7_dfLXXrE">
@@ -21,7 +23,7 @@
 
 `dotnu` lets you write **literate Nushell**: ordinary Nushell scripts that include the real command output right after each pipeline ending in `| print $in`. See the [capture example](/dotnu-capture.nu) to grasp the idea quickly.
 
-The `| print $in` suffix lets scripts run directly without loading the `dotnu` module.
+The `| print $in` suffix acts as a simple `print` in native Nushell and as a capture marker for dotnu, so scripts remain valid and functional even when run without loading the `dotnu` module.
 
 The main command is `dotnu embeds-update`.
 
@@ -50,6 +52,104 @@ You can run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or 
 # =>   │ 2 │ nothing │ string  │
 # =>   │ 3 │ nothing │ nothing │
 # =>   ╰─#─┴──input──┴─output──╯
+# =>
+```
+
+### Embeds helper commands
+
+While it is easy to write scripts in editor, there are several convenience helper commands that facilitate populating script files from terminal.
+
+### `dotnu embeds-setup`
+
+define or change the capture file (add `--auto-commit` to auto‑commit snapshots).
+
+```nu
+> dotnu embeds-setup --help
+# => Set environment variables to operate with embeds
+# =>
+# => Usage:
+# =>   > embeds-setup {flags} (path)
+# =>
+# => Flags:
+# =>   --auto-commit
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Parameters:
+# =>   path <path>:  (optional)
+# =>
+# => Input/output types:
+# =>   ╭─#─┬─input─┬─output─╮
+# =>   │ 0 │ any   │ any    │
+# =>   ╰─#─┴─input─┴─output─╯
+# =>
+```
+
+### `dotnu embeds-capture-start` and `dotnu embeds-capture-stop`
+
+record every result printed in the interactive session.
+
+```nu
+> dotnu embeds-capture-start --help
+# => start capturing commands and their outputs into a file
+# =>
+# => Usage:
+# =>   > embeds-capture-start (file)
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Parameters:
+# =>   file <path>:  (optional, default: 'dotnu-capture.nu')
+# =>
+# => Input/output types:
+# =>   ╭─#─┬──input──┬─output──╮
+# =>   │ 0 │ nothing │ nothing │
+# =>   ╰─#─┴──input──┴─output──╯
+# =>
+```
+
+### `dotnu embed-add`
+
+capture only the pipeline you run it on; useful for fine‑grained examples.
+
+```nu
+> dotnu embed-add --help
+# => Embed stdin together with its command into the file
+# =>
+# => Usage:
+# =>   > embed-add {flags}
+# =>
+# => Flags:
+# =>   -p, --pipe-further: output input further to the pipeline
+# =>   --published: output the published representation into terminal
+# =>   --dry_run: todo: --
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Input/output types:
+# =>   ╭─#─┬─input─┬─output─╮
+# =>   │ 0 │ any   │ any    │
+# =>   ╰─#─┴─input─┴─output─╯
+# =>
+```
+
+### `dotnu embeds-remove`
+
+strip all captured output, leaving clean code.
+
+```nu
+> dotnu embeds-remove --help
+# => Removes annotation lines starting with "# => " from the script
+# =>
+# => Usage:
+# =>   > embeds-remove
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Input/output types:
+# =>   ╭─#─┬─input─┬─output─╮
+# =>   │ 0 │ any   │ any    │
+# =>   ╰─#─┴─input─┴─output─╯
 # =>
 ```
 
