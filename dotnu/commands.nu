@@ -169,14 +169,6 @@ export def 'list-exported-commands' [
         print 'No command found'
         return
     } else { }
-    | input list --fuzzy "Choose a command"
-    | if $in == 'main' { '' } else { }
-    | if $export {
-        $"use ($path) '($in)'; ($in)"
-    } else {
-        $"nu ($path) ($in)"
-    }
-    | commandline edit -r $in
 }
 
 #todo: make configuration like --autocommit in file itself
