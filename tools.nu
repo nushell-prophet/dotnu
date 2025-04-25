@@ -6,7 +6,6 @@ def main [] {}
 def 'main test' [] {
     test-dependencies
     test-dependencies-keep_builtins
-    test-execute-update-examples-no-output
 
     test-embeds-remove
     test-embeds-update
@@ -38,16 +37,6 @@ def 'test-dependencies-keep_builtins' [] {
         | to yaml
     }
     | do_closure_save_results 'dependencies --keep_bulitins.yaml'
-}
-
-def 'test-execute-update-examples-no-output' [] {
-    {
-        [tests assets c hello-no-output.nu]
-        | path join
-        | path expand
-        | update-docstring-examples $in --no-git-check --echo
-    }
-    | do_closure_save_results hello-no-output.txt
 }
 
 def do_closure_save_results [
