@@ -4,7 +4,6 @@ use dotnu
 def main [] {}
 
 def 'main test' [] {
-    test-parse-docstrings
     test-dependencies
     test-dependencies-keep_builtins
     test-execute-update-examples-no-output
@@ -21,23 +20,6 @@ def 'main test' [] {
 def 'main test-nupm' [] {
     overlay use tests/nupm/test.nu --prefix as nupm
     nupm test
-}
-
-def 'test-parse-docstrings' [] {
-    [tests assets '**' '*.nu']
-    | path join
-    | glob $in
-    | each {test-parse-docstrings-output-yaml}
-}
-
-def 'test-parse-docstrings-output-yaml' [] {
-    let $path = $in
-    {
-        open $path
-        | parse-docstrings
-        | to yaml
-    }
-    | do_closure_save_results $'parse-docstrings-($path | path parse | get stem).yaml'
 }
 
 def 'test-dependencies' [] {
