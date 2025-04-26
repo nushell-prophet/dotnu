@@ -471,13 +471,19 @@ export def list-module-commands [
 
     let defined_defs = $script_content
     | lines
-    | where $it =~ '^(export )?def .*\['
     | wrap line
     | insert caller {|i|
-        $i.line
-        | extract-command-name
-        | replace-main-with-module-name $module_path
+        match $i.line {
+            $l if $l =~ '^(export )?def .*\[' => {
+                $l
+                | extract-command-name
+                | replace-main-with-module-name $module_path
+            }
+            $l if $l =~ '^@example' => '@example'
+            _ => null
+        }
     }
+    | compact caller
     | insert filename_of_caller ($module_path | path basename)
 
     if $definitions_only or ($defined_defs | is-empty) {
@@ -495,6 +501,7 @@ export def list-module-commands [
         | select caller filename_of_caller
         | scan {} --noinit {|curr prev| if $curr.caller? == null { $prev } else { $curr } }
     )
+    | where caller != 'example'
     | where shape in ['shape_internalcall' 'shape_external']
     | if $keep_builtins { } else {
         where content not-in (
