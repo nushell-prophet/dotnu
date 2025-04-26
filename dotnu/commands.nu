@@ -471,7 +471,7 @@ export def list-module-commands [
 
     let defined_defs = $script_content
     | lines
-    | where $it =~ '^(export )?def.*\['
+    | where $it =~ '^(export )?def .*\['
     | wrap line
     | insert caller {|i|
         $i.line
