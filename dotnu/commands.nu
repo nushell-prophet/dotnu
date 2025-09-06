@@ -60,6 +60,7 @@ export def 'set-x' [
     file: path # path to `.nu` file
     --regex: string = "\n+\n" # regex to use to split .nu on blocks
     --echo # output script to terminal
+    --quiet # don't print any messages
 ] {
     let out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
 
@@ -79,7 +80,9 @@ export def 'set-x' [
     | if $echo { return $in } else {
         save -f $out_file
 
-        print $'the file ($out_file) is produced. Source it'
+        if not $quiet {
+            print $'the file ($out_file) is produced. Source it'
+        }
         commandline edit -r $'source ($out_file)'
     }
 }
