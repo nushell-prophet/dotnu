@@ -190,7 +190,7 @@ export def 'embeds-update' [
     let script = if $input == null { open $file } else { $input }
     | embeds-remove
 
-    let results = execute-and-parse-results $script
+    let results = execute-and-parse-results $script --script_path=$file
 
     let replacements = $script
     | find-capture-points
@@ -674,6 +674,7 @@ export def 'comment-hash-colon' [
 # Extracts captured output from a script file execution result
 export def execute-and-parse-results [
     script: string
+    --script_path: path
 ] {
     # Prints output that will be embedded back into the script
     let embed_in_script = {
@@ -704,6 +705,8 @@ export def execute-and-parse-results [
     }
     | prepend $embed_in_script_src
     | to text
+
+    if $script_path != null { $script_path | path dirname | cd $in }
 
     ^$nu.current-exe --config $nu.config-path --env-config $nu.env-path -c $script_updated
     | ansi strip
