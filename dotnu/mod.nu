@@ -13,5 +13,3 @@ export use commands.nu [
     "module-commands-code-to-record"
     "set-x"
 ]
-
-use ('..' | path join tests nupm utils dirs.nu) find-root
