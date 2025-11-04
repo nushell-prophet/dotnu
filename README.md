@@ -21,7 +21,7 @@
 > use dotnu
 ```
 
-### `nupm`
+### [`nupm`](https://github.com/nushell/nupm)
 ```
 nupm install https://github.com/nushell-prophet/dotnu --git
 # if nupm modules are not in  `NU_LIB_DIRS`:
