@@ -1,10 +1,34 @@
 use ('dotnu' | path join 'commands.nu') *
 use dotnu
 
-def main [] { }
+export def main [] { }
 
-# Main test function that runs all tests
-def 'main test' [] {
+# Run all tests (unit tests + integration tests)
+export def 'main testing' [
+    --json # output results as JSON for external consumption
+] {
+    let unit = main testing-unit --quiet=$json
+    let integration = main testing-integration
+
+    {unit: $unit integration: $integration}
+    | if $json { to json --raw } else { }
+}
+
+# Run unit tests using nutest
+export def 'main testing-unit' [
+    --json # output results as JSON for external consumption
+    --quiet # suppress terminal output (for use when called from main testing)
+] {
+    use ../nutest/nutest
+
+    let display = if ($json or $quiet) { 'nothing' } else { 'terminal' }
+    # Match only test_commands to exclude test assets in subdirectories
+    nutest run-tests --path tests/ --match-suites 'test_commands' --returns summary --display $display
+    | if $json { to json --raw } else { }
+}
+
+# Run integration tests (legacy tests)
+export def 'main testing-integration' [] {
     print "Running test-dependencies..."
     test-dependencies
 
@@ -22,6 +46,13 @@ def 'main test' [] {
         print "Running numd tests..."
         numd run README.md
     }
+
+    print $"(ansi green)All integration tests passed(ansi reset)"
+}
+
+# Main test function that runs all tests (alias for testing)
+export def 'main test' [] {
+    main testing
 }
 
 # Test for nupm functionality
