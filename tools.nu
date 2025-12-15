@@ -82,7 +82,7 @@ def 'test-dependencies' [] {
 
     # Run the command and get its source code
     let command_src = {
-        glob ([tests assets b *] | path join)
+        glob ([tests assets b *] | path join | into glob)
         | dependencies ...$in
         | to yaml
     }
