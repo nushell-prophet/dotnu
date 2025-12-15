@@ -14,9 +14,20 @@
 
 ## Quickstart
 
+### `git`
+
 ```nushell no-run
 > git clone https://github.com/nushell-prophet/dotnu; cd dotnu
 > use dotnu
+```
+
+### [`nupm`](https://github.com/nushell/nupm)
+```
+nupm install https://github.com/nushell-prophet/dotnu --git
+# if nupm modules are not in  `NU_LIB_DIRS`:
+$env.NU_LIB_DIRS ++= [ ($env.NUPM_HOME | path join "modules") ]
+
+use dotnu
 ```
 
 ## Embeds — keeping examples in sync

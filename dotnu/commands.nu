@@ -332,7 +332,7 @@ export def --env 'embeds-capture-stop' []: nothing -> nothing {
 
 #### helpers
 # they used to be separately here from the main code, but I want to experiment with structure
-# so all the commands are in one file now, and all are exported, to be availible in my scripts
+# so all the commands are in one file now, and all are exported, to be available in my scripts
 # that can use this file commands with 'use ..', though main commands are exported in mod.nu
 
 export def 'get-dotnu-capture-path' [] {
@@ -374,7 +374,7 @@ export def check-clean-working-tree [
         error make --unspanned {
             msg: (
                 "Working tree isn't empty. Please commit or stash changed files, " +
-                "or use `--no-git-check` flag. Uncommited files:\n" + $git_status
+                "or use `--no-git-check` flag. Uncommitted files:\n" + $git_status
             )
         }
     }
@@ -556,7 +556,7 @@ export def 'module-commands-code-to-record' [
     | into record
 }
 
-# prepare pairs of substituions of old results and new results
+# prepare pairs of substitutions of old results and new results
 export def format-substitutions [
     $examples
     $command_description
