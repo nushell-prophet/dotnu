@@ -8,7 +8,7 @@ export def 'main testing' [
     --json # output results as JSON for external consumption
 ] {
     let unit = main testing-unit --quiet=$json
-    let integration = main testing-integration
+    let integration = main testing-integration --json=$json
 
     {unit: $unit integration: $integration}
     | if $json { to json --raw } else { }
@@ -27,27 +27,21 @@ export def 'main testing-unit' [
     | if $json { to json --raw } else { }
 }
 
-# Run integration tests (legacy tests)
-export def 'main testing-integration' [] {
-    print "Running test-dependencies..."
-    test-dependencies
-
-    print "Running test-dependencies-keep_builtins..."
-    test-dependencies-keep_builtins
-
-    print "Running test-embeds-remove..."
-    test-embeds-remove
-
-    print "Running test-embeds-update..."
-    test-embeds-update
-
-    # Not everyone yet uses numd
-    if (help modules | where name == 'numd' | is-not-empty) {
-        print "Running numd tests..."
-        numd run README.md
-    }
-
-    print $"(ansi green)All integration tests passed(ansi reset)"
+# Run integration tests
+export def 'main testing-integration' [
+    --json # output results as JSON for external consumption
+] {
+    [
+        (test-dependencies)
+        (test-dependencies-keep_builtins)
+        (test-embeds-remove)
+        (test-embeds-update)
+    ]
+    # Run numd on README if available
+    | if (scope modules | where name == 'numd' | is-not-empty) {
+        append (test-numd-readme)
+    } else { }
+    | if $json { } else { print $"(ansi green)All integration tests passed(ansi reset)" }
 }
 
 # Main test function that runs all tests (alias for testing)
@@ -55,132 +49,81 @@ export def 'main test' [] {
     main testing
 }
 
-# Test for nupm functionality
-def 'main test-nupm' [] {
-    print "Testing nupm..."
-    overlay use --prefix tests/nupm/test.nu as nupm
-    nupm test
-}
-
 # Test dependencies command
 def 'test-dependencies' [] {
-    print "Testing basic dependencies command..."
+    let output_file = ['tests' 'output-yaml' 'dependencies.yaml'] | path join
 
-    # Create output directory if it doesn't exist
-    let output_dir = ['tests' 'output-yaml'] | path join
-    if not ($output_dir | path exists) {
-        mkdir $output_dir
-    }
+    mkdir ($output_file | path dirname)
+    rm -f $output_file
 
-    # Define output file path
-    let output_file = [$output_dir 'dependencies.yaml'] | path join
-
-    # Remove old output file if exists
-    if ($output_file | path exists) {
-        rm $output_file
-    }
-
-    # Run the command and get its source code
     let command_src = {
-        glob (
-            [tests assets b *]
-            | path join
-            | str replace -a '\' '/' # fix for windows
-        )
+        glob ([tests assets b *] | path join | str replace -a '\' '/')
         | dependencies ...$in
         | to yaml
     }
 
-    # Get the command source as a string
     let command_text = view source $command_src
     | lines | skip | drop | str trim
     | each { $'# ($in)' }
     | str join (char nl)
 
-    # Execute the command
-    let command_result = do $command_src
+    $command_text + (char nl) + (do $command_src)
+    | save -f $output_file
 
-    # Save both the command and result to the output file
-    $command_text + (char nl) + $command_result
-    | save -fr $output_file
-
-    print $'(ansi green)file updated(ansi reset) ($output_file)'
+    {test: 'dependencies' file: $output_file}
 }
 
 # Test dependencies command with keep-builtins option
 def 'test-dependencies-keep_builtins' [] {
-    print "Testing dependencies command with keep-builtins option..."
+    let output_file = ['tests' 'output-yaml' 'dependencies --keep_bulitins.yaml'] | path join
 
-    # Create output directory if it doesn't exist
-    let output_dir = ['tests' 'output-yaml'] | path join
-    if not ($output_dir | path exists) {
-        mkdir $output_dir
-    }
+    mkdir ($output_file | path dirname)
+    rm -f $output_file
 
-    # Define output file path
-    let output_file = [$output_dir 'dependencies --keep_bulitins.yaml'] | path join
-
-    # Remove old output file if exists
-    if ($output_file | path exists) {
-        rm $output_file
-    }
-
-    # Run the command and get its source code
     let command_src = {
-        glob (
-            [tests assets b *]
-            | path join
-            | str replace -a '\' '/' # fix for windows
-        )
+        glob ([tests assets b *] | path join | str replace -a '\' '/')
         | dependencies ...$in --keep-builtins
         | to yaml
     }
 
-    # Get the command source as a string
     let command_text = view source $command_src
     | lines | skip | drop | str trim
     | each { $'# ($in)' }
     | str join (char nl)
 
-    # Execute the command
-    let command_result = do $command_src
+    $command_text + (char nl) + (do $command_src)
+    | save -f $output_file
 
-    # Save both the command and result to the output file
-    $command_text + (char nl) + $command_result
-    | save -fr $output_file
-
-    print $'(ansi green)file updated(ansi reset) ($output_file)'
+    {test: 'dependencies --keep-builtins' file: $output_file}
 }
 
 # Test embeds-remove command
 def 'test-embeds-remove' [] {
-    print "Testing embeds-remove command..."
-
-    # Define input and output files
     let input_file = 'tests/assets/dotnu-capture.nu'
     let output_file = 'tests/assets/dotnu-capture-clean.nu'
 
-    # Run the command and save the result
     open $input_file
     | dotnu embeds-remove
     | save -f $output_file
 
-    print $'(ansi green)file updated(ansi reset) ($output_file)'
+    {test: 'embeds-remove' file: $output_file}
 }
 
 # Test embeds-update command
 def 'test-embeds-update' [] {
-    print "Testing embeds-update command..."
-
-    # Define input and output files
     let input_file = 'tests/assets/dotnu-capture.nu'
     let output_file = 'tests/assets/dotnu-capture-updated.nu'
 
-    # Run the command and save the result
     dotnu embeds-update $input_file --echo
     | save -f $output_file
 
-    print $'(ansi green)file updated(ansi reset) ($output_file)'
+    {test: 'embeds-update' file: $output_file}
+}
+
+# Test numd on README
+def 'test-numd-readme' [] {
+    numd run README.md --no-backup
+    {test: 'numd-readme' file: 'README.md'}
 }
 
 # Release command to create a new version
