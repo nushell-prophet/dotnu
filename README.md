@@ -43,6 +43,7 @@ The main command is `dotnu embeds-update`.
 You can run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
 
 ```nushell
+use dotnu
 dotnu embeds-update --help
 # => Inserts captured output back into the script at capture points
 # =>
@@ -50,8 +51,8 @@ dotnu embeds-update --help
 # =>   > embeds-update {flags} (file)
 # =>
 # => Flags:
-# =>   --echo: output updates to stdout
 # =>   -h, --help: Display the help message for this command
+# =>   --echo: output updates to stdout
 # =>
 # => Parameters:
 # =>   file <path>:  (optional)
@@ -82,8 +83,8 @@ dotnu embeds-setup --help
 # =>   > embeds-setup {flags} (path)
 # =>
 # => Flags:
-# =>   --auto-commit
 # =>   -h, --help: Display the help message for this command
+# =>   --auto-commit
 # =>
 # => Parameters:
 # =>   path <path>:  (optional)
@@ -131,10 +132,10 @@ dotnu embed-add --help
 # =>   > embed-add {flags}
 # =>
 # => Flags:
+# =>   -h, --help: Display the help message for this command
 # =>   -p, --pipe-further: output input further to the pipeline
 # =>   --published: output the published representation into terminal
 # =>   --dry_run: todo: --
-# =>   -h, --help: Display the help message for this command
 # =>
 # => Input/output types:
 # =>   ╭─#─┬─input─┬─output─╮
@@ -176,9 +177,9 @@ dotnu dependencies --help
 # =>   > dependencies {flags} ...(paths)
 # =>
 # => Flags:
+# =>   -h, --help: Display the help message for this command
 # =>   --keep-builtins: keep builtin commands in the result page
 # =>   --definitions-only: output only commands' names definitions
-# =>   -h, --help: Display the help message for this command
 # =>
 # => Parameters:
 # =>   ...paths <path>: paths to nushell module files
@@ -191,15 +192,15 @@ dotnu dependencies --help
 # => Examples:
 # =>
 # =>   > dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
-# =>   ╭─#──┬──caller───┬─filename_of_caller──┬──callee───┬─step──╮
-# =>   │ 0  │ hello     │ hello.nu            │           │     0 │
-# =>   │ 1  │ question  │ ask.nu              │           │     0 │
-# =>   │ 2  │ say       │ mod.nu              │ hello     │     0 │
-# =>   │ 3  │ say       │ mod.nu              │ hi        │     0 │
-# =>   │ 4  │ say       │ mod.nu              │ question  │     0 │
-# =>   │ 5  │ hi        │ mod.nu              │           │     0 │
-# =>   │ 6  │ test-hi   │ test-hi.nu          │ hi        │     0 │
-# =>   ╰─#──┴──caller───┴─filename_of_caller──┴──callee───┴─step──╯
+# =>   ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
+# =>   │ 0 │ hello    │ hello.nu           │          │    0 │
+# =>   │ 1 │ question │ ask.nu             │          │    0 │
+# =>   │ 2 │ say      │ mod.nu             │ hello    │    0 │
+# =>   │ 3 │ say      │ mod.nu             │ hi       │    0 │
+# =>   │ 4 │ say      │ mod.nu             │ question │    0 │
+# =>   │ 5 │ hi       │ mod.nu             │          │    0 │
+# =>   │ 6 │ test-hi  │ test-hi.nu         │ hi       │    0 │
+# =>   ╰─#─┴──caller──┴─filename_of_caller─┴──callee──┴─step─╯
 # =>
 ```
 
@@ -253,22 +254,22 @@ Let's see how `dotnu set-x` will modify this script
 
 ```nushell
 dotnu set-x $filename --echo | lines | table -i false
-# => ╭────────────────────────────────────────────────────────────╮
-# => │ mut $prev_ts = ( date now )                                │
-# => │ print ("> sleep 0.5sec" | nu-highlight)                    │
-# => │ sleep 0.5sec                                               │
-# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'... │
-# => │                                                            │
-# => │                                                            │
-# => │ print ("> sleep 0.7sec" | nu-highlight)                    │
-# => │ sleep 0.7sec                                               │
-# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'... │
-# => │                                                            │
-# => │                                                            │
-# => │ print ("> sleep 0.8sec" | nu-highlight)                    │
-# => │ sleep 0.8sec                                               │
-# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'... │
-# => │                                                            │
-# => │                                                            │
-# => ╰────────────────────────────────────────────────────────────╯
+# => ╭─────────────────────────────────────────────────────────────────────────────────╮
+# => │ mut $prev_ts = ( date now )                                                     │
+# => │ print ("> sleep 0.5sec" | nu-highlight)                                         │
+# => │ sleep 0.5sec                                                                    │
+# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
+# => │                                                                                 │
+# => │                                                                                 │
+# => │ print ("> sleep 0.7sec" | nu-highlight)                                         │
+# => │ sleep 0.7sec                                                                    │
+# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
+# => │                                                                                 │
+# => │                                                                                 │
+# => │ print ("> sleep 0.8sec" | nu-highlight)                                         │
+# => │ sleep 0.8sec                                                                    │
+# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
+# => │                                                                                 │
+# => │                                                                                 │
+# => ╰─────────────────────────────────────────────────────────────────────────────────╯
 ```
