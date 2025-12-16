@@ -17,8 +17,8 @@
 ### `git`
 
 ```nushell no-run
-> git clone https://github.com/nushell-prophet/dotnu; cd dotnu
-> use dotnu
+git clone https://github.com/nushell-prophet/dotnu; cd dotnu
+use dotnu
 ```
 
 ### [`nupm`](https://github.com/nushell/nupm)
@@ -43,7 +43,7 @@ The main command is `dotnu embeds-update`.
 You can run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
 
 ```nushell
-> dotnu embeds-update --help
+dotnu embeds-update --help
 # => Inserts captured output back into the script at capture points
 # =>
 # => Usage:
@@ -75,7 +75,7 @@ While it is easy to write scripts in editor, there are several convenience helpe
 define or change the capture file (add `--auto-commit` to auto‑commit snapshots).
 
 ```nu
-> dotnu embeds-setup --help
+dotnu embeds-setup --help
 # => Set environment variables to operate with embeds
 # =>
 # => Usage:
@@ -100,7 +100,7 @@ define or change the capture file (add `--auto-commit` to auto‑commit snapshot
 record every result printed in the interactive session.
 
 ```nu
-> dotnu embeds-capture-start --help
+dotnu embeds-capture-start --help
 # => start capturing commands and their outputs into a file
 # =>
 # => Usage:
@@ -124,7 +124,7 @@ record every result printed in the interactive session.
 capture only the pipeline you run it on; useful for fine‑grained examples.
 
 ```nu
-> dotnu embed-add --help
+dotnu embed-add --help
 # => Embed stdin together with its command into the file
 # =>
 # => Usage:
@@ -148,7 +148,7 @@ capture only the pipeline you run it on; useful for fine‑grained examples.
 strip all captured output, leaving clean code.
 
 ```nu
-> dotnu embeds-remove --help
+dotnu embeds-remove --help
 # => Removes annotation lines starting with "# => " from the script
 # =>
 # => Usage:
@@ -169,7 +169,7 @@ strip all captured output, leaving clean code.
 ### dotnu dependencies
 
 ```nushell
-> dotnu dependencies --help
+dotnu dependencies --help
 # => Check .nu module files to determine which commands depend on other commands.
 # =>
 # => Usage:
@@ -206,7 +206,7 @@ strip all captured output, leaving clean code.
 ### dotnu filter-commands-with-no-tests
 
 ```nushell
-> dotnu filter-commands-with-no-tests --help
+dotnu filter-commands-with-no-tests --help
 # => Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
 # =>
 # => Usage:
@@ -238,8 +238,8 @@ strip all captured output, leaving clean code.
 Let's check the code of the simple `set-x-demo.nu` script
 
 ```nushell
-> let $filename = [tests assets set-x-demo.nu] | path join
-> open $filename | lines | table -i false
+let $filename = [tests assets set-x-demo.nu] | path join
+open $filename | lines | table -i false
 # => ╭──────────────╮
 # => │ sleep 0.5sec │
 # => │              │
@@ -252,7 +252,7 @@ Let's check the code of the simple `set-x-demo.nu` script
 Let's see how `dotnu set-x` will modify this script
 
 ```nushell
-> dotnu set-x $filename --echo | lines | table -i false
+dotnu set-x $filename --echo | lines | table -i false
 # => ╭────────────────────────────────────────────────────────────╮
 # => │ mut $prev_ts = ( date now )                                │
 # => │ print ("> sleep 0.5sec" | nu-highlight)                    │
