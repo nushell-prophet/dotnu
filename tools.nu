@@ -184,37 +184,34 @@ def 'test-embeds-update' [] {
 }
 
 # Release command to create a new version
-def 'main release' [] {
-    print "Preparing release..."
+export def 'main release' [
+    --major (-M)  # Bump major version (X.0.0)
+    --minor (-m)  # Bump minor version (x.Y.0)
+] {
+    git checkout main
 
-    # Get repository information
     let git_info = gh repo view --json description,name | from json
+    let desc = $git_info | get description
 
-    # Generate new version tag
-    let git_tag = git tag
-    | lines
-    | prepend '0.0.0'
-    | sort -n
-    | last
-    | split row '.'
-    | into int
-    | update 2 { $in + 1 }
-    | str join '.'
+    let parts = git tag | lines | sort --natural | last | default '0.0.0' | split row '.' | into int
+    let git_tag = if $major {
+        [($parts.0 + 1) 0 0]
+    } else if $minor {
+        [$parts.0 ($parts.1 + 1) 0]
+    } else {
+        [$parts.0 $parts.1 ($parts.2 + 1)]
+    } | str join '.'
 
     print $'New version: ($git_tag)'
 
-    # Get description
-    let desc = $git_info | get description
-
     # Update nupm.nuon file
-    print "Updating nupm.nuon..."
     open nupm.nuon
     | update description ($desc | str replace -r $'^($git_info.name) - ' '')
     | update version $git_tag
-    | save -f nupm.nuon
+    | to nuon --indent 2
+    | save --force --raw nupm.nuon
 
     # Update README.md file
-    print "Updating README.md..."
     if ('README.md' | path exists) {
         open -r 'README.md'
         | lines
@@ -222,21 +219,15 @@ def 'main release' [] {
         | str join (char nl)
         | $in + (char nl)
         | save -f README.md
-    } else {
-        $'\n<h1 align="center">($desc)</h1>\n'
-        | save -f README.md
+
+        prettier README.md -w
     }
 
-    # Run prettier on README
-    print "Running prettier on README.md..."
-    prettier README.md -w
-
-    # Commit and tag
-    print "Committing changes and creating tag..."
     git add nupm.nuon
     git add README.md
     git commit -m $'($git_tag) nupm version'
     git tag $git_tag
+    git push origin main --tags
 
     print $'(ansi green)Release ($git_tag) completed(ansi reset)'
 }
