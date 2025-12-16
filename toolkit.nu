@@ -3,21 +3,21 @@ use dotnu
 
 export def main [] { }
 
-# Run all tests (unit tests + integration tests)
-export def 'main testing' [
+# Run all tests (unit + integration)
+export def 'main test' [
     --json # output results as JSON for external consumption
 ] {
-    let unit = main testing-unit --quiet=$json
-    let integration = main testing-integration
+    let unit = main test-unit --quiet=$json
+    let integration = main test-integration
 
     {unit: $unit integration: $integration}
     | if $json { to json --raw } else { }
 }
 
 # Run unit tests using nutest
-export def 'main testing-unit' [
+export def 'main test-unit' [
     --json # output results as JSON for external consumption
-    --quiet # suppress terminal output (for use when called from main testing)
+    --quiet # suppress terminal output (for use when called from main test)
 ] {
     use ../nutest/nutest
 
@@ -28,7 +28,7 @@ export def 'main testing-unit' [
 }
 
 # Run integration tests
-export def 'main testing-integration' [
+export def 'main test-integration' [
     --json # output results as JSON for external consumption
 ] {
     [
@@ -42,11 +42,6 @@ export def 'main testing-integration' [
         append (test-numd-readme)
     } else { }
     | if $json { to json --raw } else { }
-}
-
-# Main test function that runs all tests (alias for testing)
-export def 'main test' [] {
-    main testing
 }
 
 # Test dependencies command
