@@ -82,7 +82,11 @@ def 'test-dependencies' [] {
 
     # Run the command and get its source code
     let command_src = {
-        glob ([tests assets b *] | path join)
+        glob (
+            [tests assets b *]
+            | path join
+            | str replace -a '\' '/' # fix for windows
+        )
         | dependencies ...$in
         | to yaml
     }
@@ -123,7 +127,11 @@ def 'test-dependencies-keep_builtins' [] {
 
     # Run the command and get its source code
     let command_src = {
-        glob ([tests assets b *] | path join)
+        glob (
+            [tests assets b *]
+            | path join
+            | str replace -a '\' '/' # fix for windows
+        )
         | dependencies ...$in --keep-builtins
         | to yaml
     }
