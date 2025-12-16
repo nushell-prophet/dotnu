@@ -8,7 +8,7 @@ export def 'main testing' [
     --json # output results as JSON for external consumption
 ] {
     let unit = main testing-unit --quiet=$json
-    let integration = main testing-integration --quiet=$json
+    let integration = main testing-integration
 
     {unit: $unit integration: $integration}
     | if $json { to json --raw } else { }
@@ -30,7 +30,6 @@ export def 'main testing-unit' [
 # Run integration tests
 export def 'main testing-integration' [
     --json # output results as JSON for external consumption
-    --quiet # suppress terminal output (for use when called from main testing)
 ] {
     [
         (test-dependencies)
@@ -42,9 +41,7 @@ export def 'main testing-integration' [
     | if (scope modules | where name == 'numd' | is-not-empty) {
         append (test-numd-readme)
     } else { }
-    | if $json { to json --raw } else if not $quiet {
-        print $"(ansi green)All integration tests passed(ansi reset)"
-    } else { }
+    | if $json { to json --raw } else { }
 }
 
 # Main test function that runs all tests (alias for testing)
