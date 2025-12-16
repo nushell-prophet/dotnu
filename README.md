@@ -22,7 +22,7 @@
 ```
 
 ### [`nupm`](https://github.com/nushell/nupm)
-```
+```nushell no-run
 nupm install https://github.com/nushell-prophet/dotnu --git
 # if nupm modules are not in  `NU_LIB_DIRS`:
 $env.NU_LIB_DIRS ++= [ ($env.NUPM_HOME | path join "modules") ]
