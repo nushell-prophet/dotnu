@@ -185,8 +185,8 @@ def 'test-embeds-update' [] {
 
 # Release command to create a new version
 export def 'main release' [
-    --major (-M)  # Bump major version (X.0.0)
-    --minor (-m)  # Bump minor version (x.Y.0)
+    --major (-M) # Bump major version (X.0.0)
+    --minor (-m) # Bump minor version (x.Y.0)
 ] {
     git checkout main
 
