@@ -219,8 +219,6 @@ export def 'main release' [
         | str join (char nl)
         | $in + (char nl)
         | save -f README.md
-
-        prettier README.md -w
     }
 
     git add nupm.nuon
