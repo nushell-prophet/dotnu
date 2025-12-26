@@ -7,14 +7,16 @@
 
 ls | sort-by modified -r | last 2 | print $in
 
-# => ╭─#─┬──────name──────┬─type─┬──size──┬───modified───╮
-# => │ 0 │ LICENSE        │ file │ 1.2 kB │ 2 months ago │
-# => │ 1 │ zzz_md_backups │ dir  │  160 B │ 3 months ago │
-# => ╰─#─┴──────name──────┴─type─┴──size──┴───modified───╯
+# => ╭───┬──────────────────────────────┬──────┬───────┬────────────╮
+# => │ # │             name             │ type │ size  │  modified  │
+# => ├───┼──────────────────────────────┼──────┼───────┼────────────┤
+# => │ 0 │ set-x-demo.nu                │ file │  41 B │ a year ago │
+# => │ 1 │ parsing-pipe-in-docstring.nu │ file │ 923 B │ a year ago │
+# => ╰───┴──────────────────────────────┴──────┴───────┴────────────╯
 
 random int | print $in
 
-# => 8077574741879556293
+# => 5037388629847034664
 
 'Say hello to the core team of the Nushell'
 | str replace 'Nushell' 'Best shell'

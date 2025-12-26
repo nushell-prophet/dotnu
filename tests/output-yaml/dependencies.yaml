@@ -1,4 +1,4 @@
-# glob ([tests assets b *] | path join)
+# glob ([tests assets b *] | path join | str replace -a '\' '/')
 # | dependencies ...$in
 # | to yaml
 - caller: command-5

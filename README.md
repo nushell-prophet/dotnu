@@ -58,12 +58,14 @@ dotnu embeds-update --help
 # =>   file <path>:  (optional)
 # =>
 # => Input/output types:
-# =>   ╭─#─┬──input──┬─output──╮
+# =>   ╭───┬─────────┬─────────╮
+# =>   │ # │  input  │ output  │
+# =>   ├───┼─────────┼─────────┤
 # =>   │ 0 │ string  │ nothing │
 # =>   │ 1 │ string  │ string  │
 # =>   │ 2 │ nothing │ string  │
 # =>   │ 3 │ nothing │ nothing │
-# =>   ╰─#─┴──input──┴─output──╯
+# =>   ╰───┴─────────┴─────────╯
 # =>
 ```
 
@@ -90,9 +92,11 @@ dotnu embeds-setup --help
 # =>   path <path>:  (optional)
 # =>
 # => Input/output types:
-# =>   ╭─#─┬─input─┬─output─╮
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
 # =>   │ 0 │ any   │ any    │
-# =>   ╰─#─┴─input─┴─output─╯
+# =>   ╰───┴───────┴────────╯
 # =>
 ```
 
@@ -114,9 +118,11 @@ dotnu embeds-capture-start --help
 # =>   file <path>:  (optional, default: 'dotnu-capture.nu')
 # =>
 # => Input/output types:
-# =>   ╭─#─┬──input──┬─output──╮
+# =>   ╭───┬─────────┬─────────╮
+# =>   │ # │  input  │ output  │
+# =>   ├───┼─────────┼─────────┤
 # =>   │ 0 │ nothing │ nothing │
-# =>   ╰─#─┴──input──┴─output──╯
+# =>   ╰───┴─────────┴─────────╯
 # =>
 ```
 
@@ -138,9 +144,11 @@ dotnu embed-add --help
 # =>   --dry_run: todo: --
 # =>
 # => Input/output types:
-# =>   ╭─#─┬─input─┬─output─╮
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
 # =>   │ 0 │ any   │ any    │
-# =>   ╰─#─┴─input─┴─output─╯
+# =>   ╰───┴───────┴────────╯
 # =>
 ```
 
@@ -159,9 +167,11 @@ dotnu embeds-remove --help
 # =>   -h, --help: Display the help message for this command
 # =>
 # => Input/output types:
-# =>   ╭─#─┬─input─┬─output─╮
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
 # =>   │ 0 │ any   │ any    │
-# =>   ╰─#─┴─input─┴─output─╯
+# =>   ╰───┴───────┴────────╯
 # =>
 ```
 
@@ -185,14 +195,18 @@ dotnu dependencies --help
 # =>   ...paths <path>: paths to nushell module files
 # =>
 # => Input/output types:
-# =>   ╭─#─┬─input─┬─output─╮
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
 # =>   │ 0 │ any   │ any    │
-# =>   ╰─#─┴─input─┴─output─╯
+# =>   ╰───┴───────┴────────╯
 # =>
 # => Examples:
 # =>
 # =>   > dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
-# =>   ╭─#─┬──caller──┬─filename_of_caller─┬──callee──┬─step─╮
+# =>   ╭───┬──────────┬────────────────────┬──────────┬──────╮
+# =>   │ # │  caller  │ filename_of_caller │  callee  │ step │
+# =>   ├───┼──────────┼────────────────────┼──────────┼──────┤
 # =>   │ 0 │ hello    │ hello.nu           │          │    0 │
 # =>   │ 1 │ question │ ask.nu             │          │    0 │
 # =>   │ 2 │ say      │ mod.nu             │ hello    │    0 │
@@ -200,7 +214,7 @@ dotnu dependencies --help
 # =>   │ 4 │ say      │ mod.nu             │ question │    0 │
 # =>   │ 5 │ hi       │ mod.nu             │          │    0 │
 # =>   │ 6 │ test-hi  │ test-hi.nu         │ hi       │    0 │
-# =>   ╰─#─┴──caller──┴─filename_of_caller─┴──callee──┴─step─╯
+# =>   ╰───┴──────────┴────────────────────┴──────────┴──────╯
 # =>
 ```
 
@@ -217,18 +231,22 @@ dotnu filter-commands-with-no-tests --help
 # =>   -h, --help: Display the help message for this command
 # =>
 # => Input/output types:
-# =>   ╭─#─┬─input─┬─output─╮
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
 # =>   │ 0 │ any   │ any    │
-# =>   ╰─#─┴─input─┴─output─╯
+# =>   ╰───┴───────┴────────╯
 # =>
 # => Examples:
 # =>
 # =>   > dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
-# =>   ╭─#─┬──caller──┬─filename_of_caller─╮
+# =>   ╭───┬──────────┬────────────────────╮
+# =>   │ # │  caller  │ filename_of_caller │
+# =>   ├───┼──────────┼────────────────────┤
 # =>   │ 0 │ hello    │ hello.nu           │
 # =>   │ 1 │ question │ ask.nu             │
 # =>   │ 2 │ say      │ mod.nu             │
-# =>   ╰─#─┴──caller──┴─filename_of_caller─╯
+# =>   ╰───┴──────────┴────────────────────╯
 # =>
 ```
 

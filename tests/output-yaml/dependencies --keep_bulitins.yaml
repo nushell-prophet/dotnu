@@ -1,4 +1,4 @@
-# glob ([tests assets b *] | path join)
+# glob ([tests assets b *] | path join | str replace -a '\' '/')
 # | dependencies ...$in --keep-builtins
 # | to yaml
 - caller: example-mod1

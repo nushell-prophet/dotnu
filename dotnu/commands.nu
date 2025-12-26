@@ -708,7 +708,7 @@ export def execute-and-parse-results [
 
     if $script_path != null { $script_path | path dirname | cd $in }
 
-    ^$nu.current-exe --config $nu.config-path --env-config $nu.env-path -c $script_updated
+    ^$nu.current-exe -n -c $script_updated
     | ansi strip
     | parse -r ('(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close))
     # Parsing here presupposes capturing only the output of a script command,
