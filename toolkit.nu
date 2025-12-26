@@ -117,7 +117,7 @@ def 'test-embeds-update' [] {
 
 # Test numd on README
 def 'test-numd-readme' [] {
-    numd run README.md --no-backup
+    numd run README.md
     {test: 'numd-readme' file: 'README.md'}
 }
 
