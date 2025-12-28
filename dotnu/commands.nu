@@ -472,11 +472,18 @@ export def list-module-commands [
 ] {
     let script_content = open $module_path -r
 
-    let defined_defs = $script_content
+    # str index-of fails when identical lines exist (e.g. multiple '@example' lines)
+    let lines_pos = $script_content
     | lines
-    | wrap line
-    | insert caller {|i|
-        match $i.line {
+    | reduce -f {offset: 0 lines: []} {|line acc|
+        let entry = {line: $line start: $acc.offset}
+        {offset: ($acc.offset + ($line | str length -b) + 1) lines: ($acc.lines | append $entry)}
+    }
+    | get lines
+
+    let defined_defs = $lines_pos
+    | insert caller {
+        match $in.line {
             $l if $l =~ '^(export )?def .*\[' => {
                 $l
                 | extract-command-name
@@ -486,25 +493,27 @@ export def list-module-commands [
             _ => null
         }
     }
-    | compact caller
+    | where caller != null
     | insert filename_of_caller ($module_path | path basename)
 
     if $definitions_only or ($defined_defs | is-empty) {
         return ($defined_defs | select caller filename_of_caller)
     }
 
-    let defs_with_index = $defined_defs
-    | insert start {|i| $script_content | str index-of $i.line }
+    let defs_with_index = $defined_defs | sort-by start
 
+    # Range-based lookup: exact join fails because def positions != AST token positions
     let calls = ast --flatten $script_content
     | flatten span
-    | join $defs_with_index start -l
-    | merge (
-        $in
-        | select caller filename_of_caller
-        | scan {} --noinit {|curr prev| if $curr.caller? == null { $prev } else { $curr } }
-    )
-    | where caller != 'example'
+    | each {|token|
+        let def = $defs_with_index | where start <= $token.start | last
+        if $def == null {
+            $token | insert caller null | insert filename_of_caller null
+        } else {
+            $token | insert caller $def.caller | insert filename_of_caller $def.filename_of_caller
+        }
+    }
+    | where caller != '@example'
     | where shape in ['shape_internalcall' 'shape_external']
     | if $keep_builtins { } else {
         where content not-in (
