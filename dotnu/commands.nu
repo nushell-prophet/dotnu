@@ -29,14 +29,15 @@ export def 'dependencies' [
     | uniq-by caller callee
 }
 
-# Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
+# Filter commands after `dotnu dependencies` that aren't used by any test command.
+# Test commands are detected by: name contains 'test' OR file matches 'test*.nu'
 @example '' {
     dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
 } --result [{caller: hello filename_of_caller: "hello.nu"} {caller: question filename_of_caller: "ask.nu"} {caller: say filename_of_caller: "mod.nu"}]
 export def 'filter-commands-with-no-tests' [] {
     let input = $in
     let covered_with_tests = $input
-    | where caller =~ 'test'
+    | where caller =~ 'test' or filename_of_caller =~ '^test.*\.nu$'
     | get callee
     | compact
     | uniq
@@ -44,7 +45,7 @@ export def 'filter-commands-with-no-tests' [] {
     $input
     | reject callee step
     | uniq-by caller
-    | where caller !~ 'test'
+    | where caller !~ 'test' and filename_of_caller !~ '^test.*\.nu$'
     | where caller not-in $covered_with_tests
 }
 
