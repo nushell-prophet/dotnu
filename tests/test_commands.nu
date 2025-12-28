@@ -205,6 +205,16 @@ def "dependencies handles module-say example" [] {
     assert (($say_calls | length) > 0)
 }
 
+@test
+def "dependencies handles files with @example containing same-file calls" [] {
+    # This tests the fix for infinite loop when @example blocks call commands defined in the same file
+    let result = dependencies dotnu/commands.nu
+
+    # Should complete without hanging and have no self-references
+    let self_refs = $result | where caller == callee
+    assert (($self_refs | length) == 0) "should have no self-referential calls"
+}
+
 # =============================================================================
 # Tests for filter-commands-with-no-tests
 # =============================================================================
