@@ -530,6 +530,7 @@ export def list-module-commands [
     | where caller != null
 
     let defs_without_calls = $defined_defs
+    | where caller !~ '^@'  # exclude attribute decorators from output
     | select caller filename_of_caller
     | where caller not-in ($calls.caller | uniq)
     | insert callee null
