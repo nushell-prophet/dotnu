@@ -476,9 +476,13 @@ export def list-module-commands [
     # str index-of fails when identical lines exist (e.g. multiple '@example' lines)
     let lines_pos = $script_content
     | lines
-    | reduce -f {offset: 0 lines: []} {|line acc|
+    | reduce --fold {offset: 0 lines: []} {|line acc|
         let entry = {line: $line start: $acc.offset}
-        {offset: ($acc.offset + ($line | str length -b) + 1) lines: ($acc.lines | append $entry)}
+
+        {
+            offset: ($acc.offset + ($line | str length -b) + 1)
+            lines: ($acc.lines | append $entry)
+        }
     }
     | get lines
 
