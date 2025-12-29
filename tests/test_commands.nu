@@ -251,3 +251,228 @@ def "generate-numd handles multiple blocks" [] {
     let fence_count = $result | split row '```nu' | length
     assert ($fence_count >= 2)
 }
+
+# =============================================================================
+# Tests for set-x
+# =============================================================================
+
+@test
+def "set-x transforms script with echo flag" [] {
+    let result = set-x tests/assets/set-x-demo.nu --echo
+
+    # Should prepend timestamp tracker
+    assert ($result =~ 'mut \$prev_ts')
+    # Should add print statement before each block
+    assert ($result =~ 'print \("> sleep 0.5sec"')
+    # Should preserve original commands
+    assert ($result =~ 'sleep 0.5sec')
+    # Should add timing output
+    assert ($result =~ 'ansi grey')
+}
+
+# =============================================================================
+# Tests for extract-command-code
+# =============================================================================
+
+@test
+def "extract-command-code extracts command with echo flag" [] {
+    let result = extract-command-code tests/assets/b/example-mod1.nu lscustom --echo
+
+    # Should include source statement for module
+    assert ($result =~ 'source tests/assets/b/example-mod1.nu')
+    # Should include the command code
+    assert ($result =~ 'ls')
+}
+
+@test
+def "extract-command-code handles quoted command names" [] {
+    let result = extract-command-code tests/assets/b/example-mod1.nu 'command-5' --echo
+
+    assert ($result =~ 'source tests/assets/b/example-mod1.nu')
+    assert ($result =~ 'command-3')
+}
+
+# =============================================================================
+# Tests for list-exported-commands
+# =============================================================================
+
+@test
+def "list-exported-commands finds exported commands" [] {
+    let result = list-exported-commands tests/assets/b/example-mod1.nu --export
+
+    # Should find exported commands
+    assert ('lscustom' in $result)
+    assert ('command-5' in $result)
+    # Should replace 'main' with module name
+    assert ('example-mod1' in $result)
+}
+
+@test
+def "list-exported-commands excludes non-exported when flag set" [] {
+    let result = list-exported-commands tests/assets/b/example-mod1.nu --export
+
+    # Private commands should not be in exported list
+    assert ('sort-by-custom' not-in $result)
+    assert ('command-3' not-in $result)
+}
+
+# =============================================================================
+# Tests for embeds-update
+# =============================================================================
+
+@test
+def "embeds-update updates embeds in piped script" [] {
+    # Script needs newlines around capture points for replacement to work
+    let script = "\n'hello' | str upcase | print $in\n"
+    let result = $script | embeds-update
+
+    # Should contain the original command
+    assert ($result =~ 'str upcase')
+    # Should contain the embedded output
+    assert ($result =~ '# => HELLO')
+}
+
+@test
+def "embeds-update preserves script structure" [] {
+    let script = "# comment\n\n1 + 1 | print $in\n\n# another"
+    let result = $script | embeds-update
+
+    # Should preserve comments
+    assert ($result =~ '# comment')
+    assert ($result =~ '# another')
+    # Should add result
+    assert ($result =~ '# => 2')
+}
+
+# =============================================================================
+# Tests for embed-add
+# =============================================================================
+
+# Note: embed-add requires shell history which isn't available in automated tests
+# The command works by reading the current command from history, which can't be
+# simulated in a test environment. Testing skipped.
+
+# =============================================================================
+# Tests for embeds-setup
+# =============================================================================
+
+@test
+def "embeds-setup sets capture path in env" [] {
+    # Test without --auto-commit to avoid git operations
+    embeds-setup /tmp/test-capture.nu
+
+    assert equal $env.dotnu.embeds-capture-path '/tmp/test-capture.nu'
+}
+
+@test
+def "embeds-setup adds .nu extension if missing" [] {
+    embeds-setup /tmp/test-capture
+
+    assert ($env.dotnu.embeds-capture-path | str ends-with '.nu')
+}
+
+# =============================================================================
+# Tests for execute-and-parse-results
+# =============================================================================
+
+@test
+def "execute-and-parse-results captures output" [] {
+    let script = "'test output' | print $in"
+    let result = execute-and-parse-results $script
+
+    assert (($result | length) == 1)
+    assert ($result.0 =~ 'test output')
+}
+
+@test
+def "execute-and-parse-results handles multiple capture points" [] {
+    let script = "1 + 1 | print $in\n\n2 + 2 | print $in"
+    let result = execute-and-parse-results $script
+
+    assert (($result | length) == 2)
+    assert ($result.0 =~ '2')
+    assert ($result.1 =~ '4')
+}
+
+# =============================================================================
+# Tests for module-commands-code-to-record
+# =============================================================================
+
+@test
+def "module-commands-code-to-record extracts command code" [] {
+    let result = module-commands-code-to-record tests/assets/b/example-mod1.nu
+
+    # Should be a record
+    assert (($result | describe) =~ 'record')
+    # Should have command names as keys
+    assert ('lscustom' in ($result | columns))
+    # Command code should contain the body
+    assert ($result.lscustom =~ 'ls')
+}
+
+@test
+def "module-commands-code-to-record handles multiple commands" [] {
+    let result = module-commands-code-to-record tests/assets/b/example-mod1.nu
+
+    # Should extract multiple commands
+    assert (($result | columns | length) > 1)
+}
+
+# =============================================================================
+# Tests for helper functions
+# =============================================================================
+
+# Note: capture-marker is a private (non-exported) function used internally
+# by the embeds system. It generates zero-width Unicode characters used as
+# delimiters. Testing is done indirectly through embeds-update tests.
+
+@test
+def "check-clean-working-tree passes for unmodified files" [] {
+    # This file should not be modified in git, so the check should pass
+    # If modified, the test will catch regressions in git status parsing
+    check-clean-working-tree tests/assets/b/example-mod1.nu
+
+    # If we get here without error, the check passed
+    assert true
+}
+
+@test
+def "dummy-command generates executable code" [] {
+    let result = dummy-command 'lscustom' tests/assets/b/example-mod1.nu '#END#'
+
+    # Should be valid nushell code string
+    assert (($result | describe) == 'string')
+    # Should contain use/source statement
+    assert (($result =~ 'use') or ($result =~ 'source'))
+}
+
+@test
+def "format-substitutions formats example documentation" [] {
+    let examples = [
+        {annotation: "Example:" command: "ls" result: "files..."}
+    ]
+    let result = format-substitutions $examples "List files command"
+
+    # Should include description
+    assert ($result =~ 'List files command')
+    # Should be formatted as comments
+    assert ($result =~ '^# ')
+}
+
+@test
+def "get-dotnu-capture-path returns valid path" [] {
+    $env.dotnu = {embeds-capture-path: '/tmp/test.nu'}
+    let result = get-dotnu-capture-path
+
+    assert equal $result '/tmp/test.nu'
+}
+
+@test
+def "nu-completion-command-name returns command list" [] {
+    # Test with a simple module
+    let result = nu-completion-command-name tests/assets/b/example-mod1.nu
+
+    # Should return a list of commands
+    assert (($result | describe) =~ 'list')
+    assert ('lscustom' in $result)
+}
