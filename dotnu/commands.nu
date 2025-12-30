@@ -715,7 +715,7 @@ export def execute-and-parse-results [
         capture-marker
         | append $input
         | append (capture-marker --close)
-        | to text
+        | str join "\n"
         | print
     }
 
@@ -724,7 +724,6 @@ export def execute-and-parse-results [
     | str replace 'capture-marker' $"'(capture-marker)'"
     | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
     | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
-    | str replace 'to text' "str join \"\\n\"" # Windows CRLF fix
 
     let script_updated = $script
     | lines
