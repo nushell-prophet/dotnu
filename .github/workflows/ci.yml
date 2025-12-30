@@ -32,8 +32,10 @@ jobs:
         run: git clone https://github.com/vyadh/nutest.git ../nutest
 
       - name: Run tests
+        shell: bash
         run: nu toolkit.nu test --json
 
       - name: Show diff of changed files
         if: always()
+        shell: bash
         run: git diff
