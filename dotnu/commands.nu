@@ -189,6 +189,7 @@ export def 'embeds-update' [
     }
 
     let script = if $input == null { open $file } else { $input }
+    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
     | embeds-remove
 
     let results = execute-and-parse-results $script --script_path=$file
@@ -749,10 +750,12 @@ export def find-capture-points [] {
 
 # Removes annotation lines starting with "# => " from the script
 export def embeds-remove [] {
-    str replace -a "\n\n# => " "\n# => "
+    if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+    | str replace -a "\n\n# => " "\n# => "
     | lines
     | where not ($it starts-with "# => ")
-    | to text
+    | str join "\n"
+    | $in + "\n"  # Explicit LF with trailing newline for Windows compatibility
 }
 
 export def capture-marker [
