@@ -24,9 +24,12 @@ export def 'main test-unit' [
     --json # output results as JSON for external consumption
     --quiet # suppress terminal output (for use when called from main test)
 ] {
+    print -e "DEBUG: importing nutest"
     use ../nutest/nutest
+    print -e "DEBUG: nutest imported"
 
     let display = if ($json or $quiet) { 'nothing' } else { 'terminal' }
+    print -e $"DEBUG: calling nutest run-tests with display=($display)"
     # Match only test_commands to exclude test assets in subdirectories
     nutest run-tests --path tests/ --match-suites 'test_commands' --returns summary --display $display
     | if $json { to json --raw } else { }
