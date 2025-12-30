@@ -66,6 +66,7 @@ export def 'set-x' [
     let out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
 
     open $file
+    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
     | str trim --char (char nl)
     | split row -r $regex
     | each {|block|
@@ -77,7 +78,8 @@ export def 'set-x' [
         )
     }
     | prepend 'mut $prev_ts = ( date now )'
-    | to text
+    | str join "\n"
+    | $in + "\n"
     | if $echo { return $in } else {
         save -f $out_file
 
@@ -140,7 +142,8 @@ export def 'extract-command-code' [
     | prepend $'source ($module_path)'
     | append $dotnu_vars_delim
     | append $extracted_command.1
-    | to text
+    | str join "\n"
+    | $in + "\n"
     | if $echo {
         return $in
     } else {
@@ -189,6 +192,7 @@ export def 'embeds-update' [
     }
 
     let script = if $input == null { open $file } else { $input }
+    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
     | embeds-remove
 
     let results = execute-and-parse-results $script --script_path=$file
@@ -393,10 +397,17 @@ export def check-clean-working-tree [
 } --result {a: null}
 export def variable-definitions-to-record []: string -> record {
     let script_with_variables_definitnions = str replace -a ';' ";\n"
+    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
     | $in + (char nl)
 
-    let variables_record = $script_with_variables_definitnions
+    let parsed_vars = $script_with_variables_definitnions
     | parse -r 'let \$?(?<var>.*) ='
+
+    if ($parsed_vars | is-empty) {
+        return {}
+    }
+
+    let variables_record = $parsed_vars
     | get var
     | uniq
     | each { $'($in): $($in)' }
@@ -405,7 +416,11 @@ export def variable-definitions-to-record []: string -> record {
 
     let script = $script_with_variables_definitnions + $variables_record
 
-    nu -n -c $script | from nuon
+    let result = (nu -n -c $script | complete)
+    if $result.exit_code != 0 {
+        return {}
+    }
+    $result.stdout | from nuon | default {}
 }
 
 @example '' {
@@ -709,6 +724,7 @@ export def execute-and-parse-results [
     | str replace 'capture-marker' $"'(capture-marker)'"
     | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
     | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
+    | str replace 'to text' "str join \"\\n\"" # Windows CRLF fix
 
     let script_updated = $script
     | lines
@@ -719,7 +735,7 @@ export def execute-and-parse-results [
         } else { }
     }
     | prepend $embed_in_script_src
-    | to text
+    | str join "\n"
 
     if $script_path != null { $script_path | path dirname | cd $in }
 
@@ -740,13 +756,15 @@ export def find-capture-points [] {
 
 # Removes annotation lines starting with "# => " from the script
 export def embeds-remove [] {
-    str replace -a "\n\n# => " "\n# => "
+    if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+    | str replace -a "\n\n# => " "\n# => "
     | lines
     | where not ($it starts-with "# => ")
-    | to text
+    | str join "\n"
+    | $in + "\n"  # Explicit LF with trailing newline for Windows compatibility
 }
 
-def capture-marker [
+export def capture-marker [
     --close
 ] {
     if not $close {
