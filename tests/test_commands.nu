@@ -416,14 +416,16 @@ def "embeds-update preserves script structure" [] {
 @test
 def "embeds-setup sets capture path in env" [] {
     # Test without --auto-commit to avoid git operations
-    embeds-setup /tmp/test-capture.nu
+    let test_path = ($nu.temp-path | path join 'test-capture.nu')
+    embeds-setup $test_path
 
-    assert equal $env.dotnu.embeds-capture-path '/tmp/test-capture.nu'
+    assert equal $env.dotnu.embeds-capture-path $test_path
 }
 
 @test
 def "embeds-setup adds .nu extension if missing" [] {
-    embeds-setup /tmp/test-capture
+    let test_path = ($nu.temp-path | path join 'test-capture')
+    embeds-setup $test_path
 
     assert ($env.dotnu.embeds-capture-path | str ends-with '.nu')
 }

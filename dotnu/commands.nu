@@ -66,6 +66,7 @@ export def 'set-x' [
     let out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
 
     open $file
+    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
     | str trim --char (char nl)
     | split row -r $regex
     | each {|block|
@@ -77,7 +78,8 @@ export def 'set-x' [
         )
     }
     | prepend 'mut $prev_ts = ( date now )'
-    | to text
+    | str join "\n"
+    | $in + "\n"
     | if $echo { return $in } else {
         save -f $out_file
 
@@ -394,10 +396,17 @@ export def check-clean-working-tree [
 } --result {a: null}
 export def variable-definitions-to-record []: string -> record {
     let script_with_variables_definitnions = str replace -a ';' ";\n"
+    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
     | $in + (char nl)
 
-    let variables_record = $script_with_variables_definitnions
+    let parsed_vars = $script_with_variables_definitnions
     | parse -r 'let \$?(?<var>.*) ='
+
+    if ($parsed_vars | is-empty) {
+        return {}
+    }
+
+    let variables_record = $parsed_vars
     | get var
     | uniq
     | each { $'($in): $($in)' }
@@ -406,7 +415,11 @@ export def variable-definitions-to-record []: string -> record {
 
     let script = $script_with_variables_definitnions + $variables_record
 
-    nu -n -c $script | from nuon
+    let result = (nu -n -c $script | complete)
+    if $result.exit_code != 0 {
+        return {}
+    }
+    $result.stdout | from nuon | default {}
 }
 
 @example '' {
