@@ -33,8 +33,27 @@ print "5. Actual capture-marker values from dotnu:"
 use dotnu/commands.nu [capture-marker]
 let real_open = (capture-marker)
 let real_close = (capture-marker --close)
-print $"   Open marker: ($real_open)"
-print $"   Close marker: ($real_close)"
+print $"   Open marker hex: ($real_open | encode hex)"
+print $"   Close marker hex: ($real_close | encode hex)"
+print $"   Expected: E2808BE2808C (ZWSP+ZWNJ) and E2808CE2808B (ZWNJ+ZWSP)"
+print ""
+
+print "5b. Zero-width chars through subprocess:"
+let sub_marker = (nu -c "print '\\u{200B}\\u{200C}'")
+print $"   Subprocess marker hex: ($sub_marker | encode hex)"
+print ""
+
+print "5c. Real capture-marker through subprocess:"
+let real_script = $"
+use dotnu/commands.nu [capture-marker]
+let open = \(capture-marker\)
+let close = \(capture-marker --close\)
+print \($open + 'CAPTURED' + $close\)
+"
+let real_result = (nu -c $real_script | complete)
+print $"   Stdout hex: ($real_result.stdout | encode hex)"
+let real_parsed = ($real_result.stdout | parse -r $'(?s)($real_open)(.*?)($real_close)')
+print $"   Parsed with real markers: ($real_parsed | length) captures"
 print ""
 
 print "6. Simulated embed capture (like execute-and-parse-results):"
