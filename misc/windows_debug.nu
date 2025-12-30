@@ -25,12 +25,12 @@ let marker_open = "<<<DOTNU-EMBED-CAPTURE>>>"
 let marker_close = "<<<DOTNU-EMBED-CAPTURE>>><<<END>>>"
 let test_str = $"before\n($marker_open)\ncaptured content\n($marker_close)\nafter"
 print $"   Test string created"
-let parsed = ($test_str | parse -r $'(?s)<<<DOTNU-EMBED-CAPTURE>>>\(.*?\)<<<DOTNU-EMBED-CAPTURE>>><<<END>>>')
+let parsed = ($test_str | parse -r '(?s)<<<DOTNU-EMBED-CAPTURE>>>\(.*?\)<<<DOTNU-EMBED-CAPTURE>>><<<END>>>')
 print $"   Parsed result: ($parsed)"
 print ""
 
 print "5. Actual capture-marker values from dotnu:"
-use dotnu/commands.nu [capture-marker]
+use ../dotnu/commands.nu *
 let real_open = (capture-marker)
 let real_close = (capture-marker --close)
 print $"   Open marker hex: ($real_open | encode hex)"
@@ -72,7 +72,7 @@ print "   Running subprocess with embed script..."
 let result = (nu -c $script | complete)
 print $"   Exit code: ($result.exit_code)"
 print $"   Stdout length: ($result.stdout | str length)"
-print $"   Stdout hex (first 100): ($result.stdout | encode hex | str substring 0..100)"
+print $"   Stdout hex : ($result.stdout | encode hex | str substring 0..100)"
 print ""
 
 print "7. Parse the subprocess output:"

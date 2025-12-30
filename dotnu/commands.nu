@@ -755,7 +755,7 @@ export def embeds-remove [] {
     | to text
 }
 
-def capture-marker [
+export def capture-marker [
     --close
 ] {
     if not $close {
