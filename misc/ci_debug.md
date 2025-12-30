@@ -100,13 +100,28 @@ User pulled latest nutest. Recent changes include:
 - `d42e76c` - don't display PASS by default
 - `2267c73` - account for 0.109.2+ assert/error format changes
 
-**Testing if updated nutest fixes Windows CI.**
+## RESOLVED: Windows CI now completes (but very slow)
 
-## Next steps if still failing
+**Commit `07f5def` and later runs complete on Windows.**
 
-1. **Try single-threaded:** Check if nutest has option to disable `par-each`
-2. **Simplify test file:** Create minimal test file to isolate issue
-3. **Binary search:** Disable half the tests to find which one hangs
+### Findings:
+1. **Extreme slowness**: Unit tests take ~14.5 minutes on Windows vs ~3 seconds on Linux (~300x slower)
+2. **All 46 unit tests fail**: Due to CRLF issues in assertions
+3. **Integration tests work**: But `embeds-update` output has empty `# =>` lines
+
+### Git diff warnings:
+```
+warning: in the working copy of 'tests/output-yaml/dependencies.yaml', LF will be replaced by CRLF
+```
+
+### Root cause of test failures:
+The `embeds-update` integration test produces different output on Windows - missing the embedded results.
+This suggests the subprocess execution or output parsing is affected by CRLF.
+
+## Remaining issues
+
+1. **Performance**: Investigate why Windows is 300x slower (likely `par-each` subprocess overhead)
+2. **CRLF in embeds**: Fix `execute-and-parse-results` to handle Windows line endings in subprocess output
 
 ## Files involved
 - `.github/workflows/ci.yml` - CI configuration
