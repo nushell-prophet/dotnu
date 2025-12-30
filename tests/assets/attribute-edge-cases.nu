@@ -26,3 +26,12 @@ export def 'raw-string-command' [] {
 export def 'main-command' [] {
     email-formatter
 }
+
+# Raw string with @example 'text' that MATCHES attribute regex - should NOT be treated as attribute
+# This is the tricky case: the line looks exactly like a real attribute decorator
+export def 'tricky-raw-string-command' [] {
+    r###'
+@example 'this line matches attribute regex but is inside raw string!'
+'###
+    email-formatter  # this call SHOULD appear - bug if it doesn't!
+}

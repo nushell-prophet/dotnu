@@ -257,6 +257,21 @@ def "dependencies ignores @fake inside raw strings" [] {
     assert ('email-formatter' in $raw_calls.callee) "raw-string-command should call email-formatter"
 }
 
+@test
+def "dependencies ignores @example inside raw strings even when matching attribute regex" [] {
+    # This tests the tricky case: @example 'text' inside raw string looks exactly like
+    # a real attribute decorator and matches the regex, but should NOT be treated as one
+    let result = list-module-commands tests/assets/attribute-edge-cases.nu
+
+    # The fake @example inside raw string should NOT appear as a caller
+    let example_callers = $result | where caller == '@example'
+    assert (($example_callers | length) == 0) "@example inside raw string should not be a caller"
+
+    # tricky-raw-string-command should call email-formatter (call after the raw string)
+    let tricky_calls = $result | where caller == 'tricky-raw-string-command'
+    assert ('email-formatter' in $tricky_calls.callee) "tricky-raw-string-command should call email-formatter"
+}
+
 # =============================================================================
 # Tests for filter-commands-with-no-tests
 # =============================================================================
