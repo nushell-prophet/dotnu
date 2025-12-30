@@ -720,17 +720,14 @@ export def execute-and-parse-results [
         let input = table -e
         | comment-hash-colon
 
-        capture-marker
-        | append $input
-        | append (capture-marker --close)
-        | str join "\n"
+        (capture-marker) + $input + "\n" + (capture-marker --close)
         | print
     }
 
     let embed_in_script_src = view source $embed_in_script
     | 'def embed-in-script [] ' + $in
-    | str replace 'capture-marker' $"'(capture-marker)'"
     | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
+    | str replace 'capture-marker' $"'(capture-marker)'"
     | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
 
     let script_updated = $script
@@ -764,7 +761,6 @@ export def find-capture-points [] {
 # Removes annotation lines starting with "# => " from the script
 export def embeds-remove [] {
     if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
-    | str replace -a "\n\n# => " "\n# => "
     | lines
     | where not ($it starts-with "# => ")
     | str join "\n"
