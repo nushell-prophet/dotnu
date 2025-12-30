@@ -1,0 +1,20 @@
+# Test file for attribute decorator edge cases
+
+# Multi-word attribute with closure - calls inside should be excluded
+@example 'demo' {
+    email-formatter  # this call should NOT appear in dependencies
+}
+export def 'decorated-command' [] {
+    email-formatter  # this call SHOULD appear
+}
+
+# This command has @something in a string - should NOT be treated as attribute
+export def 'email-formatter' [] {
+    let template = "Contact us @support or @help for assistance"
+    $template | str replace '@support' 'support@example.com'
+}
+
+# Regular command for dependency testing
+export def 'main-command' [] {
+    email-formatter
+}

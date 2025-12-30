@@ -215,6 +215,36 @@ def "dependencies handles files with @example containing same-file calls" [] {
     assert (($self_refs | length) == 0) "should have no self-referential calls"
 }
 
+@test
+def "dependencies excludes calls inside attribute blocks" [] {
+    let result = list-module-commands tests/assets/attribute-edge-cases.nu
+
+    # @example should not appear as a caller
+    let attr_callers = $result | where caller =~ '^@'
+    assert (($attr_callers | length) == 0) "no attribute decorators should appear as callers"
+
+    # decorated-command should call email-formatter (the call inside the function body)
+    let decorated_calls = $result | where caller == 'decorated-command'
+    assert ('email-formatter' in $decorated_calls.callee) "decorated-command should call email-formatter"
+
+    # The call inside @example block should NOT appear as a dependency
+    # (only the call inside the actual function body should be tracked)
+    let example_calls = $result | where caller == '@example'
+    assert (($example_calls | length) == 0) "@example should not be a caller"
+}
+
+@test
+def "dependencies ignores @something inside strings" [] {
+    let result = list-module-commands tests/assets/attribute-edge-cases.nu
+
+    # email-formatter should appear as a caller (it's a real command)
+    assert ('email-formatter' in $result.caller) "email-formatter should be a caller"
+
+    # main-command should call email-formatter
+    let main_calls = $result | where caller == 'main-command'
+    assert ('email-formatter' in $main_calls.callee) "main-command should call email-formatter"
+}
+
 # =============================================================================
 # Tests for filter-commands-with-no-tests
 # =============================================================================

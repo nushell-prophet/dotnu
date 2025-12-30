@@ -472,8 +472,11 @@ export def list-module-commands [
     --definitions-only # output only commands' names definitions
 ] {
     let script_content = open $module_path -r
+    let code_bytes = $script_content | encode utf-8
+    let all_tokens = ast --flatten $script_content | flatten span
 
-    # str index-of fails when identical lines exist (e.g. multiple '@example' lines)
+    # Phase 1a: Find def statements using line-based parsing
+    # (line parsing works fine for def, and we need byte offsets for range lookup)
     let lines_pos = $script_content
     | lines
     | reduce --fold {offset: 0 lines: []} {|line acc|
@@ -486,19 +489,26 @@ export def list-module-commands [
     }
     | get lines
 
-    let defined_defs = $lines_pos
+    let def_definitions = $lines_pos
     | insert caller {
-        match $in.line {
-            $l if $l =~ '^(export )?def .*\[' => {
-                $l
-                | extract-command-name
-                | replace-main-with-module-name $module_path
-            }
-            $l if $l =~ '^@example' => '@example'
-            _ => null
+        if $in.line =~ '^(export )?def .*\[' {
+            $in.line | extract-command-name | replace-main-with-module-name $module_path
         }
     }
     | where caller != null
+    | select caller start
+
+    # Phase 1b: Find attributes using AST (prevents false positives from @attr inside strings)
+    # Real attributes have '@' immediately before the token in source
+    let attribute_definitions = $all_tokens
+    | where {|t|
+        $t.start > 0 and (($code_bytes | bytes at ($t.start - 1)..<($t.start) | decode utf-8) == '@')
+    }
+    | insert caller {|t| '@' + ($t.content | split row ' ' | first)}  # '@complete external' → '@complete'
+    | select caller start
+
+    let defined_defs = $def_definitions
+    | append $attribute_definitions
     | insert filename_of_caller ($module_path | path basename)
 
     if $definitions_only or ($defined_defs | is-empty) {
@@ -508,8 +518,7 @@ export def list-module-commands [
     let defs_with_index = $defined_defs | sort-by start
 
     # Range-based lookup: exact join fails because def positions != AST token positions
-    let calls = ast --flatten $script_content
-    | flatten span
+    let calls = $all_tokens
     | each {|token|
         let def = $defs_with_index | where start <= $token.start | last
         if $def == null {
@@ -518,7 +527,7 @@ export def list-module-commands [
             $token | insert caller $def.caller | insert filename_of_caller $def.filename_of_caller
         }
     }
-    | where caller != '@example'
+    | where caller != null and caller !~ '^@'  # exclude tokens inside attribute blocks
     | where shape in ['shape_internalcall' 'shape_external']
     | if $keep_builtins { } else {
         where content not-in (
@@ -527,7 +536,6 @@ export def list-module-commands [
     }
     | select caller content filename_of_caller
     | rename --column {content: callee}
-    | where caller != null
 
     let defs_without_calls = $defined_defs
     | where caller !~ '^@'  # exclude attribute decorators from output
