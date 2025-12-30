@@ -494,9 +494,7 @@ export def list-module-commands [
                 | extract-command-name
                 | replace-main-with-module-name $module_path
             }
-            # Match valid attribute syntax: @word, @word external, @word 'str' {...}, etc.
-            # Excludes fake matches like "@fake is a sentence" inside raw strings
-            $l if $l =~ '^@\w+(\s+(external|[''"{\[]|r#)|\s*$)' => ($l | parse -r '^(?<attr>@\w+)' | get 0.attr)
+            $l if $l =~ '^@\w+' => ($l | parse -r '^(?<attr>@\w+)' | get 0.attr)
             _ => null
         }
     }
