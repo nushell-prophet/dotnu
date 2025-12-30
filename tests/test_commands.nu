@@ -1,12 +1,8 @@
-print -e "DEBUG: test_commands.nu starting"
 use std assert
-print -e "DEBUG: std assert imported"
 use std/testing *
-print -e "DEBUG: std/testing imported"
 
 # Import all functions from commands.nu (including internals not re-exported via mod.nu)
 use ../dotnu/commands.nu *
-print -e "DEBUG: commands.nu imported"
 
 # =============================================================================
 # Tests for escape-for-quotes

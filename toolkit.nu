@@ -7,13 +7,8 @@ export def main [] { }
 export def 'main test' [
     --json # output results as JSON for external consumption
 ] {
-    print -e "DEBUG: starting tests"
-    print -e "DEBUG: starting unit tests"
     let unit = main test-unit --quiet=$json
-    print -e "DEBUG: unit tests done"
-    print -e "DEBUG: starting integration tests"
     let integration = main test-integration
-    print -e "DEBUG: integration tests done"
 
     {unit: $unit integration: $integration}
     | if $json { to json --raw } else { }
@@ -24,12 +19,9 @@ export def 'main test-unit' [
     --json # output results as JSON for external consumption
     --quiet # suppress terminal output (for use when called from main test)
 ] {
-    print -e "DEBUG: importing nutest"
     use ../nutest/nutest
-    print -e "DEBUG: nutest imported"
 
     let display = if ($json or $quiet) { 'nothing' } else { 'terminal' }
-    print -e $"DEBUG: calling nutest run-tests with display=($display)"
     # Match only test_commands to exclude test assets in subdirectories
     nutest run-tests --path tests/ --match-suites 'test_commands' --returns summary --display $display
     | if $json { to json --raw } else { }
@@ -39,16 +31,12 @@ export def 'main test-unit' [
 export def 'main test-integration' [
     --json # output results as JSON for external consumption
 ] {
-    print -e "DEBUG: test-dependencies"
-    let t1 = test-dependencies
-    print -e "DEBUG: test-dependencies-keep_builtins"
-    let t2 = test-dependencies-keep_builtins
-    print -e "DEBUG: test-embeds-remove"
-    let t3 = test-embeds-remove
-    print -e "DEBUG: test-embeds-update"
-    let t4 = test-embeds-update
-    print -e "DEBUG: all integration tests done"
-    [$t1 $t2 $t3 $t4]
+    [
+        (test-dependencies)
+        (test-dependencies-keep_builtins)
+        (test-embeds-remove)
+        (test-embeds-update)
+    ]
     # Run numd on README if available
     | if (scope modules | where name == 'numd' | is-not-empty) {
         append (test-numd-readme)
