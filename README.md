@@ -222,7 +222,8 @@ dotnu dependencies --help
 
 ```nushell
 dotnu filter-commands-with-no-tests --help
-# => Filter commands after `dotnu dependencies` that aren't used by any other command containing `test` in its name.
+# => Filter commands after `dotnu dependencies` that aren't used by any test command.
+# => Test commands are detected by: name contains 'test' OR file matches 'test*.nu'
 # =>
 # => Usage:
 # =>   > filter-commands-with-no-tests
