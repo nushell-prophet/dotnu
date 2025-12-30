@@ -35,7 +35,7 @@ let real_open = (capture-marker)
 let real_close = (capture-marker --close)
 print $"   Open marker hex: ($real_open | encode hex)"
 print $"   Close marker hex: ($real_close | encode hex)"
-print $"   Expected: E2808BE2808C (ZWSP+ZWNJ) and E2808CE2808B (ZWNJ+ZWSP)"
+print $"   Expected: E2808BE2808C \('ZWSP+ZWNJ'\) and E2808CE2808B \('ZWNJ+ZWSP'\)"
 print ""
 
 print "5b. Zero-width chars through subprocess:"
@@ -52,7 +52,7 @@ print \($open + 'CAPTURED' + $close\)
 "
 let real_result = (nu -c $real_script | complete)
 print $"   Stdout hex: ($real_result.stdout | encode hex)"
-let real_parsed = ($real_result.stdout | parse -r $'(?s)($real_open)(.*?)($real_close)')
+let real_parsed = ($real_result.stdout | parse -r $"\(?s\)($real_open)\(.*?\)($real_close)")
 print $"   Parsed with real markers: ($real_parsed | length) captures"
 print ""
 
