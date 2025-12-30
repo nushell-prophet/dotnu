@@ -717,6 +717,7 @@ export def execute-and-parse-results [
     | str replace 'capture-marker' $"'(capture-marker)'"
     | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
     | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
+    | str replace 'to text' "str join \"\\n\"" # Windows CRLF fix
 
     let script_updated = $script
     | lines
@@ -727,7 +728,7 @@ export def execute-and-parse-results [
         } else { }
     }
     | prepend $embed_in_script_src
-    | to text
+    | str join "\n"
 
     if $script_path != null { $script_path | path dirname | cd $in }
 
