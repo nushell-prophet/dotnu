@@ -494,7 +494,7 @@ export def list-module-commands [
                 | extract-command-name
                 | replace-main-with-module-name $module_path
             }
-            $l if $l =~ '^@example' => '@example'
+            $l if $l =~ '^@\w+' => ($l | parse -r '^(?<attr>@\w+)' | get 0.attr)
             _ => null
         }
     }
@@ -518,7 +518,7 @@ export def list-module-commands [
             $token | insert caller $def.caller | insert filename_of_caller $def.filename_of_caller
         }
     }
-    | where caller != '@example'
+    | where caller != null and caller !~ '^@'  # exclude tokens inside attribute blocks
     | where shape in ['shape_internalcall' 'shape_external']
     | if $keep_builtins { } else {
         where content not-in (
@@ -527,7 +527,6 @@ export def list-module-commands [
     }
     | select caller content filename_of_caller
     | rename --column {content: callee}
-    | where caller != null
 
     let defs_without_calls = $defined_defs
     | where caller !~ '^@'  # exclude attribute decorators from output
