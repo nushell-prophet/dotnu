@@ -93,12 +93,20 @@ When this sources `tests/test_commands.nu`, it imports `../dotnu/commands.nu *`.
 2. Or parsing/loading `commands.nu` in that subprocess
 3. Or `par-each` (line 43) parallel discovery
 
-## Next steps
+## Update: Local nutest was outdated
 
-1. **Add debug to test file:** Add `print -e` at top of `test_commands.nu` to see if source completes
-2. **Try single-threaded:** Check if nutest has option to disable `par-each`
-3. **Simplify test file:** Create minimal test file to isolate issue
-4. **Compare with numd:** numd's commands.nu (707 lines) vs dotnu (766 lines)
+User pulled latest nutest. Recent changes include:
+- `287e74a` - bumped actions/checkout to v6
+- `d42e76c` - don't display PASS by default
+- `2267c73` - account for 0.109.2+ assert/error format changes
+
+**Testing if updated nutest fixes Windows CI.**
+
+## Next steps if still failing
+
+1. **Try single-threaded:** Check if nutest has option to disable `par-each`
+2. **Simplify test file:** Create minimal test file to isolate issue
+3. **Binary search:** Disable half the tests to find which one hangs
 
 ## Files involved
 - `.github/workflows/ci.yml` - CI configuration
