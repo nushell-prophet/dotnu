@@ -308,8 +308,8 @@ def "set-x transforms script with echo flag" [] {
 def "extract-command-code extracts command with echo flag" [] {
     let result = extract-command-code tests/assets/b/example-mod1.nu lscustom --echo
 
-    # Should include source statement for module
-    assert ($result =~ 'source tests/assets/b/example-mod1.nu')
+    # Should include source statement for module (path separators vary by OS)
+    assert ($result =~ 'source.*example-mod1\.nu')
     # Should include the command code
     assert ($result =~ 'ls')
 }
@@ -318,7 +318,8 @@ def "extract-command-code extracts command with echo flag" [] {
 def "extract-command-code handles quoted command names" [] {
     let result = extract-command-code tests/assets/b/example-mod1.nu 'command-5' --echo
 
-    assert ($result =~ 'source tests/assets/b/example-mod1.nu')
+    # Path separators vary by OS
+    assert ($result =~ 'source.*example-mod1\.nu')
     assert ($result =~ 'command-3')
 }
 
@@ -389,14 +390,16 @@ def "embeds-update preserves script structure" [] {
 @test
 def "embeds-setup sets capture path in env" [] {
     # Test without --auto-commit to avoid git operations
-    embeds-setup /tmp/test-capture.nu
+    let test_path = ($nu.temp-path | path join 'test-capture.nu')
+    embeds-setup $test_path
 
-    assert equal $env.dotnu.embeds-capture-path '/tmp/test-capture.nu'
+    assert equal $env.dotnu.embeds-capture-path $test_path
 }
 
 @test
 def "embeds-setup adds .nu extension if missing" [] {
-    embeds-setup /tmp/test-capture
+    let test_path = ($nu.temp-path | path join 'test-capture')
+    embeds-setup $test_path
 
     assert ($env.dotnu.embeds-capture-path | str ends-with '.nu')
 }
