@@ -472,6 +472,8 @@ export def list-module-commands [
     --definitions-only # output only commands' names definitions
 ] {
     let script_content = open $module_path -r
+    let code_bytes = $script_content | encode utf-8
+    let all_tokens = ast --flatten $script_content | flatten span
 
     # Phase 1a: Find def statements using line-based parsing
     # (line parsing works fine for def, and we need byte offsets for range lookup)
@@ -498,9 +500,7 @@ export def list-module-commands [
 
     # Phase 1b: Find attributes using AST (prevents false positives from @attr inside strings)
     # Real attributes have '@' immediately before the token in source
-    let code_bytes = $script_content | encode utf-8
-    let attribute_definitions = ast --flatten $script_content
-    | flatten span
+    let attribute_definitions = $all_tokens
     | where {|t|
         $t.start > 0 and (($code_bytes | bytes at ($t.start - 1)..<($t.start) | decode utf-8) == '@')
     }
@@ -518,8 +518,7 @@ export def list-module-commands [
     let defs_with_index = $defined_defs | sort-by start
 
     # Range-based lookup: exact join fails because def positions != AST token positions
-    let calls = ast --flatten $script_content
-    | flatten span
+    let calls = $all_tokens
     | each {|token|
         let def = $defs_with_index | where start <= $token.start | last
         if $def == null {
