@@ -14,6 +14,14 @@ export def 'email-formatter' [] {
     $template | str replace '@support' 'support@example.com'
 }
 
+# Raw string with @fake at line start - should NOT be treated as attribute
+export def 'raw-string-command' [] {
+    r###'
+@fake is a fabricated raw string
+'###
+    email-formatter  # this call SHOULD appear
+}
+
 # Regular command for dependency testing
 export def 'main-command' [] {
     email-formatter

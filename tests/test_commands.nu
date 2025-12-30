@@ -245,6 +245,18 @@ def "dependencies ignores @something inside strings" [] {
     assert ('email-formatter' in $main_calls.callee) "main-command should call email-formatter"
 }
 
+@test
+def "dependencies ignores @fake inside raw strings" [] {
+    let result = list-module-commands tests/assets/attribute-edge-cases.nu
+
+    # @fake should NOT appear as a caller
+    assert ('@fake' not-in $result.caller) "@fake inside raw string should not be a caller"
+
+    # raw-string-command should call email-formatter (call after raw string)
+    let raw_calls = $result | where caller == 'raw-string-command'
+    assert ('email-formatter' in $raw_calls.callee) "raw-string-command should call email-formatter"
+}
+
 # =============================================================================
 # Tests for filter-commands-with-no-tests
 # =============================================================================
