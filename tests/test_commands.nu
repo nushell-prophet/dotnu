@@ -335,8 +335,8 @@ def "set-x transforms script with echo flag" [] {
 def "extract-command-code extracts command with echo flag" [] {
     let result = extract-command-code tests/assets/b/example-mod1.nu lscustom --echo
 
-    # Should include source statement for module
-    assert ($result =~ 'source tests/assets/b/example-mod1.nu')
+    # Should include source statement for module (path separators vary by OS)
+    assert ($result =~ 'source.*example-mod1\.nu')
     # Should include the command code
     assert ($result =~ 'ls')
 }
@@ -345,7 +345,8 @@ def "extract-command-code extracts command with echo flag" [] {
 def "extract-command-code handles quoted command names" [] {
     let result = extract-command-code tests/assets/b/example-mod1.nu 'command-5' --echo
 
-    assert ($result =~ 'source tests/assets/b/example-mod1.nu')
+    # Path separators vary by OS
+    assert ($result =~ 'source.*example-mod1\.nu')
     assert ($result =~ 'command-3')
 }
 

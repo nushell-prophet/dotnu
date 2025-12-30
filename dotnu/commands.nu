@@ -142,7 +142,8 @@ export def 'extract-command-code' [
     | prepend $'source ($module_path)'
     | append $dotnu_vars_delim
     | append $extracted_command.1
-    | to text
+    | str join "\n"
+    | $in + "\n"
     | if $echo {
         return $in
     } else {
