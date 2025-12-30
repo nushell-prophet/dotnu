@@ -35,6 +35,12 @@ jobs:
         shell: bash
         run: nu toolkit.nu test --json
 
+      - name: Show test failures (Windows debug)
+        if: always() && runner.os == 'Windows'
+        shell: bash
+        run: |
+          nu -c "use ../nutest/nutest; nutest run-tests --path tests/ --match-suites 'test_commands' --returns table | where result == 'FAIL' | first 5 | select suite test output | to md" || true
+
       - name: Show diff of changed files
         if: always()
         shell: bash
