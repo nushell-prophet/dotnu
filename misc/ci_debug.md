@@ -120,8 +120,17 @@ This suggests the subprocess execution or output parsing is affected by CRLF.
 
 ## Remaining issues
 
-1. **Performance**: Investigate why Windows is 300x slower (likely `par-each` subprocess overhead)
-2. **CRLF in embeds**: Fix `execute-and-parse-results` to handle Windows line endings in subprocess output
+1. **Performance**: Windows unit tests take 14-40 minutes (vs 3 sec on Linux). High variability due to runner allocation.
+2. **All 46 tests fail**: Root cause unknown - need to capture actual error messages
+3. **CRLF in embeds**: Integration tests show missing `# =>` output lines on Windows
+
+## Windows runner variability
+
+Observed times for same test suite:
+- Run 1: ~14.5 minutes
+- Run 2: 39+ minutes (cancelled)
+
+This is normal for GitHub-hosted Windows runners - they can be 2-3x slower depending on VM allocation.
 
 ## Files involved
 - `.github/workflows/ci.yml` - CI configuration
