@@ -60,10 +60,11 @@ sleep 0.5sec
 '
 export def 'set-x' [
     file: path # path to `.nu` file
-    --regex: string = "\n+\n" # regex to use to split .nu on blocks
+    --regex: string # regex to split on blocks (default: '\n+\n' - blank lines)
     --echo # output script to terminal
     --quiet # don't print any messages
 ] {
+    let regex = $regex | default "\n+\n"
     let out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
 
     open $file

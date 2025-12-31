@@ -268,7 +268,7 @@ dotnu set-x --help
 # =>
 # => Flags:
 # =>   -h, --help: Display the help message for this command
-# =>   --regex <string>: regex to use to split .nu on blocks (default: '\n+\n')
+# =>   --regex <string>: regex to split on blocks (default: '\n+\n' - blank lines)
 # =>   --echo: output script to terminal
 # =>   --quiet: don't print any messages
 # =>
@@ -281,6 +281,13 @@ dotnu set-x --help
 # =>   ├───┼───────┼────────┤
 # =>   │ 0 │ any   │ any    │
 # =>   ╰───┴───────┴────────╯
+# =>
+# => Examples:
+# =>
+# =>   > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
+# =>   mut $prev_ts = ( date now )
+# =>   print ("> sleep 0.5sec" | nu-highlight)
+# =>   sleep 0.5sec
 # =>
 ```
 
