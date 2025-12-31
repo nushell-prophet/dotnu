@@ -36,6 +36,7 @@ export def 'main test-integration' [
         (test-dependencies-keep_builtins)
         (test-embeds-remove)
         (test-embeds-update)
+        (test-coverage)
     ]
     # Run numd on README if available
     | if (scope modules | where name == 'numd' | is-not-empty) {
@@ -113,6 +114,40 @@ def 'test-embeds-update' [] {
     | save -f $output_file
 
     {test: 'embeds-update' file: $output_file}
+}
+
+# Test coverage: find public API commands without tests
+def 'test-coverage' [] {
+    let output_file = 'tests/output-yaml/coverage-untested.yaml'
+
+    mkdir ($output_file | path dirname)
+    rm -f $output_file
+
+    # Public API from mod.nu
+    let public_api = open dotnu/mod.nu
+        | lines
+        | where $it =~ '^\s+"'
+        | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
+
+    # Find untested commands
+    let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
+        | each { glob $in }
+        | flatten
+        | dependencies ...$in
+        | filter-commands-with-no-tests
+        | where caller in $public_api
+        | select caller
+
+    # Save as snapshot
+    {
+        public_api_count: ($public_api | length)
+        tested_count: (($public_api | length) - ($untested | length))
+        untested: ($untested | get caller)
+    }
+    | to yaml
+    | save -f $output_file
+
+    {test: 'coverage' file: $output_file}
 }
 
 # Test numd on README

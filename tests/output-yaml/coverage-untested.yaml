@@ -1,0 +1,6 @@
+public_api_count: 13
+tested_count: 10
+untested:
+- embed-add
+- embeds-capture-start
+- embeds-capture-stop
