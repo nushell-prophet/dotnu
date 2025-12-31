@@ -253,6 +253,32 @@ dotnu filter-commands-with-no-tests --help
 
 ### dotnu set-x
 
+```nushell
+dotnu set-x --help
+# => Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
+# => that will print the code of each block before executing it, and print the timings of each block's execution.
+# =>
+# => Usage:
+# =>   > set-x {flags} <file>
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>   --regex <string>: regex to use to split .nu on blocks (default: '\n+\n')
+# =>   --echo: output script to terminal
+# =>   --quiet: don't print any messages
+# =>
+# => Parameters:
+# =>   file <path>: path to `.nu` file
+# =>
+# => Input/output types:
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
+# =>   │ 0 │ any   │ any    │
+# =>   ╰───┴───────┴────────╯
+# =>
+```
+
 `dotnu set-x` opens a regular .nu script. It divides it into blocks using the specified regex (by default, it is "\n\n") and generates a new script that will print the code of each block before executing it, along with the timings of each block's execution.
 
 Let's check the code of the simple `set-x-demo.nu` script
@@ -292,3 +318,122 @@ dotnu set-x $filename --echo | lines | table -i false
 # => │                                                                                 │
 # => ╰─────────────────────────────────────────────────────────────────────────────────╯
 ```
+
+### dotnu generate-numd
+
+```nushell
+dotnu generate-numd --help
+# => Generate `.numd` from `.nu` divided on blocks by "\n\n"
+# =>
+# => Usage:
+# =>   > generate-numd
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Input/output types:
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
+# =>   │ 0 │ any   │ any    │
+# =>   ╰───┴───────┴────────╯
+# =>
+```
+
+Pipe a `.nu` script into this command to convert it into `.numd` format (markdown with code blocks).
+
+```nushell
+"sleep 0.5sec\n\nsleep 0.7sec" | dotnu generate-numd
+# => ```nu
+# => sleep 0.5sec
+# => ```
+# =>
+# => ```nu
+# => sleep 0.7sec
+# => ```
+# =>
+```
+
+### dotnu extract-command-code
+
+```nushell
+dotnu extract-command-code --help
+# => Extract a command code from a module and save it as a `.nu` file that can be sourced.
+# => By executing this `.nu` file, you'll have all the variables in your environment for debugging or development.
+# =>
+# => Usage:
+# =>   > extract-command-code {flags} <$module_path> <$command>
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>   --output <path>: a file path to save the extracted command script
+# =>   --clear-vars: clear variables previously set in the extracted .nu file
+# =>   --echo: output the command to the terminal
+# =>   --set-vars <record>: set variables for a command (default: {})
+# =>   --code-editor <string>: code is my editor of choice to open the result file (default: 'code')
+# =>
+# => Parameters:
+# =>   $module_path <path>: path to a Nushell module file
+# =>   $command <string>: the name of the command to extract
+# =>
+# => Input/output types:
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
+# =>   │ 0 │ any   │ any    │
+# =>   ╰───┴───────┴────────╯
+# =>
+```
+
+This command is useful for debugging. It extracts a command from a module, resolves its parameter defaults, and creates a standalone script you can source to get all variables in scope.
+
+### dotnu list-exported-commands
+
+```nushell
+dotnu list-exported-commands --help
+# => Usage:
+# =>   > list-exported-commands {flags} <$path>
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>   --export: use only commands that are exported
+# =>
+# => Parameters:
+# =>   $path <path>
+# =>
+# => Input/output types:
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
+# =>   │ 0 │ any   │ any    │
+# =>   ╰───┴───────┴────────╯
+# =>
+```
+
+List commands defined in a module file. Use `--export` to show only exported commands.
+
+### dotnu module-commands-code-to-record
+
+```nushell
+dotnu module-commands-code-to-record --help
+# => Extract the specified command and all its dependencies, outputting them to stdout
+# =>
+# => Usage:
+# =>   > module-commands-code-to-record <module_path>
+# =>
+# => Flags:
+# =>   -h, --help: Display the help message for this command
+# =>
+# => Parameters:
+# =>   module_path <path>: path to a Nushell module file
+# =>
+# => Input/output types:
+# =>   ╭───┬───────┬────────╮
+# =>   │ # │ input │ output │
+# =>   ├───┼───────┼────────┤
+# =>   │ 0 │ any   │ any    │
+# =>   ╰───┴───────┴────────╯
+# =>
+```
+
+Extracts all commands from a module file and returns them as a record where keys are command names and values are their source code.
