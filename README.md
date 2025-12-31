@@ -263,7 +263,9 @@ dotnu set-x --help
 # =>
 # => Flags:
 # =>   -h, --help: Display the help message for this command
-# =>   --regex <string>: regex to use to split .nu on blocks (default: '\n+\n')
+# =>   --regex <string>: regex to use to split .nu on blocks (default: '
+# => +
+# => ')
 # =>   --echo: output script to terminal
 # =>   --quiet: don't print any messages
 # =>
@@ -276,6 +278,13 @@ dotnu set-x --help
 # =>   ├───┼───────┼────────┤
 # =>   │ 0 │ any   │ any    │
 # =>   ╰───┴───────┴────────╯
+# =>
+# => Examples:
+# =>
+# =>   > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
+# =>   mut $prev_ts = ( date now )
+# =>   print ("> sleep 0.5sec" | nu-highlight)
+# =>   sleep 0.5sec
 # =>
 ```
 
@@ -323,7 +332,7 @@ dotnu set-x $filename --echo | lines | table -i false
 
 ```nushell
 dotnu generate-numd --help
-# => Generate `.numd` from `.nu` divided on blocks by "\n\n"
+# => Generate `.numd` from `.nu` divided into blocks by "\n\n"
 # =>
 # => Usage:
 # =>   > generate-numd
@@ -358,7 +367,7 @@ Pipe a `.nu` script into this command to convert it into `.numd` format (markdow
 
 ```nushell
 dotnu extract-command-code --help
-# => Extract a command code from a module and save it as a `.nu` file that can be sourced.
+# => Extract command code from a module and save it as a `.nu` file that can be sourced.
 # => By executing this `.nu` file, you'll have all the variables in your environment for debugging or development.
 # =>
 # => Usage:
@@ -416,7 +425,7 @@ List commands defined in a module file. Use `--export` to show only exported com
 
 ```nushell
 dotnu module-commands-code-to-record --help
-# => Extract the specified command and all its dependencies, outputting them to stdout
+# => Extract all commands from a module as a record of {command_name: source_code}
 # =>
 # => Usage:
 # =>   > module-commands-code-to-record <module_path>
