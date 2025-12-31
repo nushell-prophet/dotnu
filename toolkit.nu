@@ -125,18 +125,18 @@ def 'test-coverage' [] {
 
     # Public API from mod.nu
     let public_api = open dotnu/mod.nu
-        | lines
-        | where $it =~ '^\s+"'
-        | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
+    | lines
+    | where $it =~ '^\s+"'
+    | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
 
     # Find untested commands
     let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
-        | each { glob $in }
-        | flatten
-        | dependencies ...$in
-        | filter-commands-with-no-tests
-        | where caller in $public_api
-        | select caller
+    | each { glob $in }
+    | flatten
+    | dependencies ...$in
+    | filter-commands-with-no-tests
+    | where caller in $public_api
+    | select caller
 
     # Save as snapshot
     {
