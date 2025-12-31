@@ -45,52 +45,38 @@ export def 'main test-integration' [
     | if $json { to json --raw } else { }
 }
 
-# Test dependencies command
-def 'test-dependencies' [] {
-    let output_file = ['tests' 'output-yaml' 'dependencies.yaml'] | path join
-
+# Run command and save output with source code as header comment
+def run-snapshot-test [name: string, output_file: string, command_src: closure] {
     mkdir ($output_file | path dirname)
     rm -f $output_file
 
-    let command_src = {
+    let command_text = view source $command_src
+        | lines | skip | drop | str trim
+        | each { $'# ($in)' }
+        | str join (char nl)
+
+    $command_text + (char nl) + (do $command_src)
+    | save -f $output_file
+
+    {test: $name file: $output_file}
+}
+
+# Test dependencies command
+def 'test-dependencies' [] {
+    run-snapshot-test 'dependencies' 'tests/output-yaml/dependencies.yaml' {
         glob ([tests assets b *] | path join | str replace -a '\' '/')
         | dependencies ...$in
         | to yaml
     }
-
-    let command_text = view source $command_src
-    | lines | skip | drop | str trim
-    | each { $'# ($in)' }
-    | str join (char nl)
-
-    $command_text + (char nl) + (do $command_src)
-    | save -f $output_file
-
-    {test: 'dependencies' file: $output_file}
 }
 
 # Test dependencies command with keep-builtins option
 def 'test-dependencies-keep_builtins' [] {
-    let output_file = ['tests' 'output-yaml' 'dependencies --keep_bulitins.yaml'] | path join
-
-    mkdir ($output_file | path dirname)
-    rm -f $output_file
-
-    let command_src = {
+    run-snapshot-test 'dependencies --keep-builtins' 'tests/output-yaml/dependencies --keep_bulitins.yaml' {
         glob ([tests assets b *] | path join | str replace -a '\' '/')
         | dependencies ...$in --keep-builtins
         | to yaml
     }
-
-    let command_text = view source $command_src
-    | lines | skip | drop | str trim
-    | each { $'# ($in)' }
-    | str join (char nl)
-
-    $command_text + (char nl) + (do $command_src)
-    | save -f $output_file
-
-    {test: 'dependencies --keep-builtins' file: $output_file}
 }
 
 # Test embeds-remove command
