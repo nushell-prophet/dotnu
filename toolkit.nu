@@ -28,6 +28,11 @@ export def 'main test-unit' [
 }
 
 # Run integration tests
+#
+# These are snapshot tests: each test runs a command and saves the output to a file.
+# The files are committed to git, so `git diff` reveals any behavioral changes.
+# The `run-snapshot-test` helper embeds the generating code as header comments,
+# making each snapshot self-documenting.
 export def 'main test-integration' [
     --json # output results as JSON for external consumption
 ] {
