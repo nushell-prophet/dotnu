@@ -1,12 +1,12 @@
 ![dotnu](https://github.com/user-attachments/assets/4fb74e46-f75b-4155-8e61-8ff75db66117)
 
-<h1 align="center"><strong>dotnu - tools for Nushell module developers 🛠️</strong></h1>
+<h1 align="center"><strong>dotnu - tools for Nushell module developers</strong></h1>
 
 <p align="center"><em>(A good companion for <a href="https://github.com/nushell-prophet/numd">numd</a>)</em></p>
 
 <p align="center">dotnu augments Nushell with helpers for literate programming, dependency analysis, and script profiling.</p>
 
-## dotnu video demo
+## Video demo
 
 <a href="https://youtu.be/-C7_dfLXXrE">
   <img src="https://github.com/user-attachments/assets/fdd07bfc-7d77-4dca-8a1c-3e27ac3063f9" alt="dotnu demo" width="100"/>
@@ -22,6 +22,7 @@ use dotnu
 ```
 
 ### [`nupm`](https://github.com/nushell/nupm)
+
 ```nushell no-run
 nupm install https://github.com/nushell-prophet/dotnu --git
 # if nupm modules are not in  `NU_LIB_DIRS`:
@@ -30,15 +31,15 @@ $env.NU_LIB_DIRS ++= [ ($env.NUPM_HOME | path join "modules") ]
 use dotnu
 ```
 
-## Embeds — keeping examples in sync
+## Embeds — Literate Programming
 
 `dotnu` lets you write **literate Nushell**: ordinary Nushell scripts that include the real command output right after each pipeline ending in `| print $in`. See the [capture example](/dotnu-capture.nu) to grasp the idea quickly.
 
 The `| print $in` suffix acts as a simple `print` in native Nushell and as a capture marker for dotnu, so scripts remain valid and functional even when run without loading the `dotnu` module.
 
-The main command is `dotnu embeds-update`.
+### `dotnu embeds-update`
 
-`dotnu embeds-update` takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
+The main command. It takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
 
 You can run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
 
@@ -69,15 +70,15 @@ dotnu embeds-update --help
 # =>
 ```
 
-### Embeds helper commands
+### Helper commands
 
-While it is easy to write scripts in editor, there are several convenience helper commands that facilitate populating script files from terminal.
+While it is easy to write scripts in an editor, there are several convenience helper commands that facilitate populating script files from the terminal.
 
-### `dotnu embeds-setup`
+#### `dotnu embeds-setup`
 
-define or change the capture file (add `--auto-commit` to auto‑commit snapshots).
+Define or change the capture file (add `--auto-commit` to auto-commit snapshots).
 
-```nu
+```nushell
 dotnu embeds-setup --help
 # => Set environment variables to operate with embeds
 # =>
@@ -100,11 +101,11 @@ dotnu embeds-setup --help
 # =>
 ```
 
-### `dotnu embeds-capture-start` and `dotnu embeds-capture-stop`
+#### `dotnu embeds-capture-start` and `dotnu embeds-capture-stop`
 
-record every result printed in the interactive session.
+Record every result printed in the interactive session.
 
-```nu
+```nushell
 dotnu embeds-capture-start --help
 # => start capturing commands and their outputs into a file
 # =>
@@ -126,11 +127,11 @@ dotnu embeds-capture-start --help
 # =>
 ```
 
-### `dotnu embed-add`
+#### `dotnu embed-add`
 
-capture only the pipeline you run it on; useful for fine‑grained examples.
+Capture only the pipeline you run it on; useful for fine-grained examples.
 
-```nu
+```nushell
 dotnu embed-add --help
 # => Embed stdin together with its command into the file
 # =>
@@ -152,11 +153,11 @@ dotnu embed-add --help
 # =>
 ```
 
-### `dotnu embeds-remove`
+#### `dotnu embeds-remove`
 
-strip all captured output, leaving clean code.
+Strip all captured output, leaving clean code.
 
-```nu
+```nushell
 dotnu embeds-remove --help
 # => Removes annotation lines starting with "# => " from the script
 # =>
@@ -175,9 +176,9 @@ dotnu embeds-remove --help
 # =>
 ```
 
-## Commands
+## Dependency Analysis
 
-### dotnu dependencies
+### `dotnu dependencies`
 
 ```nushell
 dotnu dependencies --help
@@ -218,7 +219,7 @@ dotnu dependencies --help
 # =>
 ```
 
-### dotnu filter-commands-with-no-tests
+### `dotnu filter-commands-with-no-tests`
 
 ```nushell
 dotnu filter-commands-with-no-tests --help
@@ -251,7 +252,11 @@ dotnu filter-commands-with-no-tests --help
 # =>
 ```
 
-### dotnu set-x
+## Script Profiling
+
+### `dotnu set-x`
+
+Divide a script into blocks and generate a new script that prints each block before executing it, along with timing information.
 
 ```nushell
 dotnu set-x --help
@@ -263,9 +268,7 @@ dotnu set-x --help
 # =>
 # => Flags:
 # =>   -h, --help: Display the help message for this command
-# =>   --regex <string>: regex to use to split .nu on blocks (default: '
-# => +
-# => ')
+# =>   --regex <string>: regex to use to split .nu on blocks (default: '\n+\n')
 # =>   --echo: output script to terminal
 # =>   --quiet: don't print any messages
 # =>
@@ -279,18 +282,9 @@ dotnu set-x --help
 # =>   │ 0 │ any   │ any    │
 # =>   ╰───┴───────┴────────╯
 # =>
-# => Examples:
-# =>
-# =>   > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
-# =>   mut $prev_ts = ( date now )
-# =>   print ("> sleep 0.5sec" | nu-highlight)
-# =>   sleep 0.5sec
-# =>
 ```
 
-`dotnu set-x` opens a regular .nu script. It divides it into blocks using the specified regex (by default, it is "\n\n") and generates a new script that will print the code of each block before executing it, along with the timings of each block's execution.
-
-Let's check the code of the simple `set-x-demo.nu` script
+Example with a simple script:
 
 ```nushell
 let $filename = [tests assets set-x-demo.nu] | path join
@@ -303,8 +297,6 @@ open $filename | lines | table -i false
 # => │ sleep 0.8sec │
 # => ╰──────────────╯
 ```
-
-Let's see how `dotnu set-x` will modify this script
 
 ```nushell
 dotnu set-x $filename --echo | lines | table -i false
@@ -328,7 +320,11 @@ dotnu set-x $filename --echo | lines | table -i false
 # => ╰─────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### dotnu generate-numd
+## Utilities
+
+### `dotnu generate-numd`
+
+Pipe a `.nu` script into this command to convert it into `.numd` format (markdown with code blocks).
 
 ```nushell
 dotnu generate-numd --help
@@ -349,8 +345,6 @@ dotnu generate-numd --help
 # =>
 ```
 
-Pipe a `.nu` script into this command to convert it into `.numd` format (markdown with code blocks).
-
 ```nushell
 "sleep 0.5sec\n\nsleep 0.7sec" | dotnu generate-numd
 # => ```nu
@@ -363,7 +357,9 @@ Pipe a `.nu` script into this command to convert it into `.numd` format (markdow
 # =>
 ```
 
-### dotnu extract-command-code
+### `dotnu extract-command-code`
+
+Extract a command from a module, resolve its parameter defaults, and create a standalone script you can source to get all variables in scope. Useful for debugging.
 
 ```nushell
 dotnu extract-command-code --help
@@ -394,9 +390,9 @@ dotnu extract-command-code --help
 # =>
 ```
 
-This command is useful for debugging. It extracts a command from a module, resolves its parameter defaults, and creates a standalone script you can source to get all variables in scope.
+### `dotnu list-exported-commands`
 
-### dotnu list-exported-commands
+List commands defined in a module file. Use `--export` to show only exported commands.
 
 ```nushell
 dotnu list-exported-commands --help
@@ -419,9 +415,9 @@ dotnu list-exported-commands --help
 # =>
 ```
 
-List commands defined in a module file. Use `--export` to show only exported commands.
+### `dotnu module-commands-code-to-record`
 
-### dotnu module-commands-code-to-record
+Extract all commands from a module file and return them as a record where keys are command names and values are their source code.
 
 ```nushell
 dotnu module-commands-code-to-record --help
@@ -444,5 +440,3 @@ dotnu module-commands-code-to-record --help
 # =>   ╰───┴───────┴────────╯
 # =>
 ```
-
-Extracts all commands from a module file and returns them as a record where keys are command names and values are their source code.
