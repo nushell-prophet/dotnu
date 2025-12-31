@@ -46,14 +46,14 @@ export def 'main test-integration' [
 }
 
 # Run command and save output with source code as header comment
-def run-snapshot-test [name: string, output_file: string, command_src: closure] {
+def run-snapshot-test [name: string output_file: string command_src: closure] {
     mkdir ($output_file | path dirname)
     rm -f $output_file
 
     let command_text = view source $command_src
-        | lines | skip | drop | str trim
-        | each { $'# ($in)' }
-        | str join (char nl)
+    | lines | skip | drop | str trim
+    | each { $'# ($in)' }
+    | str join (char nl)
 
     $command_text + (char nl) + (do $command_src)
     | save -f $output_file
@@ -107,18 +107,18 @@ def 'test-coverage' [] {
     run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.yaml] | path join) {
         # Public API from mod.nu
         let public_api = open ([dotnu mod.nu] | path join)
-            | lines
-            | where $it =~ '^\s+"'
-            | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
+        | lines
+        | where $it =~ '^\s+"'
+        | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
 
         # Find untested commands
         let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
-            | each { glob $in }
-            | flatten
-            | dependencies ...$in
-            | filter-commands-with-no-tests
-            | where caller in $public_api
-            | select caller
+        | each { glob $in }
+        | flatten
+        | dependencies ...$in
+        | filter-commands-with-no-tests
+        | where caller in $public_api
+        | select caller
 
         # Output as yaml
         {
