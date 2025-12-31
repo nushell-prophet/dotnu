@@ -91,14 +91,14 @@ export def 'set-x' [
     }
 }
 
-# Generate `.numd` from `.nu` divided on blocks by "\n\n"
+# Generate `.numd` from `.nu` divided into blocks by "\n\n"
 export def 'generate-numd' [] {
     split row -r "\n+\n"
     | each { $"```nu\n($in)\n```\n" }
     | to text
 }
 
-# Extract a command code from a module and save it as a `.nu` file that can be sourced.
+# Extract command code from a module and save it as a `.nu` file that can be sourced.
 # By executing this `.nu` file, you'll have all the variables in your environment for debugging or development.
 export def 'extract-command-code' [
     $module_path: path # path to a Nushell module file
@@ -155,7 +155,7 @@ export def 'extract-command-code' [
     }
 }
 
-# todo: `list-exported-commands` should be a completion for nushell cli
+# todo: `list-exported-commands` should be a completion for Nushell CLI
 
 export def 'list-exported-commands' [
     $path: path
@@ -179,7 +179,7 @@ export def 'list-exported-commands' [
     } else { }
 }
 
-#todo: make configuration like --autocommit in file itself
+# todo: make configuration like --autocommit in file itself
 
 # Inserts captured output back into the script at capture points
 export def 'embeds-update' [
@@ -337,7 +337,7 @@ export def --env 'embeds-capture-stop' []: nothing -> nothing {
 }
 
 #### helpers
-# they used to be separately here from the main code, but I want to experiment with structure
+# they used to be separate from the main code, but I want to experiment with structure
 # so all the commands are in one file now, and all are exported, to be available in my scripts
 # that can use this file commands with 'use ..', though main commands are exported in mod.nu
 
@@ -386,7 +386,7 @@ export def check-clean-working-tree [
     }
 }
 
-# make a record from code with variable definitions
+# Make a record from code with variable definitions
 @example '' {
     "let $quiet = false; let no_timestamp = false" | variable-definitions-to-record
 } --result {quiet: false no_timestamp: false}
@@ -561,7 +561,7 @@ export def list-module-commands [
     $calls | append $defs_without_calls
 }
 
-# Extract the specified command and all its dependencies, outputting them to stdout
+# Extract all commands from a module as a record of {command_name: source_code}
 export def 'module-commands-code-to-record' [
     module_path: path # path to a Nushell module file
 ] {
@@ -709,7 +709,7 @@ export def 'comment-hash-colon' [
     }
 }
 
-# Extracts captured output from a script file execution result
+# Extract captured output from a script file execution results
 export def execute-and-parse-results [
     script: string
     --script_path: path
