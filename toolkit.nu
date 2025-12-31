@@ -109,11 +109,9 @@ def 'test-coverage' [] {
         | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
 
         # Find untested commands
-        let untested = [
-            ...(glob $"dotnu(char psep)*.nu")
-            ([tests test_commands.nu] | path join)
-            "toolkit.nu"
-        ]
+        let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
+        | each { glob $in }
+        | flatten
         | dependencies ...$in
         | filter-commands-with-no-tests
         | where caller in $public_api
