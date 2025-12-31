@@ -7,6 +7,7 @@ export def main [] { }
 export def 'main test' [
     --json # output results as JSON for external consumption
     --update # accept changes: stage modified integration test files
+    --fail # exit with non-zero code if any tests fail (for CI)
 ] {
     if not $json { print $"(ansi attr_dimmed)Unit tests(ansi reset)" }
     let unit = main test-unit --json=$json
@@ -30,6 +31,11 @@ export def 'main test' [
         if $changed > 0 and not $update {
             print $"(ansi attr_dimmed)Run with --update to accept changes(ansi reset)"
         }
+    }
+
+    if $fail and $failed > 0 {
+        if $json { print ($results | to json --raw) }
+        exit 1
     }
 
     if $json { $results | to json --raw }
