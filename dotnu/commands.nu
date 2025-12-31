@@ -10,6 +10,7 @@ export def 'dependencies' [
     --definitions-only # output only commands' names definitions
 ] {
     let callees_to_merge = $paths
+    | sort  # ensure consistent order across platforms
     | each {
         list-module-commands $in --keep-builtins=$keep_builtins --definitions-only=$definitions_only
     }
@@ -544,10 +545,9 @@ export def list-module-commands [
     }
     | where caller != null and caller !~ '^@'  # exclude tokens inside attribute blocks
     | where shape in ['shape_internalcall' 'shape_external']
+    | where content not-in (help commands | where command_type == 'keyword' | get name)  # always exclude keywords (def, export def, etc.)
     | if $keep_builtins { } else {
-        where content not-in (
-            help commands | where command_type in ['built-in' 'keyword'] | get name
-        )
+        where content not-in (help commands | where command_type == 'built-in' | get name)
     }
     | select caller content filename_of_caller
     | rename --column {content: callee}

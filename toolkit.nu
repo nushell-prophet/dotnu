@@ -28,6 +28,11 @@ export def 'main test-unit' [
 }
 
 # Run integration tests
+#
+# These are snapshot tests: each test runs a command and saves the output to a file.
+# The files are committed to git, so `git diff` reveals any behavioral changes.
+# The `run-snapshot-test` helper embeds the generating code as header comments,
+# making each snapshot self-documenting.
 export def 'main test-integration' [
     --json # output results as JSON for external consumption
 ] {
@@ -36,6 +41,7 @@ export def 'main test-integration' [
         (test-dependencies-keep_builtins)
         (test-embeds-remove)
         (test-embeds-update)
+        (test-coverage)
     ]
     # Run numd on README if available
     | if (scope modules | where name == 'numd' | is-not-empty) {
@@ -44,75 +50,81 @@ export def 'main test-integration' [
     | if $json { to json --raw } else { }
 }
 
-# Test dependencies command
-def 'test-dependencies' [] {
-    let output_file = ['tests' 'output-yaml' 'dependencies.yaml'] | path join
-
+# Run command and save output with source code as header comment
+def run-snapshot-test [name: string output_file: string command_src: closure] {
     mkdir ($output_file | path dirname)
     rm -f $output_file
 
-    let command_src = {
+    let command_text = view source $command_src
+    | lines | skip | drop | str trim
+    | each { $'# ($in)' }
+    | str join (char nl)
+
+    $command_text + (char nl) + (do $command_src)
+    | save -f $output_file
+
+    {test: $name file: $output_file}
+}
+
+# Test dependencies command
+def 'test-dependencies' [] {
+    run-snapshot-test 'dependencies' ([tests output-yaml dependencies.yaml] | path join) {
         glob ([tests assets b *] | path join | str replace -a '\' '/')
         | dependencies ...$in
         | to yaml
     }
-
-    let command_text = view source $command_src
-    | lines | skip | drop | str trim
-    | each { $'# ($in)' }
-    | str join (char nl)
-
-    $command_text + (char nl) + (do $command_src)
-    | save -f $output_file
-
-    {test: 'dependencies' file: $output_file}
 }
 
 # Test dependencies command with keep-builtins option
 def 'test-dependencies-keep_builtins' [] {
-    let output_file = ['tests' 'output-yaml' 'dependencies --keep_bulitins.yaml'] | path join
-
-    mkdir ($output_file | path dirname)
-    rm -f $output_file
-
-    let command_src = {
+    run-snapshot-test 'dependencies --keep-builtins' ([tests output-yaml 'dependencies --keep_builtins.yaml'] | path join) {
         glob ([tests assets b *] | path join | str replace -a '\' '/')
         | dependencies ...$in --keep-builtins
         | to yaml
     }
-
-    let command_text = view source $command_src
-    | lines | skip | drop | str trim
-    | each { $'# ($in)' }
-    | str join (char nl)
-
-    $command_text + (char nl) + (do $command_src)
-    | save -f $output_file
-
-    {test: 'dependencies --keep-builtins' file: $output_file}
 }
 
 # Test embeds-remove command
 def 'test-embeds-remove' [] {
-    let input_file = 'tests/assets/dotnu-capture.nu'
-    let output_file = 'tests/assets/dotnu-capture-clean.nu'
-
-    open $input_file
-    | dotnu embeds-remove
-    | save -f $output_file
-
-    {test: 'embeds-remove' file: $output_file}
+    run-snapshot-test 'embeds-remove' ([tests assets dotnu-capture-clean.nu] | path join) {
+        open ([tests assets dotnu-capture.nu] | path join)
+        | dotnu embeds-remove
+    }
 }
 
 # Test embeds-update command
 def 'test-embeds-update' [] {
-    let input_file = 'tests/assets/dotnu-capture.nu'
-    let output_file = 'tests/assets/dotnu-capture-updated.nu'
+    run-snapshot-test 'embeds-update' ([tests assets dotnu-capture-updated.nu] | path join) {
+        dotnu embeds-update ([tests assets dotnu-capture.nu] | path join) --echo
+    }
+}
 
-    dotnu embeds-update $input_file --echo
-    | save -f $output_file
+# Test coverage: find public API commands without tests
+def 'test-coverage' [] {
+    run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.yaml] | path join) {
+        # Public API from mod.nu
+        let public_api = open ([dotnu mod.nu] | path join)
+        | lines
+        | where $it =~ '^\s+"'
+        | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
 
-    {test: 'embeds-update' file: $output_file}
+        # Find untested commands
+        let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
+        | each { glob $in }
+        | flatten
+        | dependencies ...$in
+        | filter-commands-with-no-tests
+        | where caller in $public_api
+        | select caller
+
+        # Output as yaml
+        {
+            public_api_count: ($public_api | length)
+            tested_count: (($public_api | length) - ($untested | length))
+            untested: ($untested | get caller)
+        }
+        | to yaml
+    }
 }
 
 # Test numd on README
