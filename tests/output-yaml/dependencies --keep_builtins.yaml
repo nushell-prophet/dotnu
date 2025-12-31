@@ -1,20 +1,8 @@
 # glob ([tests assets b *] | path join | str replace -a '\' '/')
 # | dependencies ...$in --keep-builtins
 # | to yaml
-- caller: example-mod1
-  callee: export def
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: lscustom
-  callee: export def
-  filename_of_caller: example-mod1.nu
-  step: 0
 - caller: lscustom
   callee: ls
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: command-5
-  callee: export def
   filename_of_caller: example-mod1.nu
   step: 0
 - caller: command-5
@@ -30,27 +18,15 @@
   filename_of_caller: example-mod1.nu
   step: 0
 - caller: sort-by-custom
-  callee: def
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: sort-by-custom
   callee: sort-by
   filename_of_caller: example-mod1.nu
   step: 0
 - caller: command-3
-  callee: def
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: command-3
   callee: lscustom
   filename_of_caller: example-mod1.nu
   step: 0
 - caller: command-3
   callee: sort-by-custom
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: first-custom
-  callee: def
   filename_of_caller: example-mod1.nu
   step: 0
 - caller: first-custom
@@ -61,9 +37,9 @@
   callee: select
   filename_of_caller: example-mod1.nu
   step: 0
-- caller: append-random
-  callee: export def
-  filename_of_caller: example-mod2.nu
+- caller: example-mod1
+  filename_of_caller: example-mod1.nu
+  callee: null
   step: 0
 - caller: append-random
   callee: append
@@ -73,10 +49,6 @@
   callee: random chars
   filename_of_caller: example-mod2.nu
   step: 0
-- caller: command-5
-  callee: def
-  step: 1
-  filename_of_caller: example-mod1.nu
 - caller: command-5
   callee: lscustom
   step: 1
@@ -99,10 +71,6 @@
   filename_of_caller: example-mod1.nu
 - caller: command-5
   callee: random chars
-  step: 1
-  filename_of_caller: example-mod1.nu
-- caller: command-3
-  callee: export def
   step: 1
   filename_of_caller: example-mod1.nu
 - caller: command-3
