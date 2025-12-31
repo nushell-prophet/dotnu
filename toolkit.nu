@@ -51,13 +51,14 @@ export def 'main test-unit' [
     let results = nutest run-tests --path tests/ --match-suites 'test_commands' --returns table --display nothing
 
     # Convert to flat table format
-    let flat = $results | each { |row|
+    let flat = $results
+    | each {|row|
         let status = if $row.result == 'PASS' { 'passed' } else { 'failed' }
         {type: 'unit' name: $row.test status: $status file: null}
     }
 
     if not $json {
-        $flat | each { |r| print-test-result $r }
+        $flat | each {|r| print-test-result $r }
     }
 
     if $json { $flat | to json --raw } else { $flat }
@@ -74,47 +75,57 @@ export def 'main test-integration' [
     --update # accept changes: stage modified files in git
 ] {
     let results = [
-        (run-snapshot-test 'dependencies' ([tests output-yaml dependencies.yaml] | path join) {
-            glob ([tests assets b *] | path join | str replace -a '\' '/')
-            | dependencies ...$in
-            | to yaml
-        })
-        (run-snapshot-test 'dependencies --keep-builtins' ([tests output-yaml 'dependencies --keep_builtins.yaml'] | path join) {
-            glob ([tests assets b *] | path join | str replace -a '\' '/')
-            | dependencies ...$in --keep-builtins
-            | to yaml
-        })
-        (run-snapshot-test 'embeds-remove' ([tests assets dotnu-capture-clean.nu] | path join) {
-            open ([tests assets dotnu-capture.nu] | path join)
-            | dotnu embeds-remove
-        })
-        (run-snapshot-test 'embeds-update' ([tests assets dotnu-capture-updated.nu] | path join) {
-            dotnu embeds-update ([tests assets dotnu-capture.nu] | path join) --echo
-        })
-        (run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.yaml] | path join) {
-            # Public API from mod.nu
-            let public_api = open ([dotnu mod.nu] | path join)
-            | lines
-            | where $it =~ '^\s+"'
-            | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
-
-            # Find untested commands
-            let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
-            | each { glob $in }
-            | flatten
-            | dependencies ...$in
-            | filter-commands-with-no-tests
-            | where caller in $public_api
-            | select caller
-
-            # Output as yaml
-            {
-                public_api_count: ($public_api | length)
-                tested_count: (($public_api | length) - ($untested | length))
-                untested: ($untested | get caller)
+        (
+            run-snapshot-test 'dependencies' ([tests output-yaml dependencies.yaml] | path join) {
+                glob ([tests assets b *] | path join | str replace -a '\' '/')
+                | dependencies ...$in
+                | to yaml
             }
-            | to yaml
-        })
+        )
+        (
+            run-snapshot-test 'dependencies --keep-builtins' ([tests output-yaml 'dependencies --keep_builtins.yaml'] | path join) {
+                glob ([tests assets b *] | path join | str replace -a '\' '/')
+                | dependencies ...$in --keep-builtins
+                | to yaml
+            }
+        )
+        (
+            run-snapshot-test 'embeds-remove' ([tests assets dotnu-capture-clean.nu] | path join) {
+                open ([tests assets dotnu-capture.nu] | path join)
+                | dotnu embeds-remove
+            }
+        )
+        (
+            run-snapshot-test 'embeds-update' ([tests assets dotnu-capture-updated.nu] | path join) {
+                dotnu embeds-update ([tests assets dotnu-capture.nu] | path join) --echo
+            }
+        )
+        (
+            run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.yaml] | path join) {
+                # Public API from mod.nu
+                let public_api = open ([dotnu mod.nu] | path join)
+                | lines
+                | where $it =~ '^\s+"'
+                | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
+
+                # Find untested commands
+                let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
+                | each { glob $in }
+                | flatten
+                | dependencies ...$in
+                | filter-commands-with-no-tests
+                | where caller in $public_api
+                | select caller
+
+                # Output as yaml
+                {
+                    public_api_count: ($public_api | length)
+                    tested_count: (($public_api | length) - ($untested | length))
+                    untested: ($untested | get caller)
+                }
+                | to yaml
+            }
+        )
     ]
     # Run numd on README if available
     | if (scope modules | where name == 'numd' | is-not-empty) {
@@ -122,13 +133,13 @@ export def 'main test-integration' [
     } else { }
 
     if not $json {
-        $results | each { |r| print-test-result $r }
+        $results | each {|r| print-test-result $r }
     }
 
     if $update {
         let changed = $results | where status == 'changed'
         if ($changed | is-not-empty) {
-            $changed | each { |r|
+            $changed | each {|r|
                 ^git add $r.file
                 print $"(ansi green)Staged:(ansi reset) ($r.file)"
             }
@@ -152,7 +163,7 @@ def print-test-result [result: record] {
 
 # Run command and save output with source code as header comment
 # Returns: {type: 'integration', name: string, status: 'passed'|'changed'|'failed', file: string}
-def run-snapshot-test [name: string, output_file: string, command_src: closure] {
+def run-snapshot-test [name: string output_file: string command_src: closure] {
     mkdir ($output_file | path dirname)
 
     let command_text = view source $command_src
@@ -169,7 +180,7 @@ def run-snapshot-test [name: string, output_file: string, command_src: closure] 
         let status = if $diff_result.exit_code == 0 { 'passed' } else { 'changed' }
 
         {type: 'integration' name: $name status: $status file: $output_file}
-    } catch { |err|
+    } catch {|err|
         {type: 'integration' name: $name status: 'failed' file: $output_file}
     }
 }
