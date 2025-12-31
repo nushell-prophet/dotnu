@@ -63,7 +63,7 @@ def run-snapshot-test [name: string, output_file: string, command_src: closure] 
 
 # Test dependencies command
 def 'test-dependencies' [] {
-    run-snapshot-test 'dependencies' 'tests/output-yaml/dependencies.yaml' {
+    run-snapshot-test 'dependencies' ([tests output-yaml dependencies.yaml] | path join) {
         glob ([tests assets b *] | path join | str replace -a '\' '/')
         | dependencies ...$in
         | to yaml
@@ -72,7 +72,7 @@ def 'test-dependencies' [] {
 
 # Test dependencies command with keep-builtins option
 def 'test-dependencies-keep_builtins' [] {
-    run-snapshot-test 'dependencies --keep-builtins' 'tests/output-yaml/dependencies --keep_bulitins.yaml' {
+    run-snapshot-test 'dependencies --keep-builtins' ([tests output-yaml 'dependencies --keep_bulitins.yaml'] | path join) {
         glob ([tests assets b *] | path join | str replace -a '\' '/')
         | dependencies ...$in --keep-builtins
         | to yaml
@@ -81,8 +81,8 @@ def 'test-dependencies-keep_builtins' [] {
 
 # Test embeds-remove command
 def 'test-embeds-remove' [] {
-    let input_file = 'tests/assets/dotnu-capture.nu'
-    let output_file = 'tests/assets/dotnu-capture-clean.nu'
+    let input_file = [tests assets dotnu-capture.nu] | path join
+    let output_file = [tests assets dotnu-capture-clean.nu] | path join
 
     open $input_file
     | dotnu embeds-remove
@@ -93,8 +93,8 @@ def 'test-embeds-remove' [] {
 
 # Test embeds-update command
 def 'test-embeds-update' [] {
-    let input_file = 'tests/assets/dotnu-capture.nu'
-    let output_file = 'tests/assets/dotnu-capture-updated.nu'
+    let input_file = [tests assets dotnu-capture.nu] | path join
+    let output_file = [tests assets dotnu-capture-updated.nu] | path join
 
     dotnu embeds-update $input_file --echo
     | save -f $output_file
@@ -104,13 +104,13 @@ def 'test-embeds-update' [] {
 
 # Test coverage: find public API commands without tests
 def 'test-coverage' [] {
-    let output_file = 'tests/output-yaml/coverage-untested.yaml'
+    let output_file = [tests output-yaml coverage-untested.yaml] | path join
 
     mkdir ($output_file | path dirname)
     rm -f $output_file
 
     # Public API from mod.nu
-    let public_api = open dotnu/mod.nu
+    let public_api = open ([dotnu mod.nu] | path join)
     | lines
     | where $it =~ '^\s+"'
     | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
