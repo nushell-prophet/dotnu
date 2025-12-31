@@ -104,36 +104,30 @@ def 'test-embeds-update' [] {
 
 # Test coverage: find public API commands without tests
 def 'test-coverage' [] {
-    let output_file = [tests output-yaml coverage-untested.yaml] | path join
+    run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.yaml] | path join) {
+        # Public API from mod.nu
+        let public_api = open ([dotnu mod.nu] | path join)
+            | lines
+            | where $it =~ '^\s+"'
+            | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
 
-    mkdir ($output_file | path dirname)
-    rm -f $output_file
+        # Find untested commands
+        let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
+            | each { glob $in }
+            | flatten
+            | dependencies ...$in
+            | filter-commands-with-no-tests
+            | where caller in $public_api
+            | select caller
 
-    # Public API from mod.nu
-    let public_api = open ([dotnu mod.nu] | path join)
-    | lines
-    | where $it =~ '^\s+"'
-    | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
-
-    # Find untested commands
-    let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
-    | each { glob $in }
-    | flatten
-    | dependencies ...$in
-    | filter-commands-with-no-tests
-    | where caller in $public_api
-    | select caller
-
-    # Save as snapshot
-    {
-        public_api_count: ($public_api | length)
-        tested_count: (($public_api | length) - ($untested | length))
-        untested: ($untested | get caller)
+        # Output as yaml
+        {
+            public_api_count: ($public_api | length)
+            tested_count: (($public_api | length) - ($untested | length))
+            untested: ($untested | get caller)
+        }
+        | to yaml
     }
-    | to yaml
-    | save -f $output_file
-
-    {test: 'coverage' file: $output_file}
 }
 
 # Test numd on README
