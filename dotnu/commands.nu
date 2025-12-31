@@ -10,6 +10,7 @@ export def 'dependencies' [
     --definitions-only # output only commands' names definitions
 ] {
     let callees_to_merge = $paths
+    | sort  # ensure consistent order across platforms
     | each {
         list-module-commands $in --keep-builtins=$keep_builtins --definitions-only=$definitions_only
     }
