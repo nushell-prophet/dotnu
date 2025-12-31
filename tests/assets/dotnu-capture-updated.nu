@@ -1,3 +1,4 @@
+# dotnu embeds-update ([tests assets dotnu-capture.nu] | path join) --echo
 # this is a typical nushell script
 # embeds in this script can be updated using command:
 # `dotnu embeds-update dotnu-capture.nu`
@@ -14,7 +15,7 @@ ls | sort-by modified -r | last 2 | print $in
 # => ╰───┴──────────────────────────────┴──────┴───────┴────────────╯
 
 random int | print $in
-# => 5037388629847034664
+# => 4577019228065240114
 
 'Say hello to the core team of the Nushell'
 | str replace 'Nushell' 'Best shell'

@@ -1,3 +1,5 @@
+# open ([tests assets dotnu-capture.nu] | path join)
+# | dotnu embeds-remove
 # this is a typical nushell script
 # embeds in this script can be updated using command:
 # `dotnu embeds-update dotnu-capture.nu`

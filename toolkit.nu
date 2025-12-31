@@ -77,7 +77,7 @@ def 'test-dependencies' [] {
 
 # Test dependencies command with keep-builtins option
 def 'test-dependencies-keep_builtins' [] {
-    run-snapshot-test 'dependencies --keep-builtins' ([tests output-yaml 'dependencies --keep_bulitins.yaml'] | path join) {
+    run-snapshot-test 'dependencies --keep-builtins' ([tests output-yaml 'dependencies --keep_builtins.yaml'] | path join) {
         glob ([tests assets b *] | path join | str replace -a '\' '/')
         | dependencies ...$in --keep-builtins
         | to yaml
@@ -86,25 +86,17 @@ def 'test-dependencies-keep_builtins' [] {
 
 # Test embeds-remove command
 def 'test-embeds-remove' [] {
-    let input_file = [tests assets dotnu-capture.nu] | path join
-    let output_file = [tests assets dotnu-capture-clean.nu] | path join
-
-    open $input_file
-    | dotnu embeds-remove
-    | save -f $output_file
-
-    {test: 'embeds-remove' file: $output_file}
+    run-snapshot-test 'embeds-remove' ([tests assets dotnu-capture-clean.nu] | path join) {
+        open ([tests assets dotnu-capture.nu] | path join)
+        | dotnu embeds-remove
+    }
 }
 
 # Test embeds-update command
 def 'test-embeds-update' [] {
-    let input_file = [tests assets dotnu-capture.nu] | path join
-    let output_file = [tests assets dotnu-capture-updated.nu] | path join
-
-    dotnu embeds-update $input_file --echo
-    | save -f $output_file
-
-    {test: 'embeds-update' file: $output_file}
+    run-snapshot-test 'embeds-update' ([tests assets dotnu-capture-updated.nu] | path join) {
+        dotnu embeds-update ([tests assets dotnu-capture.nu] | path join) --echo
+    }
 }
 
 # Test coverage: find public API commands without tests
