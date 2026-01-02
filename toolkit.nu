@@ -6,25 +6,62 @@ export def main [] { }
 # Run all tests (unit + integration)
 export def 'main test' [
     --json # output results as JSON for external consumption
+    --update # accept changes: stage modified integration test files
+    --fail # exit with non-zero code if any tests fail (for CI)
 ] {
-    let unit = main test-unit --quiet=$json
-    let integration = main test-integration
+    if not $json { print $"(ansi attr_dimmed)Unit tests(ansi reset)" }
+    let unit = main test-unit --json=$json
+    if not $json { print $"(ansi attr_dimmed)Integration tests(ansi reset)" }
+    let integration = main test-integration --json=$json --update=$update
 
-    {unit: $unit integration: $integration}
-    | if $json { to json --raw } else { }
+    # Parse JSON if needed
+    let unit_data = if $json { $unit | from json } else { $unit }
+    let integration_data = if $json { $integration | from json } else { $integration }
+    let results = $unit_data | append $integration_data
+
+    # Print summary
+    let passed = $results | where status == 'passed' | length
+    let failed = $results | where status == 'failed' | length
+    let changed = $results | where status == 'changed' | length
+    let total = $results | length
+
+    if not $json {
+        print ""
+        print $"(ansi green_bold)($passed) passed(ansi reset), (ansi red_bold)($failed) failed(ansi reset), (ansi yellow_bold)($changed) changed(ansi reset) \(($total) total\)"
+        if $changed > 0 and not $update {
+            print $"(ansi attr_dimmed)Run with --update to accept changes(ansi reset)"
+        }
+    }
+
+    if $fail and $failed > 0 {
+        if $json { print ($results | to json --raw) }
+        exit 1
+    }
+
+    if $json { $results | to json --raw }
 }
 
 # Run unit tests using nutest
 export def 'main test-unit' [
     --json # output results as JSON for external consumption
-    --quiet # suppress terminal output (for use when called from main test)
 ] {
     use ../nutest/nutest
 
-    let display = if ($json or $quiet) { 'nothing' } else { 'terminal' }
-    # Match only test_commands to exclude test assets in subdirectories
-    nutest run-tests --path tests/ --match-suites 'test_commands' --returns summary --display $display
-    | if $json { to json --raw } else { }
+    # Get detailed table from nutest
+    let results = nutest run-tests --path tests/ --match-suites 'test_commands' --returns table --display nothing
+
+    # Convert to flat table format
+    let flat = $results
+    | each {|row|
+        let status = if $row.result == 'PASS' { 'passed' } else { 'failed' }
+        {type: 'unit' name: $row.test status: $status file: null}
+    }
+
+    if not $json {
+        $flat | each {|r| print-test-result $r }
+    }
+
+    if $json { $flat | to json --raw } else { $flat }
 }
 
 # Run integration tests
@@ -35,102 +72,117 @@ export def 'main test-unit' [
 # making each snapshot self-documenting.
 export def 'main test-integration' [
     --json # output results as JSON for external consumption
+    --update # accept changes: stage modified files in git
 ] {
-    [
-        (test-dependencies)
-        (test-dependencies-keep_builtins)
-        (test-embeds-remove)
-        (test-embeds-update)
-        (test-coverage)
+    let results = [
+        (
+            run-snapshot-test 'dependencies' ([tests output-yaml dependencies.yaml] | path join) {
+                glob ([tests assets b *] | path join | str replace -a '\' '/')
+                | dependencies ...$in
+                | to yaml
+            }
+        )
+        (
+            run-snapshot-test 'dependencies --keep-builtins' ([tests output-yaml 'dependencies --keep_builtins.yaml'] | path join) {
+                glob ([tests assets b *] | path join | str replace -a '\' '/')
+                | dependencies ...$in --keep-builtins
+                | to yaml
+            }
+        )
+        (
+            run-snapshot-test 'embeds-remove' ([tests assets dotnu-capture-clean.nu] | path join) {
+                open ([tests assets dotnu-capture.nu] | path join)
+                | dotnu embeds-remove
+            }
+        )
+        (
+            run-snapshot-test 'embeds-update' ([tests assets dotnu-capture-updated.nu] | path join) {
+                dotnu embeds-update ([tests assets dotnu-capture.nu] | path join) --echo
+            }
+        )
+        (
+            run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.yaml] | path join) {
+                # Public API from mod.nu
+                let public_api = open ([dotnu mod.nu] | path join)
+                | lines
+                | where $it =~ '^\s+"'
+                | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
+
+                # Find untested commands
+                let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
+                | each { glob $in }
+                | flatten
+                | dependencies ...$in
+                | filter-commands-with-no-tests
+                | where caller in $public_api
+                | select caller
+
+                # Output as yaml
+                {
+                    public_api_count: ($public_api | length)
+                    tested_count: (($public_api | length) - ($untested | length))
+                    untested: ($untested | get caller)
+                }
+                | to yaml
+            }
+        )
     ]
     # Run numd on README if available
     | if (scope modules | where name == 'numd' | is-not-empty) {
-        append (test-numd-readme)
+        append (run-snapshot-test 'numd-readme' 'README.md' { numd run README.md })
     } else { }
-    | if $json { to json --raw } else { }
+
+    if not $json {
+        $results | each {|r| print-test-result $r }
+    }
+
+    if $update {
+        let changed = $results | where status == 'changed'
+        if ($changed | is-not-empty) {
+            $changed | each {|r|
+                ^git add $r.file
+                print $"(ansi green)Staged:(ansi reset) ($r.file)"
+            }
+        }
+    }
+
+    if $json { $results | to json --raw } else { $results }
+}
+
+# Print a single test result with status indicator
+def print-test-result [result: record] {
+    let icon = match $result.status {
+        'passed' => $"(ansi green)✓(ansi reset)"
+        'failed' => $"(ansi red)✗(ansi reset)"
+        'changed' => $"(ansi yellow)~(ansi reset)"
+        _ => "?"
+    }
+    let suffix = if $result.file != null { $" (ansi attr_dimmed)\(($result.file)\)(ansi reset)" } else { "" }
+    print $"  ($icon) ($result.name)($suffix)"
 }
 
 # Run command and save output with source code as header comment
+# Returns: {type: 'integration', name: string, status: 'passed'|'changed'|'failed', file: string}
 def run-snapshot-test [name: string output_file: string command_src: closure] {
     mkdir ($output_file | path dirname)
-    rm -f $output_file
 
     let command_text = view source $command_src
     | lines | skip | drop | str trim
     | each { $'# ($in)' }
     | str join (char nl)
 
-    $command_text + (char nl) + (do $command_src)
-    | save -f $output_file
+    try {
+        $command_text + (char nl) + (do $command_src)
+        | save -f $output_file
 
-    {test: $name file: $output_file}
-}
+        # Check git diff to determine status
+        let diff_result = do { ^git diff --quiet $output_file } | complete
+        let status = if $diff_result.exit_code == 0 { 'passed' } else { 'changed' }
 
-# Test dependencies command
-def 'test-dependencies' [] {
-    run-snapshot-test 'dependencies' ([tests output-yaml dependencies.yaml] | path join) {
-        glob ([tests assets b *] | path join | str replace -a '\' '/')
-        | dependencies ...$in
-        | to yaml
+        {type: 'integration' name: $name status: $status file: $output_file}
+    } catch {|err|
+        {type: 'integration' name: $name status: 'failed' file: $output_file}
     }
-}
-
-# Test dependencies command with keep-builtins option
-def 'test-dependencies-keep_builtins' [] {
-    run-snapshot-test 'dependencies --keep-builtins' ([tests output-yaml 'dependencies --keep_builtins.yaml'] | path join) {
-        glob ([tests assets b *] | path join | str replace -a '\' '/')
-        | dependencies ...$in --keep-builtins
-        | to yaml
-    }
-}
-
-# Test embeds-remove command
-def 'test-embeds-remove' [] {
-    run-snapshot-test 'embeds-remove' ([tests assets dotnu-capture-clean.nu] | path join) {
-        open ([tests assets dotnu-capture.nu] | path join)
-        | dotnu embeds-remove
-    }
-}
-
-# Test embeds-update command
-def 'test-embeds-update' [] {
-    run-snapshot-test 'embeds-update' ([tests assets dotnu-capture-updated.nu] | path join) {
-        dotnu embeds-update ([tests assets dotnu-capture.nu] | path join) --echo
-    }
-}
-
-# Test coverage: find public API commands without tests
-def 'test-coverage' [] {
-    run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.yaml] | path join) {
-        # Public API from mod.nu
-        let public_api = open ([dotnu mod.nu] | path join)
-        | lines
-        | where $it =~ '^\s+"'
-        | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
-
-        # Find untested commands
-        let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
-        | each { glob $in }
-        | flatten
-        | dependencies ...$in
-        | filter-commands-with-no-tests
-        | where caller in $public_api
-        | select caller
-
-        # Output as yaml
-        {
-            public_api_count: ($public_api | length)
-            tested_count: (($public_api | length) - ($untested | length))
-            untested: ($untested | get caller)
-        }
-        | to yaml
-    }
-}
-
-# Test numd on README
-def 'test-numd-readme' [] {
-    numd run README.md
-    {test: 'numd-readme' file: 'README.md'}
 }
 
 # Release command to create a new version

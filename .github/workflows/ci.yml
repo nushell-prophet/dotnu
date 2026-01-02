@@ -33,7 +33,7 @@ jobs:
 
       - name: Run tests
         shell: bash
-        run: nu toolkit.nu test --json
+        run: nu toolkit.nu test --json --fail
 
       - name: Show diff of changed files
         if: always()
