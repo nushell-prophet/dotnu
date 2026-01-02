@@ -3,7 +3,7 @@ use std/iter scan
 # Check .nu module files to determine which commands depend on other commands.
 @example 'Analyze command dependencies in a module' {
     dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
-} --result [{caller: hello filename_of_caller: "hello.nu" callee: null step: 0} {caller: question filename_of_caller: "ask.nu" callee: null step: 0} {caller: say callee: hello filename_of_caller: "mod.nu" step: 0} {caller: say callee: hi filename_of_caller: "mod.nu" step: 0} {caller: say callee: question filename_of_caller: "mod.nu" step: 0} {caller: hi filename_of_caller: "mod.nu" callee: null step: 0} {caller: test-hi callee: hi filename_of_caller: "test-hi.nu" step: 0}]
+} --result [{caller: question, filename_of_caller: "ask.nu", callee: null, step: 0}, {caller: hello, filename_of_caller: "hello.nu", callee: null, step: 0}, {caller: say, callee: hello, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: hi, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: question, filename_of_caller: "mod.nu", step: 0}, {caller: hi, filename_of_caller: "mod.nu", callee: null, step: 0}, {caller: test-hi, callee: hi, filename_of_caller: "test-hi.nu", step: 0}]
 export def 'dependencies' [
     ...paths: path # paths to nushell module files
     --keep-builtins # keep builtin commands in the result page
@@ -34,7 +34,7 @@ export def 'dependencies' [
 # Test commands are detected by: name contains 'test' OR file matches 'test*.nu'
 @example 'Find commands not covered by tests' {
     dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
-} --result [{caller: hello filename_of_caller: "hello.nu"} {caller: question filename_of_caller: "ask.nu"} {caller: say filename_of_caller: "mod.nu"}]
+} --result [[caller, filename_of_caller]; [question, "ask.nu"], [hello, "hello.nu"], [say, "mod.nu"]]
 export def 'filter-commands-with-no-tests' [] {
     let input = $in
     let covered_with_tests = $input
@@ -215,6 +215,112 @@ export def 'embeds-update' [
     | if $echo or ($input != null) { } else { save -f $file }
 }
 
+# Execute @example blocks and update their --result values
+# Similar to embeds-update but for @example attributes
+export def 'examples-update' [
+    file: path # path to .nu file with @example blocks
+    --echo # output updates to stdout instead of saving
+] {
+    let content = open $file
+    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+
+    let examples = $content | find-examples
+
+    if ($examples | is-empty) {
+        if $echo { return $content }
+        return
+    }
+
+    # Execute each example and collect results
+    let results = $examples | each {|ex|
+        let result = execute-example $ex.code $file
+        {
+            original: $ex.original
+            result_line: $ex.result_line
+            new_result: $result
+        }
+    }
+
+    # Replace each example's result line
+    let updated = $results | reduce --fold $content {|item, acc|
+        let old_result_line = $item.result_line
+        let new_result_line = $"} --result ($item.new_result)"
+
+        $acc | str replace $old_result_line $new_result_line
+    }
+
+    $updated
+    | if $echo { } else { save -f $file }
+}
+
+# Find @example blocks with their code and result sections
+def find-examples []: string -> table<original: string, code: string> {
+    let content = $in
+    let lines = $content | lines
+
+    # Find lines with "} --result" pattern (single-line results only)
+    $lines
+    | enumerate
+    | where {|row| $row.item =~ '^\} --result [^\n]+$' and $row.item !~ "^\\} --result '"}
+    | each {|row|
+        let result_line_idx = $row.index
+        let result_line = $row.item
+
+        # Look backwards to find the @example line
+        let example_start = $lines
+        | take $result_line_idx
+        | enumerate
+        | where {|r| $r.item =~ '^@example '}
+        | last
+        | get index
+
+        # Extract code lines between @example and } --result
+        let code_lines = $lines
+        | skip ($example_start + 1)
+        | take ($result_line_idx - $example_start - 1)
+        | str join "\n"
+        | str trim
+
+        # Build original block for replacement
+        let original_block = $lines
+        | skip $example_start
+        | take ($result_line_idx - $example_start + 1)
+        | str join "\n"
+
+        {
+            original: $original_block
+            code: $code_lines
+            result_line: $result_line
+        }
+    }
+    | where {|row| $row.code != ''}
+}
+
+# Execute example code and return the result as nuon
+def execute-example [code: string, file: path]: nothing -> string {
+    let abs_file = $file | path expand
+    let dir = $abs_file | path dirname
+    let parent_dir = $dir | path dirname
+    let module_name = $dir | path basename
+
+    # Strip module prefix from code if present (e.g., "dotnu dependencies" -> "dependencies")
+    let normalized_code = $code | str replace -r $'^($module_name) ' ''
+
+    # Build script: cd to parent, source file directly to access all functions
+    let script = $"
+        cd '($parent_dir)'
+        source '($abs_file)'
+        ($normalized_code) | to nuon
+    "
+
+    try {
+        ^$nu.current-exe -n -c $script
+        | str trim
+    } catch {|e|
+        $"error: ($e.msg)"
+    }
+}
+
 # Set environment variables to operate with embeds
 export def --env 'embeds-setup' [
     path?: path
@@ -390,10 +496,10 @@ export def check-clean-working-tree [
 # Make a record from code with variable definitions
 @example '' {
     "let $quiet = false; let no_timestamp = false" | variable-definitions-to-record
-} --result {quiet: false no_timestamp: false}
+} --result {quiet: false, no_timestamp: false}
 @example '' {
     "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record
-} --result {a: b c: d}
+} --result {a: b, c: d}
 @example '' {
     "let $a = null" | variable-definitions-to-record
 } --result {a: null}
@@ -427,7 +533,7 @@ export def variable-definitions-to-record []: string -> record {
 
 @example '' {
     'export def --env "test" --wrapped' | lines | last | extract-command-name
-} --result test
+} --result "test"
 export def 'extract-command-name' [
     module_path? # path to a nushell module file
 ] {
@@ -457,7 +563,7 @@ export def replace-main-with-module-name [
 # Escapes symbols to be printed unchanged inside a `print "something"` statement.
 @example '' {
     'abcd"dfdaf" "' | escape-for-quotes
-} --result "abcd\"dfdaf\" \""
+} --result "abcd\\\"dfdaf\\\" \\\""
 export def escape-for-quotes []: string -> string {
     str replace --all --regex '(\\|\")' '\$1'
 }
@@ -465,7 +571,7 @@ export def escape-for-quotes []: string -> string {
 # context aware completions for defined command names in nushell module files
 @example '' {
     nu-completion-command-name 'dotnu extract-command-code tests/assets/b/example-mod1.nu' | first 3
-} --result ["main" "lscustom" "command-5"]
+} --result [main, lscustom, "command-5"]
 export def nu-completion-command-name [
     context: string
 ] {
@@ -479,10 +585,10 @@ export def nu-completion-command-name [
 # Extract table with information on which commands use which commands
 @example '' {
     list-module-commands tests/assets/b/example-mod1.nu | first 3
-} --result [{caller: command-5 callee: command-3 filename_of_caller: "example-mod1.nu"} {caller: command-5 callee: first-custom filename_of_caller: "example-mod1.nu"} {caller: command-5 callee: append-random filename_of_caller: "example-mod1.nu"}]
+} --result [[caller, callee, filename_of_caller]; ["command-5", "command-3", "example-mod1.nu"], ["command-5", first-custom, "example-mod1.nu"], ["command-5", append-random, "example-mod1.nu"]]
 @example '' {
     list-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
-} --result [{caller: example-mod1 filename_of_caller: "example-mod1.nu"} {caller: lscustom filename_of_caller: "example-mod1.nu"} {caller: command-5 filename_of_caller: "example-mod1.nu"}]
+} --result [[caller, filename_of_caller]; ["example-mod1", "example-mod1.nu"], [lscustom, "example-mod1.nu"], ["command-5", "example-mod1.nu"]]
 export def list-module-commands [
     module_path: path # path to a .nu module file.
     --keep-builtins # keep builtin commands in the result page
@@ -617,7 +723,7 @@ export def format-substitutions [
 # helper function for use inside of generate
 @example '' {
     [[caller callee step filename_of_caller]; [a b 0 test] [b c 0 test]] | join-next $in
-} --result [[caller callee step filename_of_caller]; [a c 1 test]]
+} --result [[caller, callee, step, filename_of_caller]; [a, c, 1, test]]
 export def 'join-next' [
     callees_to_merge
 ] {
