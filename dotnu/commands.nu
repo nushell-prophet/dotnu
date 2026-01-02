@@ -1,7 +1,7 @@
 use std/iter scan
 
 # Check .nu module files to determine which commands depend on other commands.
-@example '' {
+@example 'Analyze command dependencies in a module' {
     dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
 } --result [{caller: hello filename_of_caller: "hello.nu" callee: null step: 0} {caller: question filename_of_caller: "ask.nu" callee: null step: 0} {caller: say callee: hello filename_of_caller: "mod.nu" step: 0} {caller: say callee: hi filename_of_caller: "mod.nu" step: 0} {caller: say callee: question filename_of_caller: "mod.nu" step: 0} {caller: hi filename_of_caller: "mod.nu" callee: null step: 0} {caller: test-hi callee: hi filename_of_caller: "test-hi.nu" step: 0}]
 export def 'dependencies' [
@@ -32,7 +32,7 @@ export def 'dependencies' [
 
 # Filter commands after `dotnu dependencies` that aren't used by any test command.
 # Test commands are detected by: name contains 'test' OR file matches 'test*.nu'
-@example '' {
+@example 'Find commands not covered by tests' {
     dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
 } --result [{caller: hello filename_of_caller: "hello.nu"} {caller: question filename_of_caller: "ask.nu"} {caller: say filename_of_caller: "mod.nu"}]
 export def 'filter-commands-with-no-tests' [] {
@@ -52,7 +52,7 @@ export def 'filter-commands-with-no-tests' [] {
 
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
-@example '' {
+@example 'Generate script with timing instrumentation' {
     set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
 } --result 'mut $prev_ts = ( date now )
 print ("> sleep 0.5sec" | nu-highlight)
