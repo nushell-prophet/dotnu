@@ -3,14 +3,14 @@ use std/iter scan
 # Check .nu module files to determine which commands depend on other commands.
 @example 'Analyze command dependencies in a module' {
     dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
-} --result [{caller: question, filename_of_caller: "ask.nu", callee: null, step: 0}, {caller: hello, filename_of_caller: "hello.nu", callee: null, step: 0}, {caller: say, callee: hello, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: hi, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: question, filename_of_caller: "mod.nu", step: 0}, {caller: hi, filename_of_caller: "mod.nu", callee: null, step: 0}, {caller: test-hi, callee: hi, filename_of_caller: "test-hi.nu", step: 0}]
+} --result [{caller: question filename_of_caller: "ask.nu" callee: null step: 0} {caller: hello filename_of_caller: "hello.nu" callee: null step: 0} {caller: say callee: hello filename_of_caller: "mod.nu" step: 0} {caller: say callee: hi filename_of_caller: "mod.nu" step: 0} {caller: say callee: question filename_of_caller: "mod.nu" step: 0} {caller: hi filename_of_caller: "mod.nu" callee: null step: 0} {caller: test-hi callee: hi filename_of_caller: "test-hi.nu" step: 0}]
 export def 'dependencies' [
     ...paths: path # paths to nushell module files
     --keep-builtins # keep builtin commands in the result page
     --definitions-only # output only commands' names definitions
 ] {
     let callees_to_merge = $paths
-    | sort  # ensure consistent order across platforms
+    | sort # ensure consistent order across platforms
     | each {
         list-module-commands $in --keep-builtins=$keep_builtins --definitions-only=$definitions_only
     }
@@ -34,7 +34,7 @@ export def 'dependencies' [
 # Test commands are detected by: name contains 'test' OR file matches 'test*.nu'
 @example 'Find commands not covered by tests' {
     dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
-} --result [[caller, filename_of_caller]; [question, "ask.nu"], [hello, "hello.nu"], [say, "mod.nu"]]
+} --result [[caller filename_of_caller]; [question "ask.nu"] [hello "hello.nu"] [say "mod.nu"]]
 export def 'filter-commands-with-no-tests' [] {
     let input = $in
     let covered_with_tests = $input
@@ -242,7 +242,7 @@ export def 'examples-update' [
     }
 
     # Replace each example's result line
-    let updated = $results | reduce --fold $content {|item, acc|
+    let updated = $results | reduce --fold $content {|item acc|
         let old_result_line = $item.result_line
         let new_result_line = $"} --result ($item.new_result)"
 
@@ -261,7 +261,7 @@ def find-examples []: string -> table<original: string, code: string> {
     # Find lines with "} --result" pattern (single-line results only)
     $lines
     | enumerate
-    | where {|row| $row.item =~ '^\} --result [^\n]+$' and $row.item !~ "^\\} --result '"}
+    | where {|row| $row.item =~ '^\} --result [^\n]+$' and $row.item !~ "^\\} --result '" }
     | each {|row|
         let result_line_idx = $row.index
         let result_line = $row.item
@@ -270,7 +270,7 @@ def find-examples []: string -> table<original: string, code: string> {
         let example_start = $lines
         | take $result_line_idx
         | enumerate
-        | where {|r| $r.item =~ '^@example '}
+        | where {|r| $r.item =~ '^@example ' }
         | last
         | get index
 
@@ -293,11 +293,11 @@ def find-examples []: string -> table<original: string, code: string> {
             result_line: $result_line
         }
     }
-    | where {|row| $row.code != ''}
+    | where {|row| $row.code != '' }
 }
 
 # Execute example code and return the result as nuon
-def execute-example [code: string, file: path]: nothing -> string {
+def execute-example [code: string file: path]: nothing -> string {
     let abs_file = $file | path expand
     let dir = $abs_file | path dirname
     let parent_dir = $dir | path dirname
@@ -496,10 +496,10 @@ export def check-clean-working-tree [
 # Make a record from code with variable definitions
 @example '' {
     "let $quiet = false; let no_timestamp = false" | variable-definitions-to-record
-} --result {quiet: false, no_timestamp: false}
+} --result {quiet: false no_timestamp: false}
 @example '' {
     "let $a = 'b'\nlet $c = 'd'\n\n#comment" | variable-definitions-to-record
-} --result {a: b, c: d}
+} --result {a: b c: d}
 @example '' {
     "let $a = null" | variable-definitions-to-record
 } --result {a: null}
@@ -571,7 +571,7 @@ export def escape-for-quotes []: string -> string {
 # context aware completions for defined command names in nushell module files
 @example '' {
     nu-completion-command-name 'dotnu extract-command-code tests/assets/b/example-mod1.nu' | first 3
-} --result [main, lscustom, "command-5"]
+} --result [main lscustom "command-5"]
 export def nu-completion-command-name [
     context: string
 ] {
@@ -585,10 +585,10 @@ export def nu-completion-command-name [
 # Extract table with information on which commands use which commands
 @example '' {
     list-module-commands tests/assets/b/example-mod1.nu | first 3
-} --result [[caller, callee, filename_of_caller]; ["command-5", "command-3", "example-mod1.nu"], ["command-5", first-custom, "example-mod1.nu"], ["command-5", append-random, "example-mod1.nu"]]
+} --result [[caller callee filename_of_caller]; ["command-5" "command-3" "example-mod1.nu"] ["command-5" first-custom "example-mod1.nu"] ["command-5" append-random "example-mod1.nu"]]
 @example '' {
     list-module-commands --definitions-only tests/assets/b/example-mod1.nu | first 3
-} --result [[caller, filename_of_caller]; ["example-mod1", "example-mod1.nu"], [lscustom, "example-mod1.nu"], ["command-5", "example-mod1.nu"]]
+} --result [[caller filename_of_caller]; ["example-mod1" "example-mod1.nu"] [lscustom "example-mod1.nu"] ["command-5" "example-mod1.nu"]]
 export def list-module-commands [
     module_path: path # path to a .nu module file.
     --keep-builtins # keep builtin commands in the result page
@@ -627,7 +627,7 @@ export def list-module-commands [
     | where {|t|
         $t.start > 0 and (($code_bytes | bytes at ($t.start - 1)..<($t.start) | decode utf-8) == '@')
     }
-    | insert caller {|t| '@' + ($t.content | split row ' ' | first)}  # '@complete external' → '@complete'
+    | insert caller {|t| '@' + ($t.content | split row ' ' | first) } # '@complete external' → '@complete'
     | select caller start
 
     let defined_defs = $def_definitions
@@ -650,9 +650,9 @@ export def list-module-commands [
             $token | insert caller $def.caller | insert filename_of_caller $def.filename_of_caller
         }
     }
-    | where caller != null and caller !~ '^@'  # exclude tokens inside attribute blocks
+    | where caller != null and caller !~ '^@' # exclude tokens inside attribute blocks
     | where shape in ['shape_internalcall' 'shape_external']
-    | where content not-in (help commands | where command_type == 'keyword' | get name)  # always exclude keywords (def, export def, etc.)
+    | where content not-in (help commands | where command_type == 'keyword' | get name) # always exclude keywords (def, export def, etc.)
     | if $keep_builtins { } else {
         where content not-in (help commands | where command_type == 'built-in' | get name)
     }
@@ -660,7 +660,7 @@ export def list-module-commands [
     | rename --column {content: callee}
 
     let defs_without_calls = $defined_defs
-    | where caller !~ '^@'  # exclude attribute decorators from output
+    | where caller !~ '^@' # exclude attribute decorators from output
     | select caller filename_of_caller
     | where caller not-in ($calls.caller | uniq)
     | insert callee null
@@ -723,7 +723,7 @@ export def format-substitutions [
 # helper function for use inside of generate
 @example '' {
     [[caller callee step filename_of_caller]; [a b 0 test] [b c 0 test]] | join-next $in
-} --result [[caller, callee, step, filename_of_caller]; [a, c, 1, test]]
+} --result [[caller callee step filename_of_caller]; [a c 1 test]]
 export def 'join-next' [
     callees_to_merge
 ] {
@@ -871,7 +871,7 @@ export def embeds-remove [] {
     | lines
     | where not ($it starts-with "# => ")
     | str join "\n"
-    | $in + "\n"  # Explicit LF with trailing newline for Windows compatibility
+    | $in + "\n" # Explicit LF with trailing newline for Windows compatibility
 }
 
 export def capture-marker [
