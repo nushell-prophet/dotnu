@@ -240,19 +240,29 @@ export def 'examples-update' [
     # Execute each example and collect results
     let results = $examples | each {|ex|
         let result = execute-example $ex.code $file
-        {
-            original: $ex.original
-            result_line: $ex.result_line
-            new_result: $result
+        if ($result | describe) == "record<error: string>" {
+            # Skip failed examples - don't corrupt the file with error messages
+            print --stderr $"Warning: Example execution failed in ($file | path basename):"
+            print --stderr $"  Code: ($ex.code)"
+            print --stderr $"  Error: ($result.error | lines | first)"
+            null
+        } else {
+            {
+                original: $ex.original
+                new_result: $result
+            }
         }
     }
+    | compact
 
-    # Replace each example's result line
+    # Replace each example's original block with updated version
+    # Using full original text ensures unique matches even with duplicate results
     let updated = $results | reduce --fold $content {|item acc|
-        let old_result_line = $item.result_line
-        let new_result_line = $"} --result ($item.new_result)"
+        # Build new example by replacing just the result value in the original
+        let new_example = $item.original
+        | str replace -r '\} --result .+$' $"} --result ($item.new_result)"
 
-        $acc | str replace $old_result_line $new_result_line
+        $acc | str replace $item.original $new_example
     }
 
     $updated
@@ -351,7 +361,8 @@ def find-examples []: string -> table<original: string, code: string, result_lin
 }
 
 # Execute example code and return the result as nuon
-def execute-example [code: string file: path]: nothing -> string {
+# Returns null on execution failure
+def execute-example [code: string file: path]: nothing -> any {
     let abs_file = $file | path expand
     let dir = $abs_file | path dirname
     let parent_dir = $dir | path dirname
@@ -367,11 +378,12 @@ def execute-example [code: string file: path]: nothing -> string {
         ($normalized_code) | to nuon
     "
 
-    try {
-        ^$nu.current-exe -n -c $script
-        | str trim
-    } catch {|e|
-        $"error: ($e.msg)"
+    let result = do -i { ^$nu.current-exe -n -c $script } | complete
+    if $result.exit_code != 0 {
+        # Return error info for caller to handle
+        {error: ($result.stderr | str trim | default "unknown error")}
+    } else {
+        $result.stdout | str trim
     }
 }
 
