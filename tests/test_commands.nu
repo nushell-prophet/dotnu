@@ -509,3 +509,162 @@ def "nu-completion-command-name returns command list" [] {
     assert (($result | describe) =~ 'list')
     assert ('lscustom' in $result)
 }
+
+# =============================================================================
+# Tests for find-examples
+# =============================================================================
+
+@test
+def "find-examples detects basic @example" [] {
+    let input = '@example "test" { 1 + 1 } --result 2
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 1
+    assert equal ($result | first | get code) "1 + 1"
+}
+
+@test
+def "find-examples detects multiple @examples" [] {
+    let input = '@example "first" { 1 } --result 1
+def foo [] {}
+
+@example "second" { 2 } --result 2
+def bar [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 2
+    assert equal ($result | get code) ["1" "2"]
+}
+
+@test
+def "find-examples ignores @example inside string" [] {
+    let input = 'let x = "has @example inside"
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 0
+}
+
+@test
+def "find-examples skips @example without --result" [] {
+    let input = '@example "no result" { 1 + 1 }
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 0
+}
+
+@test
+def "find-examples handles empty input" [] {
+    let result = '' | find-examples
+
+    assert equal ($result | length) 0
+}
+
+@test
+def "find-examples handles malformed @example" [] {
+    # Missing block - only has the attribute name
+    let input = '@example
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 0
+}
+
+@test
+def "find-examples extracts multiline code" [] {
+    let input = '@example "multiline" {
+    let x = 1
+    let y = 2
+    $x + $y
+} --result 3
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 1
+    assert ($result | first | get code | str contains "let x = 1")
+}
+
+# =============================================================================
+# Tests for execute-example
+# =============================================================================
+
+@test
+def "execute-example runs simple expression" [] {
+    # Create temp file for context
+    let temp = '/tmp/test-execute-example.nu'
+    'export def dummy [] { 1 }' | save -f $temp
+
+    let result = execute-example '1 + 1' $temp
+
+    assert equal $result '2'
+}
+
+@test
+def "execute-example returns error record on failure" [] {
+    let temp = '/tmp/test-execute-example.nu'
+    'export def dummy [] { 1 }' | save -f $temp
+
+    let result = execute-example 'nonexistent-command' $temp
+
+    assert equal ($result | describe) 'record<error: string>'
+}
+
+@test
+def "execute-example handles multiline result" [] {
+    let temp = '/tmp/test-execute-example.nu'
+    'export def dummy [] { 1 }' | save -f $temp
+
+    let result = execute-example '[1, 2, 3]' $temp
+
+    assert equal $result '[1, 2, 3]'
+}
+
+# =============================================================================
+# Tests for examples-update
+# =============================================================================
+
+@test
+def "examples-update updates result values" [] {
+    let temp = '/tmp/test-examples-update.nu'
+    '@example "add" { 1 + 1 } --result 0
+export def dummy [] { 1 }' | save -f $temp
+
+    let result = examples-update $temp --echo
+
+    assert ($result | str contains '--result 2')
+    assert not ($result | str contains '--result 0')
+}
+
+@test
+def "examples-update handles multiple examples" [] {
+    let temp = '/tmp/test-examples-update.nu'
+    '@example "first" { 1 + 1 } --result 0
+export def foo [] {}
+
+@example "second" { 2 + 2 } --result 0
+export def bar [] {}' | save -f $temp
+
+    let result = examples-update $temp --echo
+
+    assert ($result | str contains '--result 2')
+    assert ($result | str contains '--result 4')
+}
+
+@test
+def "examples-update preserves file when no examples" [] {
+    let temp = '/tmp/test-examples-update.nu'
+    let content = 'export def foo [] { 1 }'
+    $content | save -f $temp
+
+    let result = examples-update $temp --echo
+
+    assert equal $result $content
+}
