@@ -273,7 +273,7 @@ export def 'examples-update' [
 #
 # Uses AST to accurately detect @example attributes, avoiding false positives
 # from @example inside strings or comments.
-def find-examples []: string -> table<original: string, code: string, result_line: string> {
+export def find-examples []: string -> table<original: string, code: string, result_line: string> {
     let source = $in
     let bytes = $source | encode utf8
     let tokens = ast --flatten $source | flatten span | sort-by start
@@ -362,7 +362,7 @@ def find-examples []: string -> table<original: string, code: string, result_lin
 
 # Execute example code and return the result as nuon
 # Returns null on execution failure
-def execute-example [code: string file: path]: nothing -> any {
+export def execute-example [code: string file: path]: nothing -> any {
     let abs_file = $file | path expand
     let dir = $abs_file | path dirname
     let parent_dir = $dir | path dirname
