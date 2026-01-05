@@ -668,3 +668,46 @@ def "examples-update preserves file when no examples" [] {
 
     assert equal $result $content
 }
+
+# split-statements tests
+
+@test
+def "split-statements splits on semicolons" [] {
+    let result = 'let x = 1; let y = 2' | split-statements
+
+    assert equal ($result | length) 2
+    assert equal ($result | get statement) ['let x = 1', 'let y = 2']
+}
+
+@test
+def "split-statements splits on newlines" [] {
+    let result = "let a = 1\nlet b = 2" | split-statements
+
+    assert equal ($result | length) 2
+    assert equal ($result | get statement) ['let a = 1', 'let b = 2']
+}
+
+@test
+def "split-statements preserves multi-line blocks" [] {
+    let result = "def foo [] {\n  let x = 1\n  x\n}" | split-statements
+
+    assert equal ($result | length) 1
+    assert ($result.0.statement | str contains 'def foo')
+    assert ($result.0.statement | str contains 'let x = 1')
+}
+
+@test
+def "split-statements handles empty input" [] {
+    let result = '' | split-statements
+
+    assert equal ($result | length) 0
+}
+
+@test
+def "split-statements provides byte positions" [] {
+    let result = 'let x = 1; let y = 2' | split-statements
+
+    assert equal $result.0.start 0
+    assert equal $result.0.end 9
+    assert equal $result.1.start 11
+}

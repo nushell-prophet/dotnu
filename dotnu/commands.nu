@@ -1004,3 +1004,72 @@ def classify-gap [content: string]: nothing -> string {
         _ => "shape_gap"
     }
 }
+
+# Split source code into individual statements using AST analysis
+#
+# Uses ast-complete to identify statement boundaries (semicolons and newlines
+# at top level). Correctly handles nested blocks - newlines inside blocks don't
+# create new statements.
+#
+# Returns a table with statement text and byte positions.
+@example 'Split semicolon-separated statements' {
+    'let x = 1; let y = 2' | split-statements | get statement
+} --result ["let x = 1" "let y = 2"]
+@example 'Split newline-separated statements' {
+    "let a = 1\nlet b = 2" | split-statements | get statement
+} --result ["let a = 1" "let b = 2"]
+@example 'Preserve multi-line blocks as single statement' {
+    "def foo [] {\n  1\n}" | split-statements | length
+} --result 1
+export def split-statements []: string -> table<statement: string, start: int, end: int> {
+    let source = $in
+    let bytes = $source | encode utf8
+    let tokens = $source | ast-complete
+
+    if ($tokens | is-empty) {
+        return []
+    }
+
+    # Track block depth to identify top-level boundaries
+    # Shapes that increase depth: shape_block "{", shape_closure "{", shape_signature "["
+    # We only split on semicolons/newlines at depth 0
+    mut depth = 0
+    mut statements = []
+    mut stmt_start = 0
+
+    for token in $tokens {
+        # Track block depth
+        if $token.shape in ["shape_block", "shape_closure"] {
+            if ($token.content | str starts-with "{") {
+                $depth = $depth + 1
+            } else if ($token.content | str starts-with "}") or ($token.content | str ends-with "}") {
+                $depth = $depth - 1
+            }
+        }
+
+        # Statement boundary at top level
+        if $depth == 0 and $token.shape in ["shape_semicolon", "shape_newline"] {
+            let stmt_text = $bytes | bytes at $stmt_start..<$token.start | decode utf8 | str trim
+            if ($stmt_text | is-not-empty) {
+                $statements = $statements | append {
+                    statement: $stmt_text
+                    start: $stmt_start
+                    end: $token.start
+                }
+            }
+            $stmt_start = $token.end
+        }
+    }
+
+    # Capture final statement
+    let final_text = $bytes | bytes at $stmt_start..<($source | str length -b) | decode utf8 | str trim
+    if ($final_text | is-not-empty) {
+        $statements = $statements | append {
+            statement: $final_text
+            start: $stmt_start
+            end: ($source | str length -b)
+        }
+    }
+
+    $statements
+}
