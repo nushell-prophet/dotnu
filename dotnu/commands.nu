@@ -259,46 +259,94 @@ export def 'examples-update' [
     | if $echo { } else { save -f $file }
 }
 
-# Find @example blocks with their code and result sections
-def find-examples []: string -> table<original: string, code: string> {
-    let content = $in
-    let lines = $content | lines
+# Find @example blocks with their code and result sections using AST parsing
+#
+# Uses AST to accurately detect @example attributes, avoiding false positives
+# from @example inside strings or comments.
+def find-examples []: string -> table<original: string, code: string, result_line: string> {
+    let source = $in
+    let bytes = $source | encode utf8
+    let tokens = ast --flatten $source | flatten span | sort-by start
 
-    # Find lines with "} --result" pattern (single-line results only)
-    $lines
+    if ($tokens | is-empty) {
+        return []
+    }
+
+    # Find @example token indices (content is "example" and byte before is "@")
+    let example_indices = $tokens
     | enumerate
-    | where {|row| $row.item =~ '^\} --result [^\n]+$' and $row.item !~ "^\\} --result '" }
-    | each {|row|
-        let result_line_idx = $row.index
-        let result_line = $row.item
+    | where {|row|
+        ($row.item.content == "example"
+        and $row.item.start > 0
+        and (($bytes | bytes at ($row.item.start - 1)..<($row.item.start) | decode utf8) == "@"))
+    }
+    | get index
 
-        # Look backwards to find the @example line
-        let example_start = $lines
-        | take $result_line_idx
+    if ($example_indices | is-empty) {
+        return []
+    }
+
+    # For each @example, extract components
+    $example_indices | each {|idx|
+        let remaining = $tokens | skip $idx
+
+        # Find block tokens (shape_block) - opening and closing braces
+        let block_tokens = $remaining
         | enumerate
-        | where {|r| $r.item =~ '^@example ' }
-        | last
-        | get index
+        | where {|r| $r.item.shape == "shape_block"}
 
-        # Extract code lines between @example and } --result
-        let code_lines = $lines
-        | skip ($example_start + 1)
-        | take ($result_line_idx - $example_start - 1)
-        | str join "\n"
-        | str trim
+        if ($block_tokens | length) < 2 {
+            # Malformed @example - skip
+            return null
+        }
 
-        # Build original block for replacement
-        let original_block = $lines
-        | skip $example_start
-        | take ($result_line_idx - $example_start + 1)
-        | str join "\n"
+        let open_brace = $block_tokens | first | get item
+        let close_brace = $block_tokens | get 1 | get item
+
+        # Check for --result flag after the closing brace
+        let close_brace_idx = $block_tokens | get 1 | get index
+        let after_block = $remaining | skip ($close_brace_idx + 1)
+
+        let result_info = if ($after_block | is-not-empty) and ($after_block | first | get shape) == "shape_flag" and ($after_block | first | get content) == "--result" {
+            # Has --result flag - get the value token
+            let result_flag = $after_block | first
+            let result_value = $after_block | get 1
+            {
+                has_result: true
+                end_byte: $result_value.end
+                result_line: $"} --result ($result_value.content)"
+            }
+        } else {
+            # No --result flag
+            {
+                has_result: false
+                end_byte: $close_brace.end
+                result_line: ""
+            }
+        }
+
+        # Skip examples without --result (nothing to update)
+        if not $result_info.has_result {
+            return null
+        }
+
+        # Extract original text from @ to end of result value
+        let example_token = $remaining | first
+        let original_start = $example_token.start - 1  # Include the @
+        let original = $bytes | bytes at $original_start..<($result_info.end_byte) | decode utf8
+
+        # Extract code from inside the block (between { and })
+        let code_start = $open_brace.end
+        let code_end = $close_brace.start
+        let code = $bytes | bytes at $code_start..<$code_end | decode utf8 | str trim
 
         {
-            original: $original_block
-            code: $code_lines
-            result_line: $result_line
+            original: $original
+            code: $code
+            result_line: $result_info.result_line
         }
     }
+    | compact
     | where {|row| $row.code != '' }
 }
 
