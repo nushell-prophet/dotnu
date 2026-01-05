@@ -12,20 +12,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Run all tests (unit + integration)
+# Run all tests - ALWAYS use this command for testing
 nu toolkit.nu test
 
-# Run unit tests only (uses nutest framework)
-nu toolkit.nu test-unit
-
-# Run integration tests only
-nu toolkit.nu test-integration
+# Update integration test fixtures when output changes
+nu toolkit.nu test --update
 
 # Release (bumps version in nupm.nuon and README.md, commits, tags, pushes)
 nu toolkit.nu release           # patch bump
 nu toolkit.nu release --minor   # minor bump
 nu toolkit.nu release --major   # major bump
 ```
+
+**Important**: Always use `nu toolkit.nu test` (not `test-unit` or `test-integration` separately). The combined command provides proper test output and summary.
 
 ## Architecture
 
@@ -61,14 +60,14 @@ dotnu/
 
 ```
 tests/
-├── test_commands.nu    # Unit tests (~250 cases, nutest framework)
+├── test_commands.nu    # Unit tests (nutest framework)
 ├── assets/             # Test fixtures
 │   ├── b/              # Module dependency examples
 │   └── module-say/     # Real-world module example
 └── output-yaml/        # Integration test outputs
 ```
 
-Unit tests use `@test` decorator and `assert` from `std/testing`.
+Unit tests use `@test` decorator. Integration tests compare command output against fixture files.
 
 ## Dependencies
 
