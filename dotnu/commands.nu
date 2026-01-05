@@ -668,8 +668,7 @@ export def list-module-commands [
     --definitions-only # output only commands' names definitions
 ] {
     let script_content = open $module_path -r
-    let code_bytes = $script_content | encode utf-8
-    let all_tokens = ast --flatten $script_content | flatten span
+    let all_tokens = $script_content | ast-complete
     let statements = $script_content | split-statements
 
     # Phase 1a: Find def statements using split-statements
@@ -679,14 +678,19 @@ export def list-module-commands [
     | insert caller { $in.statement | lines | first | extract-command-name | replace-main-with-module-name $module_path }
     | select caller start end
 
-    # Phase 1b: Find attributes using AST (prevents false positives from @attr inside strings)
-    # Real attributes have '@' immediately before the token in source
+    # Phase 1b: Find attributes using ast-complete
+    # The @ prefix appears as shape_gap, followed by the attribute token
     let attribute_definitions = $all_tokens
-    | where {|t|
-        $t.start > 0 and (($code_bytes | bytes at ($t.start - 1)..<($t.start) | decode utf-8) == '@')
+    | enumerate
+    | window 2
+    | where {|pair|
+        $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
     }
-    | insert caller {|t| '@' + ($t.content | split row ' ' | first) } # '@complete external' → '@complete'
-    | select caller start
+    | each {|pair|
+        let attr_token = $pair.1.item
+        let at_start = $pair.0.item.end - 1  # @ is last char in the gap
+        { caller: ('@' + ($attr_token.content | split row ' ' | first)), start: $at_start }
+    }
     | insert end null  # attributes don't have scope ranges
 
     let defined_defs = $def_definitions
