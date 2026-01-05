@@ -1,3 +1,9 @@
+# dotnu commands implementation
+#
+# All commands are exported by default for internal use, testing, and development.
+# Public API is controlled by mod.nu which selectively re-exports user-facing commands.
+# To make a command public, add it to the export list in mod.nu.
+
 use std/iter scan
 
 # Check .nu module files to determine which commands depend on other commands.
