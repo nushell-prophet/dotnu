@@ -425,3 +425,111 @@ $tokens
 #  let  x  (1 + 2) * 3   <- tokens
 #      5-8 gap (space, equals, space)
 
+# ============================================================
+# SPAN EXTRACTION METHODS COMPARISON
+# ============================================================
+
+# There are two main approaches for extracting source text from AST spans.
+# This section compares them and recommends the best approach.
+
+# --- Approach 1: `bytes at` (Recommended for AST work) ---
+#
+# $source | encode utf8 | bytes at $span.start..<$span.end | decode utf8
+#
+# Advantages:
+# - Matches AST span semantics directly: [start, end) - end is exclusive
+# - No mental conversion or arithmetic needed
+# - Clear and explicit about byte-level operations
+
+# --- Approach 2: `str substring --utf-8-bytes` ---
+#
+# $source | str substring --utf-8-bytes $span.start..($span.end - 1)
+#
+# Notes:
+# - `--utf-8-bytes` is the default, so can be omitted
+# - Requires `-1` adjustment because `str substring` uses inclusive end
+# - More error-prone due to range semantics mismatch with AST spans
+
+# --- Demonstration with ASCII content ---
+
+let demo_source = 'hello world'
+$demo_source | print $in
+# => hello world
+
+# Simulate an AST span for "world" (bytes 6-11, end exclusive)
+let demo_span = {start: 6, end: 11}
+
+# Approach 1: bytes at (recommended)
+$demo_source | encode utf8 | bytes at $demo_span.start..<$demo_span.end | decode utf8
+| print $in
+# => world
+
+# Approach 2: str substring (requires -1 adjustment)
+$demo_source | str substring $demo_span.start..($demo_span.end - 1)
+| print $in
+# => world
+
+# --- Demonstration with UTF-8 content ---
+
+let utf8_source = 'hello 世界 test'
+$utf8_source | print $in
+# => hello 世界 test
+
+# "世界" starts at byte 6, each character is 3 bytes, so span is [6, 12)
+let utf8_span = {start: 6, end: 12}
+
+# Approach 1: bytes at (recommended) - works correctly with UTF-8
+$utf8_source | encode utf8 | bytes at $utf8_span.start..<$utf8_span.end | decode utf8
+| print $in
+# => 世界
+
+# Approach 2: str substring - also works (--utf-8-bytes is default)
+$utf8_source | str substring $utf8_span.start..($utf8_span.end - 1)
+| print $in
+# => 世界
+
+# --- Helper Pattern for Cleaner Code ---
+
+# Define a reusable helper command for span extraction:
+#
+# def 'span extract' [span: record]: string -> string {
+#     encode utf8 | bytes at $span.start..<$span.end | decode utf8
+# }
+#
+# Usage: $source | span extract $span
+
+# Inline demonstration of the pattern
+def 'span-extract-demo' [span: record]: string -> string {
+    encode utf8 | bytes at $span.start..<$span.end | decode utf8
+}
+
+# Test the helper with ASCII
+'hello world' | span-extract-demo {start: 0, end: 5} | print $in
+# => hello
+
+# Test the helper with UTF-8
+'こんにちは世界' | span-extract-demo {start: 0, end: 15} | print $in
+# => こんにちは
+
+# --- Why `bytes at` is Preferred ---
+#
+# 1. Semantic match: AST spans use [start, end) convention (end exclusive)
+#    - `bytes at` uses the same convention with `..<` range
+#    - `str substring` uses inclusive end, requiring mental adjustment
+#
+# 2. Reduced errors: No need to remember to subtract 1
+#    - Easy to forget: $span.start..($span.end - 1)
+#    - Easy to get wrong: $span.start..$span.end (off by one)
+#
+# 3. Explicit byte handling: Makes it clear we're working with bytes
+#    - Important when dealing with multi-byte UTF-8 characters
+#    - `encode utf8` and `decode utf8` make the transformation visible
+
+# --- Edge Case: Empty Span ---
+
+# When start equals end, the span is empty (0 bytes)
+let empty_span = {start: 5, end: 5}
+let empty_result = 'hello world' | encode utf8 | bytes at $empty_span.start..<$empty_span.end | decode utf8
+$empty_result | str length | print $in
+# => 0
+
