@@ -48,6 +48,39 @@ We chose `ast --flatten` for its simplicity:
 
 ## Future Work
 
+### 0. Document `ast --json` Output with Test Cases
+
+**First step**: Create test cases in `tests/ast-cases/` using dotnu's literate programming to document `ast --json` behavior, similar to what we did for `ast --flatten`:
+
+```
+tests/ast-cases/
+├── attribute-detection.nu    # @example, @test detection
+├── block-boundaries.nu       # shape_block vs shape_closure
+├── semicolon-stripping.nu    # gaps in ast --flatten
+├── ast-complete.nu           # gap-filling behavior
+└── ast-json-*.nu             # NEW: document ast --json output
+```
+
+**Test cases to create for `ast --json`**:
+- `ast-json-basic.nu` - simple expressions, pipelines
+- `ast-json-commands.nu` - command calls with args, flags
+- `ast-json-blocks.nu` - blocks, closures, control flow
+- `ast-json-spans.nu` - how span IDs map to byte positions
+
+These serve dual purpose:
+1. **Documentation** - understand the hierarchical structure
+2. **Regression tests** - detect if Nushell changes AST format
+
+Pattern to follow (from existing tests):
+```nu
+# --- Simple pipeline ---
+'ls | where size > 1mb' | print $in
+# => ls | where size > 1mb
+
+ast --json 'ls | where size > 1mb' | to nuon | print $in
+# => {block: [...], ...}
+```
+
 ### 1. General-purpose `ast --json` Parser
 
 `ast --json` provides the full AST with rich semantic information in a hierarchical structure:
