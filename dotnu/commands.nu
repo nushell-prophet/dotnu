@@ -972,25 +972,15 @@ export def ast-complete []: string -> table {
     let bytes = $source | encode utf8
     let tokens = ast --flatten $source | flatten span | sort-by start
 
-    if ($tokens | is-empty) {
-        return []
-    }
+    if ($tokens | is-empty) { return [] }
 
-    # Add sentinel boundaries to handle leading/trailing gaps uniformly
-    let with_bounds = [{end: 0}] ++ $tokens ++ [{start: ($source | str length -b)}]
-
-    # Find all gaps in one pass
-    let gaps = $with_bounds
+    let gaps = [{end: 0}] ++ $tokens ++ [{start: ($source | str length -b)}]
     | window 2
-    | each {|pair|
-        let gap_start = $pair.0.end
-        let gap_end = $pair.1.start
-        if $gap_start < $gap_end {
-            let content = $bytes | bytes at $gap_start..<$gap_end | decode utf8
-            {content: $content, start: $gap_start, end: $gap_end, shape: (classify-gap $content)}
-        }
+    | where {|p| $p.0.end < $p.1.start }
+    | each {|p|
+        let content = $bytes | bytes at $p.0.end..<$p.1.start | decode utf8
+        {content: $content, start: $p.0.end, end: $p.1.start, shape: (classify-gap $content)}
     }
-    | compact
 
     $tokens | select content start end shape | append $gaps | sort-by start
 }
