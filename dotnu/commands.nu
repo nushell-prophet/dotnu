@@ -271,26 +271,27 @@ export def 'examples-update' [
 
 # Find @example blocks with their code and result sections using AST parsing
 #
-# Uses AST to accurately detect @example attributes, avoiding false positives
-# from @example inside strings or comments.
+# Uses ast-complete to accurately detect @example attributes, avoiding false positives
+# from @example inside strings or comments. The @ prefix appears as shape_gap.
 export def find-examples []: string -> table<original: string, code: string, result_line: string> {
     let source = $in
     let bytes = $source | encode utf8
-    let tokens = ast --flatten $source | flatten span | sort-by start
+    let tokens = $source | ast-complete
 
     if ($tokens | is-empty) {
         return []
     }
 
-    # Find @example token indices (content is "example" and byte before is "@")
+    # Find @example: shape_gap ending with "@" followed by "example" token
+    # The gap may include preceding newlines (e.g., "\n\n@")
     let example_indices = $tokens
     | enumerate
-    | where {|row|
-        ($row.item.content == "example"
-        and $row.item.start > 0
-        and (($bytes | bytes at ($row.item.start - 1)..<($row.item.start) | decode utf8) == "@"))
+    | window 2
+    | where {|pair|
+        ($pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
+        and $pair.1.item.content == "example")
     }
-    | get index
+    | each { $in.1.index }  # Get index of "example" token
 
     if ($example_indices | is-empty) {
         return []
@@ -317,10 +318,15 @@ export def find-examples []: string -> table<original: string, code: string, res
         let close_brace_idx = $block_tokens | get 1 | get index
         let after_block = $remaining | skip ($close_brace_idx + 1)
 
-        let result_info = if ($after_block | is-not-empty) and ($after_block | first | get shape) == "shape_flag" and ($after_block | first | get content) == "--result" {
-            # Has --result flag - get the value token
-            let result_flag = $after_block | first
-            let result_value = $after_block | get 1
+        # Skip whitespace/newlines to find the flag
+        let after_block_meaningful = $after_block
+        | where shape not-in ["shape_whitespace", "shape_newline"]
+
+        let result_info = if ($after_block_meaningful | is-not-empty) and ($after_block_meaningful | first | get shape) == "shape_flag" and ($after_block_meaningful | first | get content) == "--result" {
+            # Has --result flag - get the value token (skip whitespace after flag)
+            let result_tokens = $after_block_meaningful | skip 1
+            | where shape not-in ["shape_whitespace", "shape_newline"]
+            let result_value = $result_tokens | first
             {
                 has_result: true
                 end_byte: $result_value.end
@@ -341,9 +347,10 @@ export def find-examples []: string -> table<original: string, code: string, res
         }
 
         # Extract original text from @ to end of result value
-        let example_token = $remaining | first
-        let original_start = $example_token.start - 1  # Include the @
-        let original = $bytes | bytes at $original_start..<($result_info.end_byte) | decode utf8
+        # The @ may be at end of a gap that includes newlines (e.g., "\n\n@")
+        let at_token = $tokens | get ($idx - 1)  # The gap token containing @
+        let at_start = $at_token.end - 1  # @ is always the last char in the gap
+        let original = $bytes | bytes at $at_start..<($result_info.end_byte) | decode utf8
 
         # Extract code from inside the block (between { and })
         let code_start = $open_brace.end

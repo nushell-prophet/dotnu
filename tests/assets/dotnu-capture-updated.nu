@@ -15,7 +15,7 @@ ls | sort-by modified -r | last 2 | print $in
 # => ╰───┴──────────────────────────────┴──────┴───────┴────────────╯
 
 random int | print $in
-# => 715417480887225631
+# => 551275577496704540
 
 'Say hello to the core team of the Nushell'
 | str replace 'Nushell' 'Best shell'
