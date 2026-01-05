@@ -970,87 +970,40 @@ export def capture-marker [
 export def ast-complete []: string -> table {
     let source = $in
     let bytes = $source | encode utf8
-    let source_len = $source | str length -b
     let tokens = ast --flatten $source | flatten span | sort-by start
 
     if ($tokens | is-empty) {
         return []
     }
 
-    # Find gaps between consecutive tokens
-    let inter_gaps = $tokens
+    # Add sentinel boundaries to handle leading/trailing gaps uniformly
+    let with_bounds = [{end: 0}] ++ $tokens ++ [{start: ($source | str length -b)}]
+
+    # Find all gaps in one pass
+    let gaps = $with_bounds
     | window 2
     | each {|pair|
         let gap_start = $pair.0.end
         let gap_end = $pair.1.start
         if $gap_start < $gap_end {
-            let gap_content = $bytes | bytes at $gap_start..<$gap_end | decode utf8
-            {
-                content: $gap_content
-                start: $gap_start
-                end: $gap_end
-                shape: (classify-gap $gap_content)
-            }
+            let content = $bytes | bytes at $gap_start..<$gap_end | decode utf8
+            {content: $content, start: $gap_start, end: $gap_end, shape: (classify-gap $content)}
         }
     }
     | compact
 
-    # Check for leading gap (before first token)
-    let first_token = $tokens | first
-    let leading_gap = if $first_token.start > 0 {
-        let gap_content = $bytes | bytes at 0..<($first_token.start) | decode utf8
-        [{
-            content: $gap_content
-            start: 0
-            end: $first_token.start
-            shape: (classify-gap $gap_content)
-        }]
-    } else { [] }
-
-    # Check for trailing gap (after last token)
-    let last_token = $tokens | last
-    let trailing_gap = if $last_token.end < $source_len {
-        let gap_content = $bytes | bytes at ($last_token.end)..<$source_len | decode utf8
-        [{
-            content: $gap_content
-            start: $last_token.end
-            end: $source_len
-            shape: (classify-gap $gap_content)
-        }]
-    } else { [] }
-
-    # Combine all tokens and gaps, sorted by position
-    $leading_gap
-    | append $inter_gaps
-    | append $trailing_gap
-    | append ($tokens | select content start end shape)
-    | sort-by start
+    $tokens | select content start end shape | append $gaps | sort-by start
 }
 
 # Classify gap content into synthetic shape types
 def classify-gap [content: string]: nothing -> string {
-    let trimmed = $content | str trim
-    match $trimmed {
+    match ($content | str trim) {
         ";" => "shape_semicolon"
         "=" => "shape_assignment"
         "|" => "shape_pipe"
         "," => "shape_comma"
         "." => "shape_dot"
-        "" => {
-            # Pure whitespace - check if it contains newlines
-            if ($content =~ '\n') {
-                "shape_newline"
-            } else {
-                "shape_whitespace"
-            }
-        }
-        _ => {
-            # Check for assignment with surrounding whitespace
-            if ($trimmed == "=" and $content =~ '^\s*=\s*$') {
-                "shape_assignment"
-            } else {
-                "shape_gap"
-            }
-        }
+        "" => (if ($content =~ '\n') { "shape_newline" } else { "shape_whitespace" })
+        _ => "shape_gap"
     }
 }
