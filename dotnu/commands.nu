@@ -670,29 +670,14 @@ export def list-module-commands [
     let script_content = open $module_path -r
     let code_bytes = $script_content | encode utf-8
     let all_tokens = ast --flatten $script_content | flatten span
+    let statements = $script_content | split-statements
 
-    # Phase 1a: Find def statements using line-based parsing
-    # (line parsing works fine for def, and we need byte offsets for range lookup)
-    let lines_pos = $script_content
-    | lines
-    | reduce --fold {offset: 0 lines: []} {|line acc|
-        let entry = {line: $line start: $acc.offset}
-
-        {
-            offset: ($acc.offset + ($line | str length -b) + 1)
-            lines: ($acc.lines | append $entry)
-        }
-    }
-    | get lines
-
-    let def_definitions = $lines_pos
-    | insert caller {
-        if $in.line =~ '^(export )?def .*\[' {
-            $in.line | extract-command-name | replace-main-with-module-name $module_path
-        }
-    }
-    | where caller != null
-    | select caller start
+    # Phase 1a: Find def statements using split-statements
+    # Each statement has accurate byte ranges for scope detection
+    let def_definitions = $statements
+    | where { $in.statement =~ '^(export )?def ' }
+    | insert caller { $in.statement | lines | first | extract-command-name | replace-main-with-module-name $module_path }
+    | select caller start end
 
     # Phase 1b: Find attributes using AST (prevents false positives from @attr inside strings)
     # Real attributes have '@' immediately before the token in source
@@ -702,6 +687,7 @@ export def list-module-commands [
     }
     | insert caller {|t| '@' + ($t.content | split row ' ' | first) } # '@complete external' → '@complete'
     | select caller start
+    | insert end null  # attributes don't have scope ranges
 
     let defined_defs = $def_definitions
     | append $attribute_definitions
@@ -713,14 +699,28 @@ export def list-module-commands [
 
     let defs_with_index = $defined_defs | sort-by start
 
-    # Range-based lookup: exact join fails because def positions != AST token positions
+    # Range-based lookup using statement boundaries
+    # For defs with end ranges, tokens must be within [start, end)
+    # For attributes (end=null), use the old "start <=" logic
     let calls = $all_tokens
     | each {|token|
-        let def = $defs_with_index | where start <= $token.start | last
-        if $def == null {
+        # Find the definition this token belongs to
+        let matching_def = $defs_with_index
+        | where {|d|
+            if $d.end? != null {
+                # Def with scope: token must be within range
+                $d.start <= $token.start and $token.start < $d.end
+            } else {
+                # Attribute: use start-based matching (find last one before token)
+                $d.start <= $token.start
+            }
+        }
+        | last
+
+        if $matching_def == null {
             $token | insert caller null | insert filename_of_caller null
         } else {
-            $token | insert caller $def.caller | insert filename_of_caller $def.filename_of_caller
+            $token | insert caller $matching_def.caller | insert filename_of_caller $matching_def.filename_of_caller
         }
     }
     | where caller != null and caller !~ '^@' # exclude tokens inside attribute blocks
@@ -1039,16 +1039,24 @@ export def split-statements []: string -> table<statement: string, start: int, e
 
     for token in $tokens {
         # Track block depth
+        # Handle blocks where { and } may be in same token (e.g., "{}" or "{ x }")
         if $token.shape in ["shape_block", "shape_closure"] {
-            if ($token.content | str starts-with "{") {
+            let has_open = $token.content | str contains "{"
+            let has_close = $token.content | str contains "}"
+            if $has_open and $has_close {
+                # Self-contained block like {} - no net depth change
+            } else if $has_open {
                 $depth = $depth + 1
-            } else if ($token.content | str starts-with "}") or ($token.content | str ends-with "}") {
+            } else if $has_close {
                 $depth = $depth - 1
             }
         }
 
         # Statement boundary at top level
-        if $depth == 0 and $token.shape in ["shape_semicolon", "shape_newline"] {
+        # Also check shape_gap that starts with newline (comments are bundled into gaps)
+        let is_boundary = ($token.shape in ["shape_semicolon", "shape_newline"]
+            or ($token.shape == "shape_gap" and ($token.content | str starts-with "\n")))
+        if $depth == 0 and $is_boundary {
             let stmt_text = $bytes | bytes at $stmt_start..<$token.start | decode utf8 | str trim
             if ($stmt_text | is-not-empty) {
                 $statements = $statements | append {

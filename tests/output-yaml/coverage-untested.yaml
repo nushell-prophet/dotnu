@@ -21,8 +21,5 @@
 # }
 # | to yaml
 public_api_count: 14
-tested_count: 11
-untested:
-- embed-add
-- embeds-capture-start
-- embeds-capture-stop
+tested_count: 14
+untested: []
