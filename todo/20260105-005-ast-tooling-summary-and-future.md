@@ -121,10 +121,63 @@ Parse Nushell command history to extract:
 - Positional arguments with positions
 - Argument types (path, int, string, etc.)
 
+**Key Finding: `ast --json` is ideal for this use case**
+
+Unlike dependency tracking (where `ast --flatten` is better because it shows calls inside closures), parsing individual commands for history extraction benefits from `ast --json`'s structured output:
+
+```nu
+# Complex case: subexpression as positional arg + flag
+ast --json 'ls ("~" | path join smth) --all' | get block | from json
+| get pipelines.0.elements.0.expr.expr.Call.arguments
+# => [
+#   {Positional: {expr: {Subexpression: 337}, span: {...}, ty: Any}},
+#   {Named: [{item: all, span: {...}}, null, null]}
+# ]
+```
+
+**Advantages over `ast --flatten` for history parsing:**
+
+| Feature | `ast --json` | `ast --flatten` |
+|---------|-------------|-----------------|
+| Arg type discrimination | `Positional` vs `Named` explicit | Must infer from position |
+| Type information | `ty: Glob`, `ty: String`, `ty: Record` | `shape_*` less semantic |
+| Complex expressions | Spans allow extraction | Tokens are flat, hard to group |
+| Named param values | `[flag_name, null, value_expr]` | Must match `--flag` to next token |
+| Nested expressions | Preserved as subexpression IDs | Flattened, loses structure |
+
+**Example outputs:**
+
+```nu
+# open file.txt --raw
+arguments: [
+  {Positional: {expr: {GlobPattern: ["file.txt", false]}, ty: Glob}},
+  {Named: [{item: raw}, null, null]}  # flag without value
+]
+
+# http get https://api.com --headers {Accept: json}
+arguments: [
+  {Positional: {expr: {String: "https://api.com"}, ty: String}},
+  {Named: [{item: headers}, null, {expr: {Record: ...}, ty: Record}]}  # flag with value
+]
+
+# str replace foo bar --all
+arguments: [
+  {Positional: {expr: {String: foo}, ty: String}},
+  {Positional: {expr: {String: bar}, ty: String}},
+  {Named: [{item: all}, null, null]}
+]
+```
+
+**Mapping to database schema:**
+- `flag` → Named args where value is null
+- `parameter_name` + `parameter_value` → Named args with value
+- `positional_arg` + `arg_position` → Positional args (enumerate for position)
+- `arg_type` → Use `ty` field directly
+
 **Requirements**:
-- Handle all valid Nushell syntax
-- Extract semantic meaning (which arg goes to which parameter)
-- Work on thousands of history entries efficiently
+- Handle all valid Nushell syntax ✓ (AST handles this)
+- Extract semantic meaning (which arg goes to which parameter) ✓ (Positional/Named explicit)
+- Work on thousands of history entries efficiently (needs benchmarking)
 
 **Use in history-based-completions**:
 - Build SQLite database of argument usage
