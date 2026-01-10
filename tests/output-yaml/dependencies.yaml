@@ -1,17 +1,10 @@
 # glob ([tests assets b *] | path join | str replace -a '\' '/')
 # | dependencies ...$in
+# | sort-by caller callee step
 # | to yaml
-- caller: command-5
-  callee: command-3
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: command-5
-  callee: first-custom
-  filename_of_caller: example-mod1.nu
-  step: 0
-- caller: command-5
-  callee: append-random
-  filename_of_caller: example-mod1.nu
+- caller: append-random
+  filename_of_caller: example-mod2.nu
+  callee: null
   step: 0
 - caller: command-3
   callee: lscustom
@@ -21,7 +14,31 @@
   callee: sort-by-custom
   filename_of_caller: example-mod1.nu
   step: 0
+- caller: command-5
+  callee: append-random
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: command-5
+  callee: command-3
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: command-5
+  callee: first-custom
+  filename_of_caller: example-mod1.nu
+  step: 0
+- caller: command-5
+  callee: lscustom
+  step: 1
+  filename_of_caller: example-mod1.nu
+- caller: command-5
+  callee: sort-by-custom
+  step: 1
+  filename_of_caller: example-mod1.nu
 - caller: example-mod1
+  filename_of_caller: example-mod1.nu
+  callee: null
+  step: 0
+- caller: first-custom
   filename_of_caller: example-mod1.nu
   callee: null
   step: 0
@@ -33,19 +50,3 @@
   filename_of_caller: example-mod1.nu
   callee: null
   step: 0
-- caller: first-custom
-  filename_of_caller: example-mod1.nu
-  callee: null
-  step: 0
-- caller: append-random
-  filename_of_caller: example-mod2.nu
-  callee: null
-  step: 0
-- caller: command-5
-  callee: lscustom
-  step: 1
-  filename_of_caller: example-mod1.nu
-- caller: command-5
-  callee: sort-by-custom
-  step: 1
-  filename_of_caller: example-mod1.nu

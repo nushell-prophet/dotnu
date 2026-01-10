@@ -6,6 +6,7 @@ export use commands.nu [
     "embeds-remove"
     "embeds-setup"
     "embeds-update"
+    "examples-update"
     "extract-command-code"
     "filter-commands-with-no-tests"
     "generate-numd"

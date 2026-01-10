@@ -12,14 +12,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Run all tests (unit + integration)
+# Run all tests - ALWAYS use this command for testing
 nu toolkit.nu test
 
-# Run unit tests only (uses nutest framework)
-nu toolkit.nu test-unit
-
-# Run integration tests only
-nu toolkit.nu test-integration
+# Update integration test fixtures when output changes
+nu toolkit.nu test --update
 
 # Release (bumps version in nupm.nuon and README.md, commits, tags, pushes)
 nu toolkit.nu release           # patch bump
@@ -27,15 +24,19 @@ nu toolkit.nu release --minor   # minor bump
 nu toolkit.nu release --major   # major bump
 ```
 
+**Important**: Always use `nu toolkit.nu test` (not `test-unit` or `test-integration` separately). The combined command provides proper test output and summary.
+
 ## Architecture
 
 ### Module Structure
 
 ```
 dotnu/
-├── mod.nu          # Public API exports (13 commands)
-└── commands.nu     # All implementation (~800 lines)
+├── mod.nu          # Public API exports (selective)
+└── commands.nu     # All implementation (all commands exported)
 ```
+
+**Export convention**: All commands in `commands.nu` are exported by default (for internal use, testing, and development). The public API is managed through `mod.nu`, which selectively re-exports only the user-facing commands. To add a command to the public API, add it to the list in `mod.nu`.
 
 **mod.nu** exports these public commands:
 - `dependencies` - Analyze command call chains
@@ -59,14 +60,14 @@ dotnu/
 
 ```
 tests/
-├── test_commands.nu    # Unit tests (~250 cases, nutest framework)
+├── test_commands.nu    # Unit tests (nutest framework)
 ├── assets/             # Test fixtures
 │   ├── b/              # Module dependency examples
 │   └── module-say/     # Real-world module example
 └── output-yaml/        # Integration test outputs
 ```
 
-Unit tests use `@test` decorator and `assert` from `std/testing`.
+Unit tests use `@test` decorator. Integration tests compare command output against fixture files.
 
 ## Dependencies
 
@@ -76,7 +77,8 @@ Unit tests use `@test` decorator and `assert` from `std/testing`.
 
 ## Conventions
 
-- Public commands: kebab-case, exported in mod.nu
-- Internal helpers: kebab-case, not exported
-- Test detection: commands named `test*` or in `test*.nu` files
-- Documentation: `@example` decorators with `--result` for expected output
+- **Naming**: All commands use kebab-case
+- **Exports**: All commands in `commands.nu` are exported; `mod.nu` controls public API
+- **Internal commands**: Exported from `commands.nu` but not listed in `mod.nu`
+- **Test detection**: Commands named `test*` or in `test*.nu` files
+- **Documentation**: `@example` decorators with `--result` for expected output
