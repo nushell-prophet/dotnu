@@ -171,19 +171,9 @@ export def 'list-exported-commands' [
     let source = open $path -r
 
     if $export {
-        # Try export def pattern first
-        let from_def = $source
-        | lines
-        | where $it =~ '^export def '
-        | extract-command-name
+        $source
+        | extract-exported-commands
         | replace-main-with-module-name $path
-
-        # Try export use [...] pattern via AST if no export def found
-        let from_use = if ($from_def | is-empty) {
-            $source | extract-export-use-commands
-        } else { [] }
-
-        $from_def | append $from_use
     } else {
         $source
         | lines
@@ -976,31 +966,33 @@ export def capture-marker [
     }
 }
 
-# Extract command names from `export use module.nu [commands]` pattern using AST
+# Extract exported command names using AST
 #
-# When a module uses selective re-export like:
-#   export use commands.nu ["cmd1" "cmd2"]
-# This extracts the command names from the list.
-export def extract-export-use-commands []: string -> list<string> {
+# Handles both patterns:
+# - `export def cmd-name []` → extracts cmd-name
+# - `export use module.nu ["cmd1" "cmd2"]` → extracts cmd1, cmd2
+export def extract-exported-commands []: string -> list<string> {
     let tokens = ast --flatten $in | flatten span
 
-    # Find export use internal call
-    let export_use_matches = $tokens
-    | enumerate
-    | where { $in.item.content == 'export use' and $in.item.shape == 'shape_internalcall' }
-
-    if ($export_use_matches | is-empty) { return [] }
-
-    let export_use_idx = $export_use_matches | first | get index
-
-    # Get tokens after export use: module path, then list with command names
-    # Pattern: [export use] [module.nu] [ [cmd1] [cmd2] ... ]
-    # shape_string tokens inside shape_list are the command names
     $tokens
-    | skip ($export_use_idx + 2)  # Skip "export use" and module path
-    | where shape == 'shape_string'
-    | get content
-    | each { str trim -c '"' }
+    | enumerate
+    | where { $in.item.content in ['export def' 'export use'] }
+    | each {|match|
+        let idx = $match.index
+        if $match.item.content == 'export def' {
+            # Command name is next token
+            $tokens | get ($idx + 1) | get content | str trim -c "'" | str trim -c '"'
+        } else {
+            # export use: skip module path, get shape_string tokens from list
+            $tokens
+            | skip ($idx + 2)
+            | take while { $in.shape in ['shape_string' 'shape_list'] }
+            | where shape == 'shape_string'
+            | get content
+            | str trim -c '"'
+        }
+    }
+    | flatten
 }
 
 # Complete AST output by filling gaps with synthetic tokens
