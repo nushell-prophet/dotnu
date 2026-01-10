@@ -599,7 +599,7 @@ def foo [] {}'
 @test
 def "execute-example runs simple expression" [] {
     # Create temp file for context
-    let temp = '/tmp/test-execute-example.nu'
+    let temp = $nu.temp-path | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
     let result = execute-example '1 + 1' $temp
@@ -609,7 +609,7 @@ def "execute-example runs simple expression" [] {
 
 @test
 def "execute-example returns error record on failure" [] {
-    let temp = '/tmp/test-execute-example.nu'
+    let temp = $nu.temp-path | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
     let result = execute-example 'nonexistent-command' $temp
@@ -619,7 +619,7 @@ def "execute-example returns error record on failure" [] {
 
 @test
 def "execute-example handles multiline result" [] {
-    let temp = '/tmp/test-execute-example.nu'
+    let temp = $nu.temp-path | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
     let result = execute-example '[1, 2, 3]' $temp
@@ -633,7 +633,7 @@ def "execute-example handles multiline result" [] {
 
 @test
 def "examples-update updates result values" [] {
-    let temp = '/tmp/test-examples-update.nu'
+    let temp = $nu.temp-path | path join 'test-examples-update.nu'
     '@example "add" { 1 + 1 } --result 0
 export def dummy [] { 1 }' | save -f $temp
 
@@ -645,7 +645,7 @@ export def dummy [] { 1 }' | save -f $temp
 
 @test
 def "examples-update handles multiple examples" [] {
-    let temp = '/tmp/test-examples-update.nu'
+    let temp = $nu.temp-path | path join 'test-examples-update.nu'
     '@example "first" { 1 + 1 } --result 0
 export def foo [] {}
 
@@ -660,7 +660,7 @@ export def bar [] {}' | save -f $temp
 
 @test
 def "examples-update preserves file when no examples" [] {
-    let temp = '/tmp/test-examples-update.nu'
+    let temp = $nu.temp-path | path join 'test-examples-update.nu'
     let content = 'export def foo [] { 1 }'
     $content | save -f $temp
 
