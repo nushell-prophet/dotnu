@@ -337,14 +337,38 @@ export def find-examples []: string -> table<original: string, code: string, res
         | where shape not-in ["shape_whitespace" "shape_newline"]
 
         let result_info = if ($after_block_meaningful | is-not-empty) and ($after_block_meaningful | first | get shape) == "shape_flag" and ($after_block_meaningful | first | get content) == "--result" {
-            # Has --result flag - get the value token (skip whitespace after flag)
+            # Has --result flag - get the value token(s) (skip whitespace after flag)
             let result_tokens = $after_block_meaningful | skip 1
             | where shape not-in ["shape_whitespace" "shape_newline"]
-            let result_value = $result_tokens | first
+            let first_token = $result_tokens | first
+
+            # For lists/records, find matching closing bracket
+            let end_byte = if $first_token.content == "[" or $first_token.content == "{" {
+                let close_char = if $first_token.content == "[" { "]" } else { "}" }
+                let open_char = $first_token.content
+                # Find matching close by tracking bracket depth
+                let close_token = $result_tokens | skip 1
+                | reduce --fold {depth: 1, token: null} {|t, acc|
+                    if $acc.token != null { $acc } else {
+                        let new_depth = if $t.content == $open_char {
+                            $acc.depth + 1
+                        } else if $t.content == $close_char {
+                            $acc.depth - 1
+                        } else {
+                            $acc.depth
+                        }
+                        if $new_depth == 0 { {depth: 0, token: $t} } else { {depth: $new_depth, token: null} }
+                    }
+                }
+                $close_token.token.end
+            } else {
+                $first_token.end
+            }
+
             {
                 has_result: true
-                end_byte: $result_value.end
-                result_line: $"} --result ($result_value.content)"
+                end_byte: $end_byte
+                result_line: "" # not used, kept for interface compatibility
             }
         } else {
             # No --result flag
