@@ -26,6 +26,11 @@ nu toolkit.nu release --major   # major bump
 
 **Important**: Always use `nu toolkit.nu test` (not `test-unit` or `test-integration` separately). The combined command provides proper test output and summary.
 
+```bash
+# Check test coverage - requires both source AND test files
+nu -c 'use dotnu/; ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"] | each { glob $in } | flatten | dotnu dependencies ...$in | dotnu filter-commands-with-no-tests'
+```
+
 ## Architecture
 
 ### Module Structure
@@ -37,6 +42,10 @@ dotnu/
 ```
 
 **Export convention**: All commands in `commands.nu` are exported by default (for internal use, testing, and development). The public API is managed through `mod.nu`, which selectively re-exports only the user-facing commands. To add a command to the public API, add it to the list in `mod.nu`.
+
+**Imports**:
+- `use dotnu/` - import public API commands
+- `use dotnu/commands.nu *` - import all commands (including internal)
 
 **mod.nu** exports these public commands:
 - `dependencies` - Analyze command call chains
