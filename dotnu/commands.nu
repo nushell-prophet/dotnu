@@ -288,10 +288,12 @@ export def find-examples []: string -> table<original: string, code: string, res
     | enumerate
     | window 2
     | where {|pair|
-        ($pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
-        and $pair.1.item.content == "example")
+        (
+            $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
+            and $pair.1.item.content == "example"
+        )
     }
-    | each { $in.1.index }  # Get index of "example" token
+    | each { $in.1.index } # Get index of "example" token
 
     if ($example_indices | is-empty) {
         return []
@@ -304,7 +306,7 @@ export def find-examples []: string -> table<original: string, code: string, res
         # Find block tokens (shape_block) - opening and closing braces
         let block_tokens = $remaining
         | enumerate
-        | where {|r| $r.item.shape == "shape_block"}
+        | where {|r| $r.item.shape == "shape_block" }
 
         if ($block_tokens | length) < 2 {
             # Malformed @example - skip
@@ -320,12 +322,12 @@ export def find-examples []: string -> table<original: string, code: string, res
 
         # Skip whitespace/newlines to find the flag
         let after_block_meaningful = $after_block
-        | where shape not-in ["shape_whitespace", "shape_newline"]
+        | where shape not-in ["shape_whitespace" "shape_newline"]
 
         let result_info = if ($after_block_meaningful | is-not-empty) and ($after_block_meaningful | first | get shape) == "shape_flag" and ($after_block_meaningful | first | get content) == "--result" {
             # Has --result flag - get the value token (skip whitespace after flag)
             let result_tokens = $after_block_meaningful | skip 1
-            | where shape not-in ["shape_whitespace", "shape_newline"]
+            | where shape not-in ["shape_whitespace" "shape_newline"]
             let result_value = $result_tokens | first
             {
                 has_result: true
@@ -348,8 +350,8 @@ export def find-examples []: string -> table<original: string, code: string, res
 
         # Extract original text from @ to end of result value
         # The @ may be at end of a gap that includes newlines (e.g., "\n\n@")
-        let at_token = $tokens | get ($idx - 1)  # The gap token containing @
-        let at_start = $at_token.end - 1  # @ is always the last char in the gap
+        let at_token = $tokens | get ($idx - 1) # The gap token containing @
+        let at_start = $at_token.end - 1 # @ is always the last char in the gap
         let original = $bytes | bytes at $at_start..<($result_info.end_byte) | decode utf8
 
         # Extract code from inside the block (between { and })
@@ -689,10 +691,10 @@ export def list-module-commands [
     }
     | each {|pair|
         let attr_token = $pair.1.item
-        let at_start = $pair.0.item.end - 1  # @ is last char in the gap
-        { caller: ('@' + ($attr_token.content | split row ' ' | first)), start: $at_start }
+        let at_start = $pair.0.item.end - 1 # @ is last char in the gap
+        {caller: ('@' + ($attr_token.content | split row ' ' | first)) start: $at_start}
     }
-    | insert end null  # attributes don't have scope ranges
+    | insert end null # attributes don't have scope ranges
 
     let defined_defs = $def_definitions
     | append $attribute_definitions
@@ -991,7 +993,7 @@ export def ast-complete []: string -> table {
     | where {|p| $p.0.end < $p.1.start }
     | each {|p|
         let content = $bytes | bytes at $p.0.end..<$p.1.start | decode utf8
-        {content: $content, start: $p.0.end, end: $p.1.start, shape: (classify-gap $content)}
+        {content: $content start: $p.0.end end: $p.1.start shape: (classify-gap $content)}
     }
 
     $tokens | select content start end shape | append $gaps | sort-by start
@@ -1045,7 +1047,7 @@ export def split-statements []: string -> table<statement: string, start: int, e
     for token in $tokens {
         # Track block depth
         # Handle blocks where { and } may be in same token (e.g., "{}" or "{ x }")
-        if $token.shape in ["shape_block", "shape_closure"] {
+        if $token.shape in ["shape_block" "shape_closure"] {
             let has_open = $token.content | str contains "{"
             let has_close = $token.content | str contains "}"
             if $has_open and $has_close {
@@ -1059,8 +1061,10 @@ export def split-statements []: string -> table<statement: string, start: int, e
 
         # Statement boundary at top level
         # Also check shape_gap that starts with newline (comments are bundled into gaps)
-        let is_boundary = ($token.shape in ["shape_semicolon", "shape_newline"]
-            or ($token.shape == "shape_gap" and ($token.content | str starts-with "\n")))
+        let is_boundary = (
+            $token.shape in ["shape_semicolon" "shape_newline"]
+            or ($token.shape == "shape_gap" and ($token.content | str starts-with "\n"))
+        )
         if $depth == 0 and $is_boundary {
             let stmt_text = $bytes | bytes at $stmt_start..<$token.start | decode utf8 | str trim
             if ($stmt_text | is-not-empty) {
