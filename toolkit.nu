@@ -79,6 +79,7 @@ export def 'main test-integration' [
             run-snapshot-test 'dependencies' ([tests output-yaml dependencies.yaml] | path join) {
                 glob ([tests assets b *] | path join | str replace -a '\' '/')
                 | dependencies ...$in
+                | sort-by caller callee step
                 | to yaml
             }
         )
@@ -86,6 +87,7 @@ export def 'main test-integration' [
             run-snapshot-test 'dependencies --keep-builtins' ([tests output-yaml 'dependencies --keep_builtins.yaml'] | path join) {
                 glob ([tests assets b *] | path join | str replace -a '\' '/')
                 | dependencies ...$in --keep-builtins
+                | sort-by caller callee step
                 | to yaml
             }
         )
