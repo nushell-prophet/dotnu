@@ -668,6 +668,7 @@ export def list-module-commands [
     --definitions-only # output only commands' names definitions
 ] {
     let script_content = open $module_path -r
+    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
     let all_tokens = $script_content | ast-complete
     let statements = $script_content | split-statements
 
