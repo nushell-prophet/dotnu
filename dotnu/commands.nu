@@ -168,14 +168,26 @@ export def 'list-exported-commands' [
     $path: path
     --export # use only commands that are exported
 ] {
-    open $path -r
-    | lines
-    | if $export {
-        where $it =~ '^export def '
+    let source = open $path -r
+
+    if $export {
+        # Try export def pattern first
+        let from_def = $source
+        | lines
+        | where $it =~ '^export def '
         | extract-command-name
         | replace-main-with-module-name $path
+
+        # Try export use [...] pattern via AST if no export def found
+        let from_use = if ($from_def | is-empty) {
+            $source | extract-export-use-commands
+        } else { [] }
+
+        $from_def | append $from_use
     } else {
-        where $it =~ '^(export )?def '
+        $source
+        | lines
+        | where $it =~ '^(export )?def '
         | extract-command-name
         | where $it starts-with 'main'
         | str replace 'main ' ''
@@ -962,6 +974,33 @@ export def capture-marker [
     } else {
         "\u{200C}\u{200B}"
     }
+}
+
+# Extract command names from `export use module.nu [commands]` pattern using AST
+#
+# When a module uses selective re-export like:
+#   export use commands.nu ["cmd1" "cmd2"]
+# This extracts the command names from the list.
+export def extract-export-use-commands []: string -> list<string> {
+    let tokens = ast --flatten $in | flatten span
+
+    # Find export use internal call
+    let export_use_matches = $tokens
+    | enumerate
+    | where { $in.item.content == 'export use' and $in.item.shape == 'shape_internalcall' }
+
+    if ($export_use_matches | is-empty) { return [] }
+
+    let export_use_idx = $export_use_matches | first | get index
+
+    # Get tokens after export use: module path, then list with command names
+    # Pattern: [export use] [module.nu] [ [cmd1] [cmd2] ... ]
+    # shape_string tokens inside shape_list are the command names
+    $tokens
+    | skip ($export_use_idx + 2)  # Skip "export use" and module path
+    | where shape == 'shape_string'
+    | get content
+    | each { str trim -c '"' }
 }
 
 # Complete AST output by filling gaps with synthetic tokens
