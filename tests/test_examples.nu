@@ -4,16 +4,16 @@ use std/testing *
 # Analyze command dependencies in a module
 @test
 def "dotnu dependencies example 1" [] {
-    let actual = (dotnu dependencies ...(glob tests/assets/module-say/say/*.nu))
-    let expected = [{caller: hello, filename_of_caller: "hello.nu", callee: null, step: 0}, {caller: question, filename_of_caller: "ask.nu", callee: null, step: 0}, {caller: say, callee: hello, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: hi, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: question, filename_of_caller: "mod.nu", step: 0}, {caller: hi, filename_of_caller: "mod.nu", callee: null, step: 0}, {caller: test-hi, callee: hi, filename_of_caller: "test-hi.nu", step: 0}]
+    let actual = (dotnu dependencies ...(glob tests/assets/module-say/say/*.nu) | sort-by caller callee)
+    let expected = ([{caller: hello, filename_of_caller: "hello.nu", callee: null, step: 0}, {caller: question, filename_of_caller: "ask.nu", callee: null, step: 0}, {caller: say, callee: hello, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: hi, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: question, filename_of_caller: "mod.nu", step: 0}, {caller: hi, filename_of_caller: "mod.nu", callee: null, step: 0}, {caller: test-hi, callee: hi, filename_of_caller: "test-hi.nu", step: 0}] | sort-by caller callee)
     assert equal $actual $expected
 }
 
 # Find commands not covered by tests
 @test
 def "dotnu filter-commands-with-no-tests example 1" [] {
-    let actual = (dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests)
-    let expected = [[caller, filename_of_caller]; [hello, "hello.nu"], [question, "ask.nu"], [say, "mod.nu"]]
+    let actual = (dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests | sort-by caller)
+    let expected = ([[caller, filename_of_caller]; [hello, "hello.nu"], [question, "ask.nu"], [say, "mod.nu"]] | sort-by caller)
     assert equal $actual $expected
 }
 
