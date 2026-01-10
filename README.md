@@ -203,13 +203,13 @@ dotnu dependencies --help
 # =>   ╰───┴───────┴────────╯
 # =>
 # => Examples:
-# =>
+# =>   Analyze command dependencies in a module
 # =>   > dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
 # =>   ╭───┬──────────┬────────────────────┬──────────┬──────╮
 # =>   │ # │  caller  │ filename_of_caller │  callee  │ step │
 # =>   ├───┼──────────┼────────────────────┼──────────┼──────┤
-# =>   │ 0 │ hello    │ hello.nu           │          │    0 │
-# =>   │ 1 │ question │ ask.nu             │          │    0 │
+# =>   │ 0 │ question │ ask.nu             │          │    0 │
+# =>   │ 1 │ hello    │ hello.nu           │          │    0 │
 # =>   │ 2 │ say      │ mod.nu             │ hello    │    0 │
 # =>   │ 3 │ say      │ mod.nu             │ hi       │    0 │
 # =>   │ 4 │ say      │ mod.nu             │ question │    0 │
@@ -240,13 +240,13 @@ dotnu filter-commands-with-no-tests --help
 # =>   ╰───┴───────┴────────╯
 # =>
 # => Examples:
-# =>
+# =>   Find commands not covered by tests
 # =>   > dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
 # =>   ╭───┬──────────┬────────────────────╮
 # =>   │ # │  caller  │ filename_of_caller │
 # =>   ├───┼──────────┼────────────────────┤
-# =>   │ 0 │ hello    │ hello.nu           │
-# =>   │ 1 │ question │ ask.nu             │
+# =>   │ 0 │ question │ ask.nu             │
+# =>   │ 1 │ hello    │ hello.nu           │
 # =>   │ 2 │ say      │ mod.nu             │
 # =>   ╰───┴──────────┴────────────────────╯
 # =>
@@ -283,7 +283,7 @@ dotnu set-x --help
 # =>   ╰───┴───────┴────────╯
 # =>
 # => Examples:
-# =>
+# =>   Generate script with timing instrumentation
 # =>   > set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
 # =>   mut $prev_ts = ( date now )
 # =>   print ("> sleep 0.5sec" | nu-highlight)
@@ -403,13 +403,13 @@ List all exported definitions from a module file. Finds commands from `export de
 
 ```nushell
 dotnu list-module-exports dotnu/mod.nu | first 5
-# => ╭───┬─────────────────────╮
-# => │ 0 │ dependencies        │
-# => │ 1 │ embed-add           │
-# => │ 2 │ embeds-capture-start│
-# => │ 3 │ embeds-capture-stop │
-# => │ 4 │ embeds-remove       │
-# => ╰───┴─────────────────────╯
+# => ╭───┬──────────────────────╮
+# => │ 0 │ dependencies         │
+# => │ 1 │ embed-add            │
+# => │ 2 │ embeds-capture-start │
+# => │ 3 │ embeds-capture-stop  │
+# => │ 4 │ embeds-remove        │
+# => ╰───┴──────────────────────╯
 ```
 
 ### `dotnu list-module-interface`
