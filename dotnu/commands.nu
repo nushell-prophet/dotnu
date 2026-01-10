@@ -269,8 +269,10 @@ export def 'examples-update' [
     # Using full original text ensures unique matches even with duplicate results
     let updated = $results | reduce --fold $content {|item acc|
         # Build new example by replacing just the result value in the original
+        # Escape $ as $$ to prevent regex backreference interpretation
+        let escaped_result = $item.new_result | str replace -a '$' '$$'
         let new_example = $item.original
-        | str replace -r '\} --result .+$' $"} --result ($item.new_result)"
+        | str replace -r '\} --result .+$' $"} --result ($escaped_result)"
 
         $acc | str replace $item.original $new_example
     }
