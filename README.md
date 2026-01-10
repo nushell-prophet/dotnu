@@ -397,29 +397,30 @@ dotnu extract-command-code --help
 # =>
 ```
 
-### `dotnu list-exported-commands`
+### `dotnu list-module-exports`
 
-List commands defined in a module file. Use `--export` to show only exported commands.
+List all exported definitions from a module file. Finds commands from `export def` and `export use [...commands]` patterns.
 
 ```nushell
-dotnu list-exported-commands --help
-# => Usage:
-# =>   > list-exported-commands {flags} <$path>
-# =>
-# => Flags:
-# =>   -h, --help: Display the help message for this command
-# =>   --export: use only commands that are exported
-# =>
-# => Parameters:
-# =>   $path <path>
-# =>
-# => Input/output types:
-# =>   ╭───┬───────┬────────╮
-# =>   │ # │ input │ output │
-# =>   ├───┼───────┼────────┤
-# =>   │ 0 │ any   │ any    │
-# =>   ╰───┴───────┴────────╯
-# =>
+dotnu list-module-exports dotnu/mod.nu | first 5
+# => ╭───┬─────────────────────╮
+# => │ 0 │ dependencies        │
+# => │ 1 │ embed-add           │
+# => │ 2 │ embeds-capture-start│
+# => │ 3 │ embeds-capture-stop │
+# => │ 4 │ embeds-remove       │
+# => ╰───┴─────────────────────╯
+```
+
+### `dotnu list-module-interface`
+
+List module's callable interface - the `main` and `main subcommand` patterns that become available when you `use` the module.
+
+```nushell
+dotnu list-module-interface tests/assets/b/example-mod1.nu
+# => ╭───┬──────╮
+# => │ 0 │ main │
+# => ╰───┴──────╯
 ```
 
 ### `dotnu module-commands-code-to-record`

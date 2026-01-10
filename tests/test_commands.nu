@@ -324,12 +324,12 @@ def "extract-command-code handles quoted command names" [] {
 }
 
 # =============================================================================
-# Tests for list-exported-commands
+# Tests for list-module-exports
 # =============================================================================
 
 @test
-def "list-exported-commands finds exported commands" [] {
-    let result = list-exported-commands tests/assets/b/example-mod1.nu --export
+def "list-module-exports finds exported commands" [] {
+    let result = list-module-exports tests/assets/b/example-mod1.nu
 
     # Should find exported commands
     assert ('lscustom' in $result)
@@ -339,8 +339,8 @@ def "list-exported-commands finds exported commands" [] {
 }
 
 @test
-def "list-exported-commands excludes non-exported when flag set" [] {
-    let result = list-exported-commands tests/assets/b/example-mod1.nu --export
+def "list-module-exports excludes non-exported" [] {
+    let result = list-module-exports tests/assets/b/example-mod1.nu
 
     # Private commands should not be in exported list
     assert ('sort-by-custom' not-in $result)

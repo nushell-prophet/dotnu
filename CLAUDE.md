@@ -51,7 +51,8 @@ dotnu/
 - `dependencies` - Analyze command call chains
 - `extract-command-code` - Extract command with its dependencies
 - `filter-commands-with-no-tests` - Find untested commands
-- `list-exported-commands` - List module's exported commands
+- `list-module-exports` - List all exported definitions (export def + export use)
+- `list-module-interface` - List module's callable interface (main commands)
 - `embeds-*` / `embed-add` - Literate programming tools
 - `set-x` / `generate-numd` - Script profiling
 

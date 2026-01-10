@@ -162,26 +162,34 @@ export def 'extract-command-code' [
     }
 }
 
-# todo: `list-exported-commands` should be a completion for Nushell CLI
-
-export def 'list-exported-commands' [
+# List all exported definitions from a module file
+#
+# Finds commands from `export def` and `export use [...commands]` patterns.
+export def 'list-module-exports' [
     $path: path
-    --export # use only commands that are exported
-] {
-    let source = open $path -r
+]: nothing -> list<string> {
+    open $path -r
+    | extract-exported-commands
+    | replace-main-with-module-name $path
+    | if ($in | is-empty) {
+        print 'No command found'
+        return
+    } else { }
+}
 
-    if $export {
-        $source
-        | extract-exported-commands
-        | replace-main-with-module-name $path
-    } else {
-        $source
-        | lines
-        | where $it =~ '^(export )?def '
-        | extract-command-name
-        | where $it starts-with 'main'
-        | str replace 'main ' ''
-    }
+# List module's callable interface (main commands)
+#
+# Finds `def main` and `def 'main subcommand'` patterns - the commands
+# available when you `use` the module.
+export def 'list-module-interface' [
+    $path: path
+]: nothing -> list<string> {
+    open $path -r
+    | lines
+    | where $it =~ '^(export )?def '
+    | extract-command-name
+    | where $it starts-with 'main'
+    | str replace 'main ' ''
     | if ($in | is-empty) {
         print 'No command found'
         return

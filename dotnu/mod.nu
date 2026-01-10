@@ -10,7 +10,8 @@ export use commands.nu [
     "extract-command-code"
     "filter-commands-with-no-tests"
     "generate-numd"
-    "list-exported-commands"
+    "list-module-exports"
+    "list-module-interface"
     "module-commands-code-to-record"
     "set-x"
 ]
