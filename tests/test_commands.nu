@@ -592,6 +592,29 @@ def foo [] {}'
     assert ($result | first | get code | str contains "let x = 1")
 }
 
+@test
+def "find-examples parses list result values" [] {
+    let input = "@example \"list\" { ['a' 'b'] } --result ['a' 'b']
+def foo [] {}"
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 1
+    # Verify the full list is captured, not just the opening bracket
+    assert ($result | first | get original | str contains "['a' 'b']")
+}
+
+@test
+def "find-examples parses record result values" [] {
+    let input = '@example "record" { {a: 1} } --result {a: 1}
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 1
+    assert ($result | first | get original | str contains "{a: 1}")
+}
+
 # =============================================================================
 # Tests for execute-example
 # =============================================================================
@@ -667,6 +690,20 @@ def "examples-update preserves file when no examples" [] {
     let result = examples-update $temp --echo
 
     assert equal $result $content
+}
+
+@test
+def "examples-update preserves dollar signs in results" [] {
+    # Test that $var references in result strings are not lost
+    # (regression test for regex backreference bug)
+    let temp = $nu.temp-path | path join 'test-examples-dollar.nu'
+    '@example "test" { "has $a variable" } --result "old"
+export def dummy [] { 1 }' | save -f $temp
+
+    let result = examples-update $temp --echo
+
+    # The result should contain the $a, not have it stripped
+    assert ($result | str contains '$a')
 }
 
 # split-statements tests
