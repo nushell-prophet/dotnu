@@ -21,9 +21,8 @@
 # }
 # | to yaml
 public_api_count: 15
-tested_count: 11
+tested_count: 12
 untested:
-- list-module-interface
 - embed-add
 - embeds-capture-start
 - embeds-capture-stop

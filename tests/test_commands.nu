@@ -324,6 +324,36 @@ def "extract-command-code handles quoted command names" [] {
 }
 
 # =============================================================================
+# Tests for list-module-interface
+# =============================================================================
+
+@test
+def "list-module-interface finds main command" [] {
+    let result = list-module-interface tests/assets/b/example-mod1.nu
+
+    assert equal $result ['main']
+}
+
+@test
+def "list-module-interface returns null when no main" [] {
+    let result = list-module-interface tests/assets/b/example-mod2.nu
+
+    assert equal $result null
+}
+
+@test
+def "list-module-interface strips main prefix from subcommands" [] {
+    let temp = $nu.temp-dir | path join 'test-module-interface.nu'
+    "export def main [] {}\nexport def 'main sub1' [] {}\nexport def 'main sub2' [] {}" | save -f $temp
+
+    let result = list-module-interface $temp
+
+    assert ('main' in $result)
+    assert ('sub1' in $result)
+    assert ('sub2' in $result)
+}
+
+# =============================================================================
 # Tests for list-module-exports
 # =============================================================================
 
