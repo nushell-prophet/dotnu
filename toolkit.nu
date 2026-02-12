@@ -229,7 +229,7 @@ export def 'main release' [
     git add README.md
     git commit -m $'($git_tag) nupm version'
     git tag $git_tag
-    git push origin main --tags
+    git push source main --tags
 
     print $'(ansi green)Release ($git_tag) completed(ansi reset)'
 }
