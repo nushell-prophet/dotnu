@@ -348,7 +348,7 @@ export def find-examples []: string -> table<original: string, code: string, res
                 let open_char = $first_token.content
                 # Find matching close by tracking bracket depth
                 let close_token = $result_tokens | skip 1
-                | reduce --fold {depth: 1, token: null} {|t, acc|
+                | reduce --fold {depth: 1 token: null} {|t, acc|
                     if $acc.token != null { $acc } else {
                         let new_depth = if $t.content == $open_char {
                             $acc.depth + 1
@@ -357,7 +357,7 @@ export def find-examples []: string -> table<original: string, code: string, res
                         } else {
                             $acc.depth
                         }
-                        if $new_depth == 0 { {depth: 0, token: $t} } else { {depth: $new_depth, token: null} }
+                        if $new_depth == 0 { {depth: 0 token: $t} } else { {depth: $new_depth token: null} }
                     }
                 }
                 $close_token.token.end
@@ -1010,7 +1010,7 @@ export def extract-exported-commands []: string -> list<string> {
 
     $tokens
     | enumerate
-    | where { $in.item.content in ['export def' 'export use'] }
+    | where item.content in ['export def' 'export use']
     | each {|match|
         let idx = $match.index
         if $match.item.content == 'export def' {
