@@ -1,6 +1,6 @@
 ![dotnu](https://github.com/user-attachments/assets/4fb74e46-f75b-4155-8e61-8ff75db66117)
 
-<h1 align="center"><strong>dotnu - tools for Nushell module developers</strong></h1>
+<h1 align="center">dotnu - tools for Nushell module developers 🛠️</h1>
 
 <p align="center"><em>(A good companion for <a href="https://github.com/nushell-prophet/numd">numd</a>)</em></p>
 

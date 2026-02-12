@@ -1,1 +1,7 @@
-{name: dotnu, type: module, version: "0.0.17", description: "tools for Nushell module developers 🛠️", license: LICENSE}
+{
+  name: dotnu,
+  type: module,
+  version: "0.0.18",
+  description: "tools for Nushell module developers 🛠️",
+  license: LICENSE
+}
