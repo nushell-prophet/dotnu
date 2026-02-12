@@ -390,7 +390,7 @@ def "embeds-update preserves script structure" [] {
 @test
 def "embeds-setup sets capture path in env" [] {
     # Test without --auto-commit to avoid git operations
-    let test_path = ($nu.temp-path | path join 'test-capture.nu')
+    let test_path = ($nu.temp-dir | path join 'test-capture.nu')
     embeds-setup $test_path
 
     assert equal $env.dotnu.embeds-capture-path $test_path
@@ -398,7 +398,7 @@ def "embeds-setup sets capture path in env" [] {
 
 @test
 def "embeds-setup adds .nu extension if missing" [] {
-    let test_path = ($nu.temp-path | path join 'test-capture')
+    let test_path = ($nu.temp-dir | path join 'test-capture')
     embeds-setup $test_path
 
     assert ($env.dotnu.embeds-capture-path | str ends-with '.nu')
@@ -622,7 +622,7 @@ def foo [] {}'
 @test
 def "execute-example runs simple expression" [] {
     # Create temp file for context
-    let temp = $nu.temp-path | path join 'test-execute-example.nu'
+    let temp = $nu.temp-dir | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
     let result = execute-example '1 + 1' $temp
@@ -632,7 +632,7 @@ def "execute-example runs simple expression" [] {
 
 @test
 def "execute-example returns error record on failure" [] {
-    let temp = $nu.temp-path | path join 'test-execute-example.nu'
+    let temp = $nu.temp-dir | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
     let result = execute-example 'nonexistent-command' $temp
@@ -642,7 +642,7 @@ def "execute-example returns error record on failure" [] {
 
 @test
 def "execute-example handles multiline result" [] {
-    let temp = $nu.temp-path | path join 'test-execute-example.nu'
+    let temp = $nu.temp-dir | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
     let result = execute-example '[1, 2, 3]' $temp
@@ -656,7 +656,7 @@ def "execute-example handles multiline result" [] {
 
 @test
 def "examples-update updates result values" [] {
-    let temp = $nu.temp-path | path join 'test-examples-update.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-update.nu'
     '@example "add" { 1 + 1 } --result 0
 export def dummy [] { 1 }' | save -f $temp
 
@@ -668,7 +668,7 @@ export def dummy [] { 1 }' | save -f $temp
 
 @test
 def "examples-update handles multiple examples" [] {
-    let temp = $nu.temp-path | path join 'test-examples-update.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-update.nu'
     '@example "first" { 1 + 1 } --result 0
 export def foo [] {}
 
@@ -683,7 +683,7 @@ export def bar [] {}' | save -f $temp
 
 @test
 def "examples-update preserves file when no examples" [] {
-    let temp = $nu.temp-path | path join 'test-examples-update.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-update.nu'
     let content = 'export def foo [] { 1 }'
     $content | save -f $temp
 
@@ -696,7 +696,7 @@ def "examples-update preserves file when no examples" [] {
 def "examples-update preserves dollar signs in results" [] {
     # Test that $var references in result strings are not lost
     # (regression test for regex backreference bug)
-    let temp = $nu.temp-path | path join 'test-examples-dollar.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-dollar.nu'
     '@example "test" { "has $a variable" } --result "old"
 export def dummy [] { 1 }' | save -f $temp
 
