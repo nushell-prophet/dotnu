@@ -1112,16 +1112,10 @@ export def split-statements []: string -> table<statement: string, start: int, e
     for token in $tokens {
         # Track block depth
         # Handle blocks where { and } may be in same token (e.g., "{}" or "{ x }")
-        if $token.shape in ["shape_block" "shape_closure"] {
-            let has_open = $token.content | str contains "{"
-            let has_close = $token.content | str contains "}"
-            if $has_open and $has_close {
-                # Self-contained block like {} - no net depth change
-            } else if $has_open {
-                $depth = $depth + 1
-            } else if $has_close {
-                $depth = $depth - 1
-            }
+        if $token.shape in ["shape_block" "shape_closure" "shape_gap"] {
+            let opens = ($token.content | split row "{" | length) - 1
+            let closes = ($token.content | split row "}" | length) - 1
+            $depth = $depth + $opens - $closes
         }
 
         # Statement boundary at top level
