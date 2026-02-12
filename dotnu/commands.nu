@@ -1024,6 +1024,7 @@ export def extract-exported-commands []: string -> list<string> {
             | where shape == 'shape_string'
             | get content
             | str trim -c '"'
+            | str trim -c "'"
         }
     }
     | flatten
