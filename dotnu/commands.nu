@@ -162,24 +162,34 @@ export def 'extract-command-code' [
     }
 }
 
-# todo: `list-exported-commands` should be a completion for Nushell CLI
-
-export def 'list-exported-commands' [
+# List all exported definitions from a module file
+#
+# Finds commands from `export def` and `export use [...commands]` patterns.
+export def 'list-module-exports' [
     $path: path
-    --export # use only commands that are exported
-] {
+]: nothing -> list<string> {
+    open $path -r
+    | extract-exported-commands
+    | replace-main-with-module-name $path
+    | if ($in | is-empty) {
+        print 'No command found'
+        return
+    } else { }
+}
+
+# List module's callable interface (main commands)
+#
+# Finds `def main` and `def 'main subcommand'` patterns - the commands
+# available when you `use` the module.
+export def 'list-module-interface' [
+    $path: path
+]: nothing -> list<string> {
     open $path -r
     | lines
-    | if $export {
-        where $it =~ '^export def '
-        | extract-command-name
-        | replace-main-with-module-name $path
-    } else {
-        where $it =~ '^(export )?def '
-        | extract-command-name
-        | where $it starts-with 'main'
-        | str replace 'main ' ''
-    }
+    | where $it =~ '^(export )?def '
+    | extract-command-name
+    | where $it starts-with 'main'
+    | str replace 'main ' ''
     | if ($in | is-empty) {
         print 'No command found'
         return
@@ -259,8 +269,10 @@ export def 'examples-update' [
     # Using full original text ensures unique matches even with duplicate results
     let updated = $results | reduce --fold $content {|item acc|
         # Build new example by replacing just the result value in the original
+        # Escape $ as $$ to prevent regex backreference interpretation
+        let escaped_result = $item.new_result | str replace -a '$' '$$'
         let new_example = $item.original
-        | str replace -r '\} --result .+$' $"} --result ($item.new_result)"
+        | str replace -r '\} --result .+$' $"} --result ($escaped_result)"
 
         $acc | str replace $item.original $new_example
     }
@@ -288,10 +300,12 @@ export def find-examples []: string -> table<original: string, code: string, res
     | enumerate
     | window 2
     | where {|pair|
-        ($pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
-        and $pair.1.item.content == "example")
+        (
+            $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
+            and $pair.1.item.content == "example"
+        )
     }
-    | each { $in.1.index }  # Get index of "example" token
+    | each { $in.1.index } # Get index of "example" token
 
     if ($example_indices | is-empty) {
         return []
@@ -304,7 +318,7 @@ export def find-examples []: string -> table<original: string, code: string, res
         # Find block tokens (shape_block) - opening and closing braces
         let block_tokens = $remaining
         | enumerate
-        | where {|r| $r.item.shape == "shape_block"}
+        | where {|r| $r.item.shape == "shape_block" }
 
         if ($block_tokens | length) < 2 {
             # Malformed @example - skip
@@ -320,17 +334,41 @@ export def find-examples []: string -> table<original: string, code: string, res
 
         # Skip whitespace/newlines to find the flag
         let after_block_meaningful = $after_block
-        | where shape not-in ["shape_whitespace", "shape_newline"]
+        | where shape not-in ["shape_whitespace" "shape_newline"]
 
         let result_info = if ($after_block_meaningful | is-not-empty) and ($after_block_meaningful | first | get shape) == "shape_flag" and ($after_block_meaningful | first | get content) == "--result" {
-            # Has --result flag - get the value token (skip whitespace after flag)
+            # Has --result flag - get the value token(s) (skip whitespace after flag)
             let result_tokens = $after_block_meaningful | skip 1
-            | where shape not-in ["shape_whitespace", "shape_newline"]
-            let result_value = $result_tokens | first
+            | where shape not-in ["shape_whitespace" "shape_newline"]
+            let first_token = $result_tokens | first
+
+            # For lists/records, find matching closing bracket
+            let end_byte = if $first_token.content == "[" or $first_token.content == "{" {
+                let close_char = if $first_token.content == "[" { "]" } else { "}" }
+                let open_char = $first_token.content
+                # Find matching close by tracking bracket depth
+                let close_token = $result_tokens | skip 1
+                | reduce --fold {depth: 1 token: null} {|t, acc|
+                    if $acc.token != null { $acc } else {
+                        let new_depth = if $t.content == $open_char {
+                            $acc.depth + 1
+                        } else if $t.content == $close_char {
+                            $acc.depth - 1
+                        } else {
+                            $acc.depth
+                        }
+                        if $new_depth == 0 { {depth: 0 token: $t} } else { {depth: $new_depth token: null} }
+                    }
+                }
+                $close_token.token.end
+            } else {
+                $first_token.end
+            }
+
             {
                 has_result: true
-                end_byte: $result_value.end
-                result_line: $"} --result ($result_value.content)"
+                end_byte: $end_byte
+                result_line: "" # not used, kept for interface compatibility
             }
         } else {
             # No --result flag
@@ -348,8 +386,8 @@ export def find-examples []: string -> table<original: string, code: string, res
 
         # Extract original text from @ to end of result value
         # The @ may be at end of a gap that includes newlines (e.g., "\n\n@")
-        let at_token = $tokens | get ($idx - 1)  # The gap token containing @
-        let at_start = $at_token.end - 1  # @ is always the last char in the gap
+        let at_token = $tokens | get ($idx - 1) # The gap token containing @
+        let at_start = $at_token.end - 1 # @ is always the last char in the gap
         let original = $bytes | bytes at $at_start..<($result_info.end_byte) | decode utf8
 
         # Extract code from inside the block (between { and })
@@ -689,10 +727,10 @@ export def list-module-commands [
     }
     | each {|pair|
         let attr_token = $pair.1.item
-        let at_start = $pair.0.item.end - 1  # @ is last char in the gap
-        { caller: ('@' + ($attr_token.content | split row ' ' | first)), start: $at_start }
+        let at_start = $pair.0.item.end - 1 # @ is last char in the gap
+        {caller: ('@' + ($attr_token.content | split row ' ' | first)) start: $at_start}
     }
-    | insert end null  # attributes don't have scope ranges
+    | insert end null # attributes don't have scope ranges
 
     let defined_defs = $def_definitions
     | append $attribute_definitions
@@ -962,6 +1000,36 @@ export def capture-marker [
     }
 }
 
+# Extract exported command names using AST
+#
+# Handles both patterns:
+# - `export def cmd-name []` → extracts cmd-name
+# - `export use module.nu ["cmd1" "cmd2"]` → extracts cmd1, cmd2
+export def extract-exported-commands []: string -> list<string> {
+    let tokens = ast --flatten $in | flatten span
+
+    $tokens
+    | enumerate
+    | where item.content in ['export def' 'export use']
+    | each {|match|
+        let idx = $match.index
+        if $match.item.content == 'export def' {
+            # Command name is next token
+            $tokens | get ($idx + 1) | get content | str trim -c "'" | str trim -c '"'
+        } else {
+            # export use: skip module path, get shape_string tokens from list
+            $tokens
+            | skip ($idx + 2)
+            | take while { $in.shape in ['shape_string' 'shape_list'] }
+            | where shape == 'shape_string'
+            | get content
+            | str trim -c '"'
+            | str trim -c "'"
+        }
+    }
+    | flatten
+}
+
 # Complete AST output by filling gaps with synthetic tokens
 #
 # `ast --flatten` omits certain syntax elements (semicolons, assignment operators, etc).
@@ -991,7 +1059,7 @@ export def ast-complete []: string -> table {
     | where {|p| $p.0.end < $p.1.start }
     | each {|p|
         let content = $bytes | bytes at $p.0.end..<$p.1.start | decode utf8
-        {content: $content, start: $p.0.end, end: $p.1.start, shape: (classify-gap $content)}
+        {content: $content start: $p.0.end end: $p.1.start shape: (classify-gap $content)}
     }
 
     $tokens | select content start end shape | append $gaps | sort-by start
@@ -1045,22 +1113,18 @@ export def split-statements []: string -> table<statement: string, start: int, e
     for token in $tokens {
         # Track block depth
         # Handle blocks where { and } may be in same token (e.g., "{}" or "{ x }")
-        if $token.shape in ["shape_block", "shape_closure"] {
-            let has_open = $token.content | str contains "{"
-            let has_close = $token.content | str contains "}"
-            if $has_open and $has_close {
-                # Self-contained block like {} - no net depth change
-            } else if $has_open {
-                $depth = $depth + 1
-            } else if $has_close {
-                $depth = $depth - 1
-            }
+        if $token.shape in ["shape_block" "shape_closure" "shape_gap"] {
+            let opens = ($token.content | split row "{" | length) - 1
+            let closes = ($token.content | split row "}" | length) - 1
+            $depth = $depth + $opens - $closes
         }
 
         # Statement boundary at top level
         # Also check shape_gap that starts with newline (comments are bundled into gaps)
-        let is_boundary = ($token.shape in ["shape_semicolon", "shape_newline"]
-            or ($token.shape == "shape_gap" and ($token.content | str starts-with "\n")))
+        let is_boundary = (
+            $token.shape in ["shape_semicolon" "shape_newline"]
+            or ($token.shape == "shape_gap" and ($token.content | str starts-with "\n"))
+        )
         if $depth == 0 and $is_boundary {
             let stmt_text = $bytes | bytes at $stmt_start..<$token.start | decode utf8 | str trim
             if ($stmt_text | is-not-empty) {

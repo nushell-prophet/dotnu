@@ -324,12 +324,42 @@ def "extract-command-code handles quoted command names" [] {
 }
 
 # =============================================================================
-# Tests for list-exported-commands
+# Tests for list-module-interface
 # =============================================================================
 
 @test
-def "list-exported-commands finds exported commands" [] {
-    let result = list-exported-commands tests/assets/b/example-mod1.nu --export
+def "list-module-interface finds main command" [] {
+    let result = list-module-interface tests/assets/b/example-mod1.nu
+
+    assert equal $result ['main']
+}
+
+@test
+def "list-module-interface returns null when no main" [] {
+    let result = list-module-interface tests/assets/b/example-mod2.nu
+
+    assert equal $result null
+}
+
+@test
+def "list-module-interface strips main prefix from subcommands" [] {
+    let temp = $nu.temp-dir | path join 'test-module-interface.nu'
+    "export def main [] {}\nexport def 'main sub1' [] {}\nexport def 'main sub2' [] {}" | save -f $temp
+
+    let result = list-module-interface $temp
+
+    assert ('main' in $result)
+    assert ('sub1' in $result)
+    assert ('sub2' in $result)
+}
+
+# =============================================================================
+# Tests for list-module-exports
+# =============================================================================
+
+@test
+def "list-module-exports finds exported commands" [] {
+    let result = list-module-exports tests/assets/b/example-mod1.nu
 
     # Should find exported commands
     assert ('lscustom' in $result)
@@ -339,8 +369,8 @@ def "list-exported-commands finds exported commands" [] {
 }
 
 @test
-def "list-exported-commands excludes non-exported when flag set" [] {
-    let result = list-exported-commands tests/assets/b/example-mod1.nu --export
+def "list-module-exports excludes non-exported" [] {
+    let result = list-module-exports tests/assets/b/example-mod1.nu
 
     # Private commands should not be in exported list
     assert ('sort-by-custom' not-in $result)
@@ -390,7 +420,7 @@ def "embeds-update preserves script structure" [] {
 @test
 def "embeds-setup sets capture path in env" [] {
     # Test without --auto-commit to avoid git operations
-    let test_path = ($nu.temp-path | path join 'test-capture.nu')
+    let test_path = ($nu.temp-dir | path join 'test-capture.nu')
     embeds-setup $test_path
 
     assert equal $env.dotnu.embeds-capture-path $test_path
@@ -398,7 +428,7 @@ def "embeds-setup sets capture path in env" [] {
 
 @test
 def "embeds-setup adds .nu extension if missing" [] {
-    let test_path = ($nu.temp-path | path join 'test-capture')
+    let test_path = ($nu.temp-dir | path join 'test-capture')
     embeds-setup $test_path
 
     assert ($env.dotnu.embeds-capture-path | str ends-with '.nu')
@@ -592,6 +622,29 @@ def foo [] {}'
     assert ($result | first | get code | str contains "let x = 1")
 }
 
+@test
+def "find-examples parses list result values" [] {
+    let input = "@example \"list\" { ['a' 'b'] } --result ['a' 'b']
+def foo [] {}"
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 1
+    # Verify the full list is captured, not just the opening bracket
+    assert ($result | first | get original | str contains "['a' 'b']")
+}
+
+@test
+def "find-examples parses record result values" [] {
+    let input = '@example "record" { {a: 1} } --result {a: 1}
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 1
+    assert ($result | first | get original | str contains "{a: 1}")
+}
+
 # =============================================================================
 # Tests for execute-example
 # =============================================================================
@@ -599,7 +652,7 @@ def foo [] {}'
 @test
 def "execute-example runs simple expression" [] {
     # Create temp file for context
-    let temp = $nu.temp-path | path join 'test-execute-example.nu'
+    let temp = $nu.temp-dir | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
     let result = execute-example '1 + 1' $temp
@@ -609,7 +662,7 @@ def "execute-example runs simple expression" [] {
 
 @test
 def "execute-example returns error record on failure" [] {
-    let temp = $nu.temp-path | path join 'test-execute-example.nu'
+    let temp = $nu.temp-dir | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
     let result = execute-example 'nonexistent-command' $temp
@@ -619,7 +672,7 @@ def "execute-example returns error record on failure" [] {
 
 @test
 def "execute-example handles multiline result" [] {
-    let temp = $nu.temp-path | path join 'test-execute-example.nu'
+    let temp = $nu.temp-dir | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
     let result = execute-example '[1, 2, 3]' $temp
@@ -633,7 +686,7 @@ def "execute-example handles multiline result" [] {
 
 @test
 def "examples-update updates result values" [] {
-    let temp = $nu.temp-path | path join 'test-examples-update.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-update.nu'
     '@example "add" { 1 + 1 } --result 0
 export def dummy [] { 1 }' | save -f $temp
 
@@ -645,7 +698,7 @@ export def dummy [] { 1 }' | save -f $temp
 
 @test
 def "examples-update handles multiple examples" [] {
-    let temp = $nu.temp-path | path join 'test-examples-update.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-update.nu'
     '@example "first" { 1 + 1 } --result 0
 export def foo [] {}
 
@@ -660,13 +713,27 @@ export def bar [] {}' | save -f $temp
 
 @test
 def "examples-update preserves file when no examples" [] {
-    let temp = $nu.temp-path | path join 'test-examples-update.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-update.nu'
     let content = 'export def foo [] { 1 }'
     $content | save -f $temp
 
     let result = examples-update $temp --echo
 
     assert equal $result $content
+}
+
+@test
+def "examples-update preserves dollar signs in results" [] {
+    # Test that $var references in result strings are not lost
+    # (regression test for regex backreference bug)
+    let temp = $nu.temp-dir | path join 'test-examples-dollar.nu'
+    '@example "test" { "has $a variable" } --result "old"
+export def dummy [] { 1 }' | save -f $temp
+
+    let result = examples-update $temp --echo
+
+    # The result should contain the $a, not have it stripped
+    assert ($result | str contains '$a')
 }
 
 # split-statements tests

@@ -20,6 +20,9 @@
 # untested: ($untested | get caller)
 # }
 # | to yaml
-public_api_count: 14
-tested_count: 14
-untested: []
+public_api_count: 15
+tested_count: 12
+untested:
+- embed-add
+- embeds-capture-start
+- embeds-capture-stop
