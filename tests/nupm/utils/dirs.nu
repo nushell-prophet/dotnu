@@ -8,7 +8,7 @@ export const DEFAULT_NUPM_CACHE = ($nu.default-config-dir
     | path join nupm cache)
 
 # Default temporary path for various nupm purposes
-export const DEFAULT_NUPM_TEMP = ($nu.temp-path | path join "nupm")
+export const DEFAULT_NUPM_TEMP = ($nu.temp-dir | path join "nupm")
 
 # Default registry
 export const DEFAULT_NUPM_REGISTRIES = {
