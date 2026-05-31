@@ -13,16 +13,21 @@
 # | where caller in $public_api
 # | select caller
 # 
-# # Output as yaml
+# # Why: serialize as nuon, not yaml — `to yaml`'s list indentation
+# # changed between nushell versions and drifted this snapshot on
+# # identical data. nuon compares the parsed structure stably.
 # {
 # public_api_count: ($public_api | length)
 # tested_count: (($public_api | length) - ($untested | length))
 # untested: ($untested | get caller)
 # }
-# | to yaml
-public_api_count: 15
-tested_count: 12
-untested:
-- embed-add
-- embeds-capture-start
-- embeds-capture-stop
+# | to nuon --indent 2
+{
+  public_api_count: 15,
+  tested_count: 12,
+  untested: [
+    embed-add,
+    embeds-capture-start,
+    embeds-capture-stop
+  ]
+}

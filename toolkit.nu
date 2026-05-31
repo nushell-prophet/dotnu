@@ -103,7 +103,7 @@ export def 'main test-integration' [
             }
         )
         (
-            run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.yaml] | path join) {
+            run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.nuon] | path join) {
                 # Public API from mod.nu
                 let public_api = open ([dotnu mod.nu] | path join)
                 | lines
@@ -119,13 +119,15 @@ export def 'main test-integration' [
                 | where caller in $public_api
                 | select caller
 
-                # Output as yaml
+                # Why: serialize as nuon, not yaml — `to yaml`'s list indentation
+                # changed between nushell versions and drifted this snapshot on
+                # identical data. nuon compares the parsed structure stably.
                 {
                     public_api_count: ($public_api | length)
                     tested_count: (($public_api | length) - ($untested | length))
                     untested: ($untested | get caller)
                 }
-                | to yaml
+                | to nuon --indent 2
             }
         )
     ]
@@ -177,9 +179,17 @@ def run-snapshot-test [name: string output_file: string command_src: closure] {
         $command_text + (char nl) + (do $command_src)
         | save -f $output_file
 
-        # Check git diff to determine status
-        let diff_result = do { ^git diff --quiet $output_file } | complete
-        let status = if $diff_result.exit_code == 0 { 'passed' } else { 'changed' }
+        # Check git diff to determine status.
+        # Why: `git diff` ignores untracked files, so a brand-new snapshot would
+        # report 'passed' without ever being compared to a baseline. Treat an
+        # untracked file as 'changed' so it surfaces and `--update` stages it.
+        let tracked = do { ^git ls-files --error-unmatch $output_file } | complete | get exit_code | $in == 0
+        let status = if not $tracked {
+            'changed'
+        } else {
+            let diff_result = do { ^git diff --quiet $output_file } | complete
+            if $diff_result.exit_code == 0 { 'passed' } else { 'changed' }
+        }
 
         {type: 'integration' name: $name status: $status file: $output_file}
     } catch {|err|

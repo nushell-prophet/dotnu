@@ -6,16 +6,16 @@
 # And and this is the link on dotnu module:
 # https://github.com/nushell-prophet/dotnu
 
-ls | sort-by modified -r | last 2 | print $in
-# => ╭───┬──────────────────────────────┬──────┬───────┬────────────╮
-# => │ # │             name             │ type │ size  │  modified  │
-# => ├───┼──────────────────────────────┼──────┼───────┼────────────┤
-# => │ 0 │ set-x-demo.nu                │ file │  41 B │ a year ago │
-# => │ 1 │ parsing-pipe-in-docstring.nu │ file │ 923 B │ a year ago │
-# => ╰───┴──────────────────────────────┴──────┴───────┴────────────╯
+40 + 2 | print $in
+# => 42
 
-random int | print $in
-# => 2835756183325042638
+[[name type]; [foo file] [bar dir]] | print $in
+# => ╭───┬──────┬──────╮
+# => │ # │ name │ type │
+# => ├───┼──────┼──────┤
+# => │ 0 │ foo  │ file │
+# => │ 1 │ bar  │ dir  │
+# => ╰───┴──────┴──────╯
 
 'Say hello to the core team of the Nushell'
 | str replace 'Nushell' 'Best shell'

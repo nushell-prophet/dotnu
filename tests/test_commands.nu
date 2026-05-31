@@ -394,6 +394,15 @@ def "embeds-update updates embeds in piped script" [] {
 }
 
 @test
+def "embeds-update annotates a capture point on the first line" [] {
+    # No leading newline before the capture point
+    let script = "'hello' | str upcase | print $in\n"
+    let result = $script | embeds-update
+
+    assert ($result =~ '# => HELLO')
+}
+
+@test
 def "embeds-update preserves script structure" [] {
     let script = "# comment\n\n1 + 1 | print $in\n\n# another"
     let result = $script | embeds-update
