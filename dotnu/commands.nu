@@ -4,8 +4,6 @@
 # Public API is controlled by mod.nu which selectively re-exports user-facing commands.
 # To make a command public, add it to the export list in mod.nu.
 
-use std/iter scan
-
 # Check .nu module files to determine which commands depend on other commands.
 @example 'Analyze command dependencies in a module' {
     dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
@@ -805,8 +803,11 @@ export def 'module-commands-code-to-record' [
     }
     | merge (
         $in.command
-        | scan --noinit null {|i acc|
-            if $i == null { $acc } else { $i }
+        # Why: std `scan` with a null seed now errors — its internal `generate` treats
+        # null as "no initial value". Forward-fill the last non-null name manually instead.
+        | reduce --fold [] {|i acc|
+            let prev = $acc | last
+            $acc | append (if $i == null { $prev } else { $i })
         }
         | wrap command
     )
