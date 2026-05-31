@@ -222,9 +222,12 @@ export def 'embeds-update' [
     let prevent_second_replacement = " # to-not-be-replaced-again"
 
     $replacements
-    | reduce --fold $script {|it|
+    # Why: prepend a newline so a capture point on the very first line is anchored
+    # by "\n" on both sides like any interior line; without it the match silently no-ops
+    | reduce --fold ("\n" + $script) {|it|
         str replace ("\n" + $it.0 + "\n") ("\n" + $it.0 + $prevent_second_replacement + "\n" + $it.1 + "\n")
     }
+    | str replace -r '^\n' '' # strip the single leading newline added above
     | str replace -a $prevent_second_replacement ''
     | str replace -ar '\n{3,}' "\n\n"
     | str replace -r "\n*$" "\n"
