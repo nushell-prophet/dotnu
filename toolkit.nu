@@ -103,7 +103,7 @@ export def 'main test-integration' [
             }
         )
         (
-            run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.yaml] | path join) {
+            run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.nuon] | path join) {
                 # Public API from mod.nu
                 let public_api = open ([dotnu mod.nu] | path join)
                 | lines
@@ -119,13 +119,15 @@ export def 'main test-integration' [
                 | where caller in $public_api
                 | select caller
 
-                # Output as yaml
+                # Why: serialize as nuon, not yaml — `to yaml`'s list indentation
+                # changed between nushell versions and drifted this snapshot on
+                # identical data. nuon compares the parsed structure stably.
                 {
                     public_api_count: ($public_api | length)
                     tested_count: (($public_api | length) - ($untested | length))
                     untested: ($untested | get caller)
                 }
-                | to yaml
+                | to nuon --indent 2
             }
         )
     ]
