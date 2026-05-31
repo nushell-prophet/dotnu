@@ -4,6 +4,12 @@
 # Public API is controlled by mod.nu which selectively re-exports user-facing commands.
 # To make a command public, add it to the export list in mod.nu.
 
+# Regex matching a capture point: a pipeline line ending in `| print $in`.
+# Why: `find-capture-points` and `execute-and-parse-results` must agree on what a
+# capture point is — they are zipped together in `embeds-update`, so any disagreement
+# misaligns outputs against the wrong lines.
+const capture_point = '\|\s*print\s+\$in\s*$'
+
 # Check .nu module files to determine which commands depend on other commands.
 @example 'Analyze command dependencies in a module' {
     dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
@@ -962,7 +968,7 @@ export def execute-and-parse-results [
     | each {
         if $in !~ '^\s*#' {
             # don't search for `print $in` inside of commented lines
-            str replace -r '\| *print +\$in *' '| embed-in-script'
+            str replace -r $capture_point '| embed-in-script'
         } else { }
     }
     | prepend $embed_in_script_src
@@ -982,7 +988,7 @@ export def execute-and-parse-results [
 # Finds lines where embed-in-script is used in the script
 export def find-capture-points [] {
     lines
-    | where $it !~ '^\s*#' and $it =~ '\|\s?print \$in *$'
+    | where $it !~ '^\s*#' and $it =~ $capture_point
 }
 
 # Removes annotation lines starting with "# => " from the script
