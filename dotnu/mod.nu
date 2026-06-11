@@ -1,8 +1,6 @@
 export use commands.nu [
     "dependencies"
     "embed-add"
-    "embeds-capture-start"
-    "embeds-capture-stop"
     "embeds-remove"
     "embeds-setup"
     "embeds-update"

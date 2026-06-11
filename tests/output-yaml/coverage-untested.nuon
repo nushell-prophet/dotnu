@@ -23,11 +23,9 @@
 # }
 # | to nuon --indent 2
 {
-  public_api_count: 15,
+  public_api_count: 13,
   tested_count: 12,
   untested: [
-    embed-add,
-    embeds-capture-start,
-    embeds-capture-stop
+    embed-add
   ]
 }

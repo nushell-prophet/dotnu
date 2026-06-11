@@ -33,7 +33,7 @@ use dotnu
 
 ## Embeds — Literate Programming
 
-`dotnu` lets you write **literate Nushell**: ordinary Nushell scripts that include the real command output right after each pipeline ending in `| print $in`. See the [capture example](/dotnu-capture.nu) to grasp the idea quickly.
+`dotnu` lets you write **literate Nushell**: ordinary Nushell scripts that include the real command output right after each pipeline ending in `| print $in`.
 
 The `| print $in` suffix acts as a simple `print` in native Nushell and as a capture marker for dotnu, so scripts remain valid and functional even when run without loading the `dotnu` module.
 
@@ -54,6 +54,9 @@ dotnu embeds-update --help
 # => Flags:
 # =>   -h, --help: Display the help message for this command
 # =>   --echo: output updates to stdout
+# =>
+# => Command Type:
+# =>   > custom
 # =>
 # => Parameters:
 # =>   file <path>:  (optional)
@@ -89,6 +92,9 @@ dotnu embeds-setup --help
 # =>   -h, --help: Display the help message for this command
 # =>   --auto-commit
 # =>
+# => Command Type:
+# =>   > custom
+# =>
 # => Parameters:
 # =>   path <path>:  (optional)
 # =>
@@ -98,32 +104,6 @@ dotnu embeds-setup --help
 # =>   ├───┼───────┼────────┤
 # =>   │ 0 │ any   │ any    │
 # =>   ╰───┴───────┴────────╯
-# =>
-```
-
-#### `dotnu embeds-capture-start` and `dotnu embeds-capture-stop`
-
-Record every result printed in the interactive session.
-
-```nushell
-dotnu embeds-capture-start --help
-# => start capturing commands and their outputs into a file
-# =>
-# => Usage:
-# =>   > embeds-capture-start (file)
-# =>
-# => Flags:
-# =>   -h, --help: Display the help message for this command
-# =>
-# => Parameters:
-# =>   file <path>:  (optional, default: 'dotnu-capture.nu')
-# =>
-# => Input/output types:
-# =>   ╭───┬─────────┬─────────╮
-# =>   │ # │  input  │ output  │
-# =>   ├───┼─────────┼─────────┤
-# =>   │ 0 │ nothing │ nothing │
-# =>   ╰───┴─────────┴─────────╯
 # =>
 ```
 
@@ -143,6 +123,9 @@ dotnu embed-add --help
 # =>   -p, --pipe-further: output input further to the pipeline
 # =>   --published: output the published representation into terminal
 # =>   --dry_run: todo: --
+# =>
+# => Command Type:
+# =>   > custom
 # =>
 # => Input/output types:
 # =>   ╭───┬───────┬────────╮
@@ -166,6 +149,9 @@ dotnu embeds-remove --help
 # =>
 # => Flags:
 # =>   -h, --help: Display the help message for this command
+# =>
+# => Command Type:
+# =>   > custom
 # =>
 # => Input/output types:
 # =>   ╭───┬───────┬────────╮
@@ -191,6 +177,9 @@ dotnu dependencies --help
 # =>   -h, --help: Display the help message for this command
 # =>   --keep-builtins: keep builtin commands in the result page
 # =>   --definitions-only: output only commands' names definitions
+# =>
+# => Command Type:
+# =>   > custom
 # =>
 # => Parameters:
 # =>   ...paths <path>: paths to nushell module files
@@ -232,6 +221,9 @@ dotnu filter-commands-with-no-tests --help
 # => Flags:
 # =>   -h, --help: Display the help message for this command
 # =>
+# => Command Type:
+# =>   > custom
+# =>
 # => Input/output types:
 # =>   ╭───┬───────┬────────╮
 # =>   │ # │ input │ output │
@@ -272,6 +264,9 @@ dotnu set-x --help
 # =>   --echo: output script to terminal
 # =>   --quiet: don't print any messages
 # =>
+# => Command Type:
+# =>   > custom
+# =>
 # => Parameters:
 # =>   file <path>: path to `.nu` file
 # =>
@@ -307,24 +302,27 @@ open $filename | lines | table -i false
 
 ```nushell
 dotnu set-x $filename --echo | lines | table -i false
-# => ╭─────────────────────────────────────────────────────────────────────────────────╮
-# => │ mut $prev_ts = ( date now )                                                     │
-# => │ print ("> sleep 0.5sec" | nu-highlight)                                         │
-# => │ sleep 0.5sec                                                                    │
-# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
-# => │                                                                                 │
-# => │                                                                                 │
-# => │ print ("> sleep 0.7sec" | nu-highlight)                                         │
-# => │ sleep 0.7sec                                                                    │
-# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
-# => │                                                                                 │
-# => │                                                                                 │
-# => │ print ("> sleep 0.8sec" | nu-highlight)                                         │
-# => │ sleep 0.8sec                                                                    │
-# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date now); │
-# => │                                                                                 │
-# => │                                                                                 │
-# => ╰─────────────────────────────────────────────────────────────────────────────────╯
+# => ╭─────────────────────────────────────────────────────────────────────────────╮
+# => │ mut $prev_ts = ( date now )                                                 │
+# => │ print ("> sleep 0.5sec" | nu-highlight)                                     │
+# => │ sleep 0.5sec                                                                │
+# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date   │
+# => │ now);                                                                       │
+# => │                                                                             │
+# => │                                                                             │
+# => │ print ("> sleep 0.7sec" | nu-highlight)                                     │
+# => │ sleep 0.7sec                                                                │
+# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date   │
+# => │ now);                                                                       │
+# => │                                                                             │
+# => │                                                                             │
+# => │ print ("> sleep 0.8sec" | nu-highlight)                                     │
+# => │ sleep 0.8sec                                                                │
+# => │ print $'(ansi grey)((date now) - $prev_ts)(ansi reset)'; $prev_ts = (date   │
+# => │ now);                                                                       │
+# => │                                                                             │
+# => │                                                                             │
+# => ╰─────────────────────────────────────────────────────────────────────────────╯
 ```
 
 ## Utilities
@@ -342,6 +340,9 @@ dotnu generate-numd --help
 # =>
 # => Flags:
 # =>   -h, --help: Display the help message for this command
+# =>
+# => Command Type:
+# =>   > custom
 # =>
 # => Input/output types:
 # =>   ╭───┬───────┬────────╮
@@ -384,6 +385,9 @@ dotnu extract-command-code --help
 # =>   --set-vars <record>: set variables for a command (default: {})
 # =>   --code-editor <string>: code is my editor of choice to open the result file (default: 'code')
 # =>
+# => Command Type:
+# =>   > custom
+# =>
 # => Parameters:
 # =>   $module_path <path>: path to a Nushell module file
 # =>   $command <string>: the name of the command to extract
@@ -403,13 +407,13 @@ List all exported definitions from a module file. Finds commands from `export de
 
 ```nushell
 dotnu list-module-exports dotnu/mod.nu | first 5
-# => ╭───┬──────────────────────╮
-# => │ 0 │ dependencies         │
-# => │ 1 │ embed-add            │
-# => │ 2 │ embeds-capture-start │
-# => │ 3 │ embeds-capture-stop  │
-# => │ 4 │ embeds-remove        │
-# => ╰───┴──────────────────────╯
+# => ╭───┬───────────────╮
+# => │ 0 │ dependencies  │
+# => │ 1 │ embed-add     │
+# => │ 2 │ embeds-remove │
+# => │ 3 │ embeds-setup  │
+# => │ 4 │ embeds-update │
+# => ╰───┴───────────────╯
 ```
 
 ### `dotnu list-module-interface`
@@ -436,6 +440,9 @@ dotnu module-commands-code-to-record --help
 # =>
 # => Flags:
 # =>   -h, --help: Display the help message for this command
+# =>
+# => Command Type:
+# =>   > custom
 # =>
 # => Parameters:
 # =>   module_path <path>: path to a Nushell module file
