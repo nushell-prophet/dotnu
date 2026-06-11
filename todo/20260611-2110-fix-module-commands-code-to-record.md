@@ -1,8 +1,9 @@
 ---
 task-name: fix module-commands-code-to-record misalignment
-status: draft
+status: completed
 created: 2026-06-11
 updated: 2026-06-11
+completed: 2026-06-11
 ---
 
 # Fix `module-commands-code-to-record`: forward-fill drops leading nulls
@@ -46,3 +47,26 @@ Add a test fixture with a comment/`use` line before the first `def`.
   already returns statements with byte positions — pick `def` statements
   and slice the source by spans instead of line heuristics. This also
   fixes the fragile trailing-`}` trimming (`reverse | skip until ...`).
+
+## Execution result
+
+**Date:** 2026-06-11
+
+**Modified files:**
+- `dotnu/commands.nu` — minimal fix applied: the forward-fill now appends
+  `[$prev]` (list-wrapped) instead of bare `$prev`, so `append` keeps nulls
+  and the fill stays length-preserving. Comment at the site extended.
+- `tests/test_commands.nu` — added unit test
+  "module-commands-code-to-record handles lines before first def" using the
+  existing `tests/assets/module-say/say/mod.nu` fixture (it already starts
+  with `use` lines + comments before the first `def`, so no new fixture
+  was needed).
+
+**Summary:**
+Repro confirmed before the fix (`say` got `hi`'s body). After the fix the
+command returns `hi` -> full hi block, `say` -> full main block. Full suite
+passes: 75/75 (`nu toolkit.nu test`).
+
+The minimal direction was chosen; the AST migration onto `split-statements`
+(which would also fix the fragile trailing-`}` trimming) remains a possible
+follow-up.

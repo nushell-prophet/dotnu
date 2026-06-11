@@ -811,9 +811,11 @@ export def 'module-commands-code-to-record' [
         $in.command
         # Why: std `scan` with a null seed now errors — its internal `generate` treats
         # null as "no initial value". Forward-fill the last non-null name manually instead.
+        # The value is list-wrapped because bare `append null` is a no-op: lines before
+        # the first def would be dropped and `merge` would misalign every row.
         | reduce --fold [] {|i acc|
             let prev = $acc | last
-            $acc | append (if $i == null { $prev } else { $i })
+            $acc | append [(if $i == null { $prev } else { $i })]
         }
         | wrap command
     )

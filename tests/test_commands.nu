@@ -490,6 +490,16 @@ def "module-commands-code-to-record handles multiple commands" [] {
     assert (($result | columns | length) > 1)
 }
 
+@test
+def "module-commands-code-to-record handles lines before first def" [] {
+    # module-say starts with `use` lines and comments before the first def;
+    # the forward-fill must stay length-preserving or every row misaligns
+    let result = module-commands-code-to-record tests/assets/module-say/say/mod.nu
+
+    assert ($result.hi =~ 'export def hi')
+    assert ($result.say =~ 'export def main')
+}
+
 # =============================================================================
 # Tests for helper functions
 # =============================================================================
