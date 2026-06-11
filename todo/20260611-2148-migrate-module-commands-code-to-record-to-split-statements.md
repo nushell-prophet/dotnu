@@ -1,8 +1,9 @@
 ---
 task-name: migrate module-commands-code-to-record onto split-statements
-status: draft
+status: completed
 created: 2026-06-11
 updated: 2026-06-11
+completed: 2026-06-11
 ---
 
 # Migrate `module-commands-code-to-record` onto `split-statements`
@@ -66,3 +67,18 @@ filter `def` statements, key by extracted command name.
 
 - Existing files: `dotnu/dotnu/commands.nu`
 - New files: none expected
+
+## Execution result
+
+**Date:** 2026-06-11
+
+**Modified files:**
+- `dotnu/commands.nu` — body of `module-commands-code-to-record` replaced
+  with the split-statements pipeline exactly as planned (~30 lines -> 11).
+  Forward-fill and trailing-`}` trimming are gone.
+
+**Summary:**
+All requirements met on the first run: `nu toolkit.nu test` 75/75, no test
+changes needed. Live check on `tests/assets/module-say/say/mod.nu` returns
+the same blocks as before, minus the trailing newline per block (the
+documented acceptable change).

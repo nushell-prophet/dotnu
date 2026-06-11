@@ -795,36 +795,15 @@ export def list-module-commands [
 export def 'module-commands-code-to-record' [
     module_path: path # path to a Nushell module file
 ] {
-    let script_content = open $module_path -r
-
-    $script_content
-    | lines
-    | wrap line
-    | insert command {|i|
-        if $i.line =~ '^(export )?def ' {
-            $i.line
-            | extract-command-name
-            | replace-main-with-module-name $module_path
-        } else { null }
-    }
-    | merge (
-        $in.command
-        # Why: std `scan` with a null seed now errors — its internal `generate` treats
-        # null as "no initial value". Forward-fill the last non-null name manually instead.
-        # The value is list-wrapped because bare `append null` is a no-op: lines before
-        # the first def would be dropped and `merge` would misalign every row.
-        | reduce --fold [] {|i acc|
-            let prev = $acc | last
-            $acc | append [(if $i == null { $prev } else { $i })]
-        }
-        | wrap command
-    )
-    | group-by command
-    | items {|k v|
-        $v.line | reverse | skip until {|i| $i == '}' }
-        | reverse
-        | to text
-        | {$k: $in}
+    open $module_path -r
+    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+    | split-statements
+    | where statement =~ '^(export )?def '
+    | each {|s|
+        let name = $s.statement | lines | first
+        | extract-command-name
+        | replace-main-with-module-name $module_path
+        {$name: $s.statement}
     }
     | into record
 }
