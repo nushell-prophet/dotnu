@@ -897,7 +897,6 @@ export def execute-and-parse-results [
     if $script_path != null { $script_path | path dirname | cd $in }
 
     ^$nu.current-exe -n -c $script_updated
-    | ansi strip
     | parse -r ('(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close))
     # Parsing here presupposes capturing only the output of a script command,
     # so it won't be able to capture content inside custom command definitions correctly
