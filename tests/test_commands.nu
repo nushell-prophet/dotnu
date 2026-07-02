@@ -856,6 +856,16 @@ def "split-statements preserves multi-line blocks" [] {
 }
 
 @test
+def "split-statements ignores braces inside comments" [] {
+    # A `{` in a top-level comment must not bump the block-depth counter and merge
+    # the statements that follow it into one.
+    let result = "# {\nlet a = 1\nlet b = 2" | split-statements
+
+    assert equal ($result | length) 2
+    assert equal $result.1.statement 'let b = 2'
+}
+
+@test
 def "split-statements handles empty input" [] {
     let result = '' | split-statements
 
