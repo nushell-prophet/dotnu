@@ -839,6 +839,22 @@ export def dummy [] { 1 }' | save -f $temp
     assert ($result | str contains '$a')
 }
 
+@test
+def "examples-update replaces a multi-line result value" [] {
+    # The stale result spans two lines; without `(?s)` the regex could not cross the
+    # newline, so a multi-line result (e.g. the set-x example in commands.nu) was
+    # silently skipped and left stale.
+    let temp = $nu.temp-dir | path join 'test-examples-multiline.nu'
+    "@example \"ml\" { 1 + 1 } --result 'line1
+line2'
+export def dummy [] { 1 }" | save -f $temp
+
+    let result = examples-update $temp --echo
+
+    assert ($result | str contains '--result 2')
+    assert not ($result | str contains 'line2')
+}
+
 # split-statements tests
 
 @test

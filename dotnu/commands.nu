@@ -498,8 +498,10 @@ export def 'examples-update' [
             # Build new example by replacing just the result value in the original
             # Escape $ as $$ to prevent regex backreference interpretation
             let escaped_result = $item.new_result | str replace --all '$' '$$'
+            # `(?s)` lets `.` cross newlines so a multi-line `--result` value (which
+            # find-examples deliberately captures via bracket-depth) is replaced whole.
             let new_example = $item.original
-                | str replace --regex '\} --result .+$' $"} --result ($escaped_result)"
+                | str replace --regex '(?s)\} --result .+$' $"} --result ($escaped_result)"
 
             $acc | str replace $item.original $new_example
         }
