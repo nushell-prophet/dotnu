@@ -872,8 +872,9 @@ export def 'get-command-from-hist' [] {
         | get command_line
         | {previous: $in.1 current: $in.0}
     } else {
-        # history | last $index | get command | first # returns the previous command
-        print 'txt history file format is not supported'
+        # Fail fast: the caller reads `get previous`/`get current` off this record and would
+        # otherwise die on a confusing "cannot find column" far from the real cause.
+        error make --unspanned {msg: 'embed-add needs sqlite history; the txt history file format is not supported'}
     }
 }
 
