@@ -5,9 +5,9 @@
 # To make a command public, add it to the export list in mod.nu.
 
 # Regex matching a capture point: a pipeline line ending in `| print $in`.
-# Why: `find-capture-points` and `execute-and-parse-results` must agree on what a
-# capture point is — they are zipped together in `embeds-update`, so any disagreement
-# misaligns outputs against the wrong lines.
+# `find-capture-points` is the sole scanner: it returns the matching line indices, which
+# `embeds-update` passes to `execute-and-parse-results` to instrument exactly those lines.
+# So the two can't disagree on what a capture point is.
 const capture_point = '\|\s*print\s+\$in\s*$'
 
 # Check .nu module files to determine which commands depend on other commands.
@@ -419,24 +419,42 @@ export def 'embeds-update' [
         | normalize-newlines
         | embeds-remove
 
-    let results = execute-and-parse-results $script --script_path=$file
+    let points = $script | find-capture-points
+    let results = execute-and-parse-results $script ($points | get index) --script_path=$file
 
-    let replacements = $script
-        | find-capture-points
-        | zip $results
-
-    let prevent_second_replacement = " # to-not-be-replaced-again"
-
-    $replacements
-    # Why: prepend a newline so a capture point on the very first line is anchored
-    # by "\n" on both sides like any interior line; without it the match silently no-ops
-    | reduce --fold ("\n" + $script) {|it|
-        str replace ("\n" + $it.0 + "\n") ("\n" + $it.0 + $prevent_second_replacement + "\n" + $it.1 + "\n")
+    # Fail-fast: exactly one captured result per capture point. A capture point inside a
+    # command that runs more than once (a def called twice, a loop body) yields extra
+    # results that would otherwise be silently zipped onto — and misannotate — other lines.
+    if ($results | length) != ($points | length) {
+        error make --unspanned {
+            msg: (
+                $"got ($results | length) captured result\(s) for ($points | length) capture point\(s). "
+                + "Keep `| print $in` on top-level lines only — a capture point inside a command "
+                + "executed more than once produces extra outputs and misaligns the annotations."
+            )
+        }
     }
-    | str replace --regex '^\n' '' # strip the single leading newline added above
-    | str replace --all $prevent_second_replacement ''
-    | str replace --all --regex '\n{3,}' "\n\n"
-    | str replace --regex "\n*$" "\n"
+
+    # Insert each capture point's annotation right after its own source line, by index.
+    # Every other line — including blank lines — is emitted untouched, so nothing but the
+    # capture points is rewritten.
+    let annotated = $points | merge ($results | wrap annotation)
+
+    $script
+    | lines
+    | enumerate
+    | each {|it|
+        let idx = $it.index # Why: `where` below rebinds `$it` to its own row, shadowing this one
+        let match = $annotated | where index == $idx
+        if ($match | is-empty) {
+            [$it.item]
+        } else {
+            [$it.item] ++ ($match.0.annotation | str trim --char "\n" | lines)
+        }
+    }
+    | flatten
+    | str join "\n"
+    | $in + "\n"
     | if $echo or ($input != null) { } else { save --force $file }
 }
 
@@ -1264,6 +1282,7 @@ export def 'comment-hash-colon' [
 # Extract captured output from a script file execution results
 export def execute-and-parse-results [
     script: string
+    capture_indices: list<int> # line indices to instrument, from `find-capture-points`
     --script_path: path
 ] {
     # Prints output that will be embedded back into the script
@@ -1284,11 +1303,11 @@ export def execute-and-parse-results [
 
     let script_updated = $script
         | lines
-        | each {
-            if $in !~ '^\s*#' {
-                # don't search for `print $in` inside of commented lines
-                str replace --regex $capture_point '| embed-in-script'
-            } else { }
+        | enumerate
+        | each {|it|
+            if $it.index in $capture_indices {
+                $it.item | str replace --regex $capture_point '| embed-in-script'
+            } else { $it.item }
         }
         | prepend $embed_in_script_src
         | str join "\n"
@@ -1303,10 +1322,12 @@ export def execute-and-parse-results [
     | get capture0
 }
 
-# Finds capture-point lines (uncommented lines ending in `| print $in`)
-export def find-capture-points [] {
+# Finds capture points: uncommented lines ending in `| print $in`, with their line index.
+export def find-capture-points []: string -> table<index: int, line: string> {
     lines
-    | where $it !~ '^\s*#' and $it =~ $capture_point
+    | enumerate
+    | where item !~ '^\s*#' and item =~ $capture_point
+    | rename --column {item: line}
 }
 
 # Removes annotation lines starting with "# => " from the script

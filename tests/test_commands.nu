@@ -131,8 +131,9 @@ def "find-capture-points finds print $in lines" [] {
     let result = $input | find-capture-points
 
     assert equal ($result | length) 2
-    assert ($result.0 =~ 'ls')
-    assert ($result.1 =~ 'get data')
+    assert equal ($result | get index) [0 2]
+    assert ($result.0.line =~ 'ls')
+    assert ($result.1.line =~ 'get data')
 }
 
 @test
@@ -141,7 +142,8 @@ def "find-capture-points ignores commented lines" [] {
     let result = $input | find-capture-points
 
     assert equal ($result | length) 1
-    assert ($result.0 =~ 'echo hello')
+    assert equal $result.0.index 1
+    assert ($result.0.line =~ 'echo hello')
 }
 
 # =============================================================================
@@ -445,6 +447,15 @@ def "embeds-update preserves script structure" [] {
     assert ($result =~ '# => 2')
 }
 
+@test
+def "embeds-update errors when a capture point runs more than once" [] {
+    # capture point inside a def called twice -> 2 outputs for 1 point.
+    # Fail-fast instead of silently zipping the extra output onto another line.
+    let script = "def f [] {\n1 | print $in\n}\nf\nf\n"
+
+    assert error { $script | embeds-update }
+}
+
 # =============================================================================
 # Tests for find-expand-directives
 # =============================================================================
@@ -546,7 +557,7 @@ def "embeds-setup adds .nu extension if missing" [] {
 @test
 def "execute-and-parse-results captures output" [] {
     let script = "'test output' | print $in"
-    let result = execute-and-parse-results $script
+    let result = execute-and-parse-results $script ($script | find-capture-points | get index)
 
     assert (($result | length) == 1)
     assert ($result.0 =~ 'test output')
@@ -555,7 +566,7 @@ def "execute-and-parse-results captures output" [] {
 @test
 def "execute-and-parse-results handles multiple capture points" [] {
     let script = "1 + 1 | print $in\n\n2 + 2 | print $in"
-    let result = execute-and-parse-results $script
+    let result = execute-and-parse-results $script ($script | find-capture-points | get index)
 
     assert (($result | length) == 2)
     assert ($result.0 =~ '2')
