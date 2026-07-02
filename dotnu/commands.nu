@@ -168,7 +168,7 @@ export def 'extract-command-code' [
     | merge $variables_from_prev_script
     | merge $set_vars
     | items {|k v| $'let $($k) = ($v | to nuon)' }
-    | prepend $'source ($module_path)'
+    | prepend $"source '($module_path)'" # quote the path so a space in it doesn't break the script
     | append $dotnu_vars_delim
     | append $extracted_command.1
     | str join "\n"
@@ -1256,7 +1256,7 @@ export def 'dummy-command' [
     | str replace --all '$command' $command
     | str replace --all '$file' $file
     | str replace --all '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
-    | $"source ($file)\n\n($in)"
+    | $"source '($file)'\n\n($in)" # quote the path so a space in it doesn't break the script
 }
 
 @example '' {
