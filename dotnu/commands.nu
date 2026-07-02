@@ -438,21 +438,20 @@ export def 'embeds-update' [
         }
     }
 
-    # Insert each capture point's annotation right after its own source line, by index.
-    # Every other line — including blank lines — is emitted untouched, so nothing but the
-    # capture points is rewritten.
-    let annotated = $points | merge ($results | wrap annotation)
-
+    # Insert each capture point's annotation right after its own source line, by index. Each
+    # result carries the source line index it came from (tagged by execute-and-parse-results),
+    # so annotations are placed by identity — not by execution order, which can differ from
+    # source order. Every other line — including blank lines — is emitted untouched.
     $script
     | lines
     | enumerate
     | each {|it|
         let idx = $it.index # Why: `where` below rebinds `$it` to its own row, shadowing this one
-        let match = $annotated | where index == $idx
+        let match = $results | where index == $idx
         if ($match | is-empty) {
             [$it.item]
         } else {
-            [$it.item] ++ ($match.0.annotation | str trim --char "\n" | lines)
+            [$it.item] ++ ($match.0.capture | str trim --char "\n" | lines)
         }
     }
     | flatten
@@ -1275,17 +1274,21 @@ export def execute-and-parse-results [
     script: string
     capture_indices: list<int> # line indices to instrument, from `find-capture-points`
     --script_path: path
-] {
+]: nothing -> table<index: int, capture: string> {
     # `embed-in-script` comment-prefixes stdin and wraps it in capture markers so the parse
-    # step below can slice each capture point's output back out. It is generated as plain
-    # text — markers baked in as literals, `comment-hash-colon` (and the const it reads)
-    # prepended verbatim — so the script stands alone under `nu -n`.
+    # step below can slice each capture point's output back out. Each capture is tagged with
+    # its source line index (baked into the `embed-in-script` call) so results are placed by
+    # identity, not by execution order — two capture points running out of source order would
+    # otherwise have their annotations swapped. Markers are emitted as consts so the generated
+    # script stands alone under `nu -n`.
     let embed_in_script_src = [
         $"const annotation_prefix = ($annotation_prefix | to nuon)"
+        $"const capture_open = ((capture-marker) | to nuon)"
+        $"const capture_close = ((capture-marker --close) | to nuon)"
         (view source comment-hash-colon)
-        "def embed-in-script [] {"
+        "def embed-in-script [idx: int] {"
         "    let input = table --expand | comment-hash-colon"
-        $"    \"(capture-marker)\" + $input + \"\\n\" + \"(capture-marker --close)\" | print"
+        '    $capture_open + ($idx | into string) + ":" + $input + "\n" + $capture_close | print'
         "}"
     ] | str join (char nl)
 
@@ -1294,7 +1297,7 @@ export def execute-and-parse-results [
         | enumerate
         | each {|it|
             if $it.index in $capture_indices {
-                $it.item | str replace --regex $capture_point '| embed-in-script'
+                $it.item | str replace --regex $capture_point $'| embed-in-script ($it.index)'
             } else { $it.item }
         }
         | prepend $embed_in_script_src
@@ -1303,11 +1306,11 @@ export def execute-and-parse-results [
     if $script_path != null { $script_path | path dirname | cd $in }
 
     ^$nu.current-exe -n -c $script_updated
-    | parse --regex ('(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close))
-    # Parsing here presupposes capturing only the output of a script command,
-    # so it won't be able to capture content inside custom command definitions correctly
-    # (if they are executed more than once).
-    | get capture0
+    # Parsing presupposes capturing only the output of a script command, so it won't correctly
+    # capture content inside custom command definitions executed more than once (the count-assert
+    # in embeds-update catches that case).
+    | parse --regex ('(?s)' + (capture-marker) + '(?<index>\d+):(?<capture>.*?)' + (capture-marker --close))
+    | update index { into int }
 }
 
 # Finds capture points: uncommented lines ending in `| print $in`, with their line index.

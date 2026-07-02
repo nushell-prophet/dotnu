@@ -456,6 +456,27 @@ def "embeds-update errors when a capture point runs more than once" [] {
     assert error { $script | embeds-update }
 }
 
+@test
+def "embeds-update places annotations by source line, not execution order" [] {
+    # b (defined 2nd) is called before a, so results come back in reverse source order.
+    # A positional pairing would put b's output under a's line; tagging by source index keeps
+    # them aligned.
+    let script = "def a [] {
+    \"AAA\" | print $in
+}
+def b [] {
+    \"BBB\" | print $in
+}
+b
+a
+"
+    let out = $script | embeds-update --echo | lines
+    let a_idx = $out | enumerate | where item =~ 'AAA.*print' | get 0.index
+    let b_idx = $out | enumerate | where item =~ 'BBB.*print' | get 0.index
+    assert equal ($out | get ($a_idx + 1)) '# => AAA'
+    assert equal ($out | get ($b_idx + 1)) '# => BBB'
+}
+
 # =============================================================================
 # Tests for find-expand-directives
 # =============================================================================
@@ -560,7 +581,7 @@ def "execute-and-parse-results captures output" [] {
     let result = execute-and-parse-results $script ($script | find-capture-points | get index)
 
     assert (($result | length) == 1)
-    assert ($result.0 =~ 'test output')
+    assert ($result.0.capture =~ 'test output')
 }
 
 @test
@@ -569,8 +590,9 @@ def "execute-and-parse-results handles multiple capture points" [] {
     let result = execute-and-parse-results $script ($script | find-capture-points | get index)
 
     assert (($result | length) == 2)
-    assert ($result.0 =~ '2')
-    assert ($result.1 =~ '4')
+    # Each result is tagged with its source line index, so look up by identity, not position.
+    assert (($result | where index == 0 | get 0.capture) =~ '2')
+    assert (($result | where index == 2 | get 0.capture) =~ '4')
 }
 
 # =============================================================================
