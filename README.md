@@ -170,14 +170,14 @@ A directive is a line beginning with `#**`; everything after the marker is a Nus
 
 Start with an empty block — just the directive and its end marker:
 
-```nushell
+```nushell no-run
 #** ls todo/ | get name | each { $"open -r ($in)" } | to text
 #**end
 ```
 
 Running `dotnu expand-code file.nu` fills the block:
 
-```nushell
+```nushell no-run
 #** ls todo/ | get name | each { $"open -r ($in)" } | to text
 open -r todo/20251216-022041.md
 open -r todo/20260630-090000.md
