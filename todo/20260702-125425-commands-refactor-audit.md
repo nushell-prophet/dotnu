@@ -9,5 +9,4 @@ Full-file audit (2026-07-02). The embeds group, examples group, split-statements
 ## 6. minor
 
 - `list-module-exports` / `list-module-interface` end with `print 'No command found'` and return nothing (`commands.nu:380-383`, `commands.nu:399-402`) — a `nothing -> list<string>` command that sometimes prints breaks composition. Return the empty list; let interactive callers print.
-- `extract-module-command`'s `command_name` has no completer (the old `extract-command-code` had `nu-completion-command-name`, removed with it in the §4.4 consolidation). A proper one would be module-aware (list exposed commands from a directory or file), not the old single-file `def`-line scrape — worth adding.
 - ~~Stale in-code todo at `commands.nu:405` (`# todo: make configuration like --autocommit in file itself`) — implement or move here.~~ Done: dropped `--auto-commit` and `embeds-setup` entirely; `embed-add` now takes `--capture-path` (an `--env` def, so it sticks for the session), which replaced the whole `embeds-setup` config surface.
