@@ -403,10 +403,6 @@ export def 'list-module-exports' [
     open $path --raw
     | extract-exported-commands ($path | path expand | path dirname)
     | replace-main-with-module-name $path
-    | if ($in | is-empty) {
-        print 'No command found'
-        return
-    } else { }
 }
 
 # List module's callable interface (main commands)
@@ -422,10 +418,6 @@ export def 'list-module-interface' [
     | extract-command-name
     | where $it starts-with 'main'
     | str replace 'main ' ''
-    | if ($in | is-empty) {
-        print 'No command found'
-        return
-    } else { }
 }
 
 # Inserts captured output back into the script at capture points

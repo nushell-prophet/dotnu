@@ -326,10 +326,10 @@ def "list-module-interface finds main command" [] {
 }
 
 @test
-def "list-module-interface returns null when no main" [] {
+def "list-module-interface returns empty list when no main" [] {
     let result = list-module-interface tests/assets/b/example-mod2.nu
 
-    assert equal $result null
+    assert equal $result []
 }
 
 @test
