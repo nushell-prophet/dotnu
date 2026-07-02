@@ -144,13 +144,12 @@ export def 'extract-command-code' [
 
     let dotnu_vars_delim = '#dotnu-vars-end'
 
+    # A missing command is caught at the source: the generated script's own
+    # `scope commands`-check errors, so `nu -n -c` exits non-zero and this pipeline fails
+    # here. No downstream re-check on the parsed output — it can never see the error case.
     let extracted_command = dummy-command $command $module_path $dotnu_vars_delim
         | nu -n -c $in
         | split row $dotnu_vars_delim
-
-    if $extracted_command.1? == null {
-        error make --unspanned {msg: $'no command `($command)` was found'}
-    }
 
     let filename = $output
         | default $'($command | str trim --char '"' | str trim --char "'").nu'
