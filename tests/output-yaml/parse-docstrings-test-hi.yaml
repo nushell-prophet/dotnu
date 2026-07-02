@@ -1,7 +1,0 @@
-# open $path
-# | parse-docstrings
-# | to yaml
-- command_name: main
-  command_description: ''
-  examples: []
-  input: ''
