@@ -1499,13 +1499,11 @@ export def split-statements []: string -> table<statement: string, start: int, e
         if $token.shape in ["shape_block" "shape_closure" "shape_gap"] {
             # Why: a `{`/`}` inside a comment is not a block delimiter. These shapes carry
             # only structural braces plus surrounding whitespace/comments — strings and code
-            # are separate tokens — so a `#` here always starts a comment. Strip each line's
-            # `#`-tail before counting braces, or an unbalanced brace in a comment (e.g.
-            # `shape_block "{"`) leaks into the depth and merges the statements that follow.
-            let content = $token.content
-                | lines
-                | each { str replace --regex '#.*' '' }
-                | str join "\n"
+            # are separate tokens — so a `#` here always starts a comment. Strip each `#`-tail
+            # before counting braces (`.` doesn't cross newlines, so `--all` clears every line),
+            # or an unbalanced brace in a comment (e.g. `shape_block "{"`) leaks into the depth
+            # and merges the statements that follow.
+            let content = $token.content | str replace --all --regex '#.*' ''
             let opens = ($content | split row "{" | length) - 1
             let closes = ($content | split row "}" | length) - 1
             $depth = $depth + $opens - $closes
