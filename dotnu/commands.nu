@@ -28,14 +28,27 @@ export def 'dependencies' [
 
     if $definitions_only { return $callees_to_merge }
 
-    generate {|i|
-        if ($i | is-not-empty) {
+    # Expand chains only through unseen (caller, callee) pairs. A duplicate pair
+    # would be dropped by the final `uniq-by` anyway, and expanding it again
+    # loops forever on recursive commands (caller reachable from its own callee).
+    generate {|state|
+        if ($state.frontier | is-not-empty) {
+            let next = $state.frontier
+                | join-next $callees_to_merge
+                | uniq-by caller callee
+                | where {|row| [$row.caller $row.callee] not-in $state.seen }
             {
-                out: $i
-                next: ($i | join-next $callees_to_merge)
+                out: $state.frontier
+                next: {
+                    frontier: $next
+                    seen: ($state.seen ++ ($next | each {|row| [$row.caller $row.callee] }))
+                }
             }
         }
-    } ($callees_to_merge | insert step 0)
+    } {
+        frontier: ($callees_to_merge | insert step 0)
+        seen: ($callees_to_merge | each {|row| [$row.caller $row.callee] })
+    }
     | flatten
     | uniq-by caller callee
 }

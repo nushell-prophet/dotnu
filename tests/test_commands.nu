@@ -216,6 +216,16 @@ def "dependencies handles files with @example containing same-file calls" [] {
 }
 
 @test
+def "dependencies terminates on recursive commands" [] {
+    # a recursive command makes a cycle in the call graph;
+    # chain expansion must stop at the fixpoint instead of looping forever
+    let result = dependencies tests/assets/recursive.nu
+
+    let self_calls = $result | where {|row| $row.caller == $row.callee } | get caller
+    assert equal $self_calls [countdown]
+}
+
+@test
 def "dependencies excludes calls inside attribute blocks" [] {
     let result = list-module-commands tests/assets/attribute-edge-cases.nu
 
