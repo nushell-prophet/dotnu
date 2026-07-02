@@ -481,14 +481,14 @@ export def 'embed-add' [
         | str replace -r '(?s)\| ?dotnu embed-add.*$' ''
     }
 
-    let input_table = $input
+    let commented_input = $input
         | if $in == null { } else {
             table -e --width 160
             | comment-hash-colon
             | $"\n($in)\n"
         }
 
-    let script_with_output = $"\n($command) | print $in\n($input_table)"
+    let script_with_output = $"\n($command) | print $in\n($commented_input)"
 
     if $env.dotnu?.auto-commit? == true {
         git-autocommit-dotnu-capture
@@ -561,25 +561,25 @@ export def check-clean-working-tree [
     "let $a = null" | variable-definitions-to-record
 } --result {a: null}
 export def variable-definitions-to-record []: string -> record {
-    let script_with_variables_definitnions = str replace -a ';' ";\n"
+    let script_with_variable_definitions = str replace -a ';' ";\n"
         | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
         | $in + (char nl)
 
-    let parsed_vars = $script_with_variables_definitnions
+    let parsed_vars = $script_with_variable_definitions
         | parse -r 'let \$?(?<var>.*) ='
 
     if ($parsed_vars | is-empty) {
         return {}
     }
 
-    let variables_record = $parsed_vars
+    let record_builder_code = $parsed_vars
         | get var
         | uniq
         | each { $'($in): $($in)' }
         | str join ' '
         | '{' + $in + '} | to nuon' # this way we ensure the proper formatting for bool, numeric and string vars
 
-    let script = $script_with_variables_definitnions + $variables_record
+    let script = $script_with_variable_definitions + $record_builder_code
 
     let result = (nu -n -c $script | complete)
     if $result.exit_code != 0 {
@@ -686,7 +686,7 @@ export def list-module-commands [
         return ($defined_defs | select caller filename_of_caller)
     }
 
-    let defs_with_index = $defined_defs | sort-by start
+    let defs_by_start = $defined_defs | sort-by start
 
     # Range-based lookup using statement boundaries
     # For defs with end ranges, tokens must be within [start, end)
@@ -694,7 +694,7 @@ export def list-module-commands [
     let calls = $all_tokens
         | each {|token|
             # Find the definition this token belongs to
-            let matching_def = $defs_with_index
+            let matching_def = $defs_by_start
                 | where {|d|
                     if $d.end? != null {
                         # Def with scope: token must be within range
