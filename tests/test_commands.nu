@@ -315,29 +315,6 @@ def "set-x transforms script with echo flag" [] {
 }
 
 # =============================================================================
-# Tests for extract-command-code
-# =============================================================================
-
-@test
-def "extract-command-code extracts command with echo flag" [] {
-    let result = extract-command-code tests/assets/b/example-mod1.nu lscustom --echo
-
-    # Should include source statement for module (path separators vary by OS)
-    assert ($result =~ 'source.*example-mod1\.nu')
-    # Should include the command code
-    assert ($result =~ 'ls')
-}
-
-@test
-def "extract-command-code handles quoted command names" [] {
-    let result = extract-command-code tests/assets/b/example-mod1.nu 'command-5' --echo
-
-    # Path separators vary by OS
-    assert ($result =~ 'source.*example-mod1\.nu')
-    assert ($result =~ 'command-3')
-}
-
-# =============================================================================
 # Tests for list-module-interface
 # =============================================================================
 
@@ -638,31 +615,11 @@ def "module-commands-code-to-record handles lines before first def" [] {
 # delimiters. Testing is done indirectly through embeds-update tests.
 
 @test
-def "dummy-command generates executable code" [] {
-    let result = dummy-command 'lscustom' tests/assets/b/example-mod1.nu '#END#'
-
-    # Should be valid nushell code string
-    assert (($result | describe) == 'string')
-    # Should contain use/source statement
-    assert (($result =~ 'use') or ($result =~ 'source'))
-}
-
-@test
 def "get-dotnu-capture-path returns valid path" [] {
     $env.dotnu = {embeds-capture-path: '/tmp/test.nu'}
     let result = get-dotnu-capture-path
 
     assert equal $result '/tmp/test.nu'
-}
-
-@test
-def "nu-completion-command-name returns command list" [] {
-    # Test with a simple module
-    let result = nu-completion-command-name tests/assets/b/example-mod1.nu
-
-    # Should return a list of commands
-    assert (($result | describe) =~ 'list')
-    assert ('lscustom' in $result)
 }
 
 # =============================================================================
@@ -1035,4 +992,46 @@ def "extract-module-command handles a single-file module" [] {
 
     let run = nu -n -c ($script + "\nclean") | complete
     assert equal ($run.stdout | str trim) 'helpers clean'
+}
+
+@test
+def "extract-module-command --vars scaffolds signature vars and unwraps the body" [] {
+    let script = extract-module-command tests/assets/module-embed greet-loud --vars
+
+    assert ($script =~ 'let \$upper = false') # switch parameter -> `let` binding defaulting to false
+    assert ($script =~ '# def greet-loud') # target's def header is commented, body left live
+    assert ($script !~ '(?m)^(export )?def greet-loud') # target is not emitted as a def
+    assert ($script =~ '(?m)^def subject') # private dep still embedded
+    assert ($script =~ 'export def greet-word') # exported dep still embedded
+
+    # sourcing the scaffold runs the unwrapped body with the vars in scope
+    let run = nu -n -c $script | complete
+    assert equal ($run.stdout | str trim) 'hello world!'
+}
+
+@test
+def "extract-module-command --set-vars overrides defaults and implies --vars" [] {
+    let script = extract-module-command tests/assets/module-embed greet-loud --set-vars {upper: true}
+
+    assert ($script =~ 'let \$upper = true')
+
+    let run = nu -n -c $script | complete
+    assert equal ($run.stdout | str trim) 'HELLO WORLD!'
+}
+
+@test
+def "extract-module-command --vars preserves edited values on re-extraction" [] {
+    let out = $nu.temp-dir | path join 'test-extract-vars-preserve.nu'
+    extract-module-command tests/assets/module-embed greet-loud --vars --output $out
+
+    # user edits a variable value in the saved file; re-extraction keeps the edit ...
+    open $out | str replace 'let $upper = false' 'let $upper = true' | save --force $out
+    extract-module-command tests/assets/module-embed greet-loud --vars --output $out
+    assert (open $out | str contains 'let $upper = true')
+
+    # ... unless --clear-vars resets it to the signature default
+    extract-module-command tests/assets/module-embed greet-loud --vars --output $out --clear-vars
+    assert (open $out | str contains 'let $upper = false')
+
+    rm --force $out
 }

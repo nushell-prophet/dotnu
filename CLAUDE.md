@@ -49,8 +49,7 @@ dotnu/
 
 **mod.nu** exports these public commands:
 - `dependencies` - Analyze command call chains
-- `extract-command-code` - Extract command with its dependencies
-- `extract-module-command` - Extract command with its dependency cascade from a module into one self-contained script (runtime, via `view source`)
+- `extract-module-command` - Extract command with its dependency cascade from a module into one self-contained script (runtime, via `view source`); `--vars`/`--set-vars` emit a debug scaffold with the target's parameters as editable `let` bindings and its body unwrapped
 - `filter-commands-with-no-tests` - Find untested commands
 - `list-module-exports` - List all exported definitions (export def + export use)
 - `list-module-interface` - List module's callable interface (main commands)

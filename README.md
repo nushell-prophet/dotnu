@@ -391,45 +391,9 @@ dotnu generate-numd --help
 # =>
 ```
 
-### `dotnu extract-command-code`
-
-Extract a command from a module, resolve its parameter defaults, and create a standalone script you can source to get all variables in scope. Useful for debugging.
-
-```nushell
-dotnu extract-command-code --help
-# => Extract command code from a module and save it as a `.nu` file that can be sourced.
-# => By executing this `.nu` file, you'll have all the variables in your environment for debugging or development.
-# =>
-# => Usage:
-# =>   > extract-command-code {flags} <$module_path> <$command>
-# =>
-# => Flags:
-# =>   -h, --help: Display the help message for this command
-# =>   --output <path>: a file path to save the extracted command script
-# =>   --clear-vars: clear variables previously set in the extracted .nu file
-# =>   --echo: output the command to the terminal
-# =>   --set-vars <record>: set variables for a command (default: {})
-# =>   --code-editor <string>: code is my editor of choice to open the result file (default: 'code')
-# =>
-# => Command Type:
-# =>   > custom
-# =>
-# => Parameters:
-# =>   $module_path <path>: path to a Nushell module file
-# =>   $command <string>: the name of the command to extract
-# =>
-# => Input/output types:
-# =>   ╭───┬───────┬────────╮
-# =>   │ # │ input │ output │
-# =>   ├───┼───────┼────────┤
-# =>   │ 0 │ any   │ any    │
-# =>   ╰───┴───────┴────────╯
-# =>
-```
-
 ### `dotnu extract-module-command`
 
-Extract a command with its whole dependency cascade from a module into one self-contained script. Unlike `extract-command-code` (static parsing of one file), the module is imported into a clean `nu -n` process and command bodies are dumped via `view source`, so Nushell itself resolves `export use` chains, submodules and `main` renaming. Private dependencies are embedded as plain `def`, definitions come in dependency order, and imports of external modules (`std` etc.) are reproduced as `use` lines.
+Extract a command with its whole dependency cascade from a module into one self-contained script. The module is imported into a clean `nu -n` process and command bodies are dumped via `view source`, so Nushell itself resolves `export use` chains, submodules and `main` renaming. Private dependencies are embedded as plain `def`, definitions come in dependency order, and imports of external modules (`std` etc.) are reproduced as `use` lines.
 
 Importing a module runs its `export-env` blocks, so the command refuses modules containing `export-env` unless you pass `--allow-export-env` after inspecting them.
 
@@ -445,6 +409,27 @@ dotnu extract-module-command tests/assets/module-embed greet
 # => def subject [] { 'world' }
 # =>
 # => export def greet [] { $"(greet-word) (subject)!" }
+```
+
+Pass `--vars` (or a non-empty `--set-vars`) to turn the target into a debug scaffold instead: its parameters become `let` bindings you can edit, and its body is unwrapped to the top level, so sourcing the script runs the body with the variables in scope. The dependencies stay embedded as `def`. With `--output`, values you edit in the saved file are kept on re-extraction unless you pass `--clear-vars`.
+
+```nushell no-run
+dotnu extract-module-command tests/assets/module-embed greet-loud --vars
+# => use std/assert
+# =>
+# => export def greet-word [] {
+# =>     assert true
+# =>     'hello'
+# => }
+# =>
+# => def subject [] { 'world' }
+# =>
+# => # def greet-loud [ --upper ] {
+# => #dotnu-vars-start
+# => let $upper = false
+# => #dotnu-vars-end
+# =>     let msg = $"(greet-word) (subject)!"
+# =>     if $upper { $msg | str upcase } else { $msg }
 ```
 
 ### `dotnu list-module-exports`

@@ -126,67 +126,18 @@ export def 'generate-numd' [] {
     | to text
 }
 
-# Extract command code from a module and save it as a `.nu` file that can be sourced.
-# By executing this `.nu` file, you'll have all the variables in your environment for debugging or development.
-export def 'extract-command-code' [
-    module_path: path # path to a Nushell module file
-    command: string@nu-completion-command-name # the name of the command to extract
-    --output: path # a file path to save the extracted command script
-    --clear-vars # clear variables previously set in the extracted .nu file
-    --echo # output the command to the terminal
-    --set-vars: record = {} # set variables for a command
-    --code-editor: string = 'code' # code is my editor of choice to open the result file
-] {
-    let command = $command
-        | if $in =~ '\s' and $in !~ "^(\"|')" {
-            $'"($in)"'
-        } else { }
-
-    let dotnu_vars_delim = '#dotnu-vars-end'
-
-    # A missing command is caught at the source: the generated script's own
-    # `scope commands`-check errors, so `nu -n -c` exits non-zero and this pipeline fails
-    # here. No downstream re-check on the parsed output — it can never see the error case.
-    let extracted_command = dummy-command $command $module_path $dotnu_vars_delim
-        | nu -n -c $in
-        | split row $dotnu_vars_delim
-
-    let filename = $output
-        | default $'($command | str trim --char '"' | str trim --char "'").nu'
-
-    # here we use defined variables from the previously extracted command to a file
-    let variables_from_prev_script = if ($filename | path exists) and not $clear_vars {
-        open $filename
-        | split row $dotnu_vars_delim
-        | get 0
-        | variable-definitions-to-record
-    } else { {} }
-
-    $extracted_command.0
-    | variable-definitions-to-record
-    | merge $variables_from_prev_script
-    | merge $set_vars
-    | items {|k v| $'let $($k) = ($v | to nuon)' }
-    | prepend $"source '($module_path)'" # quote the path so a space in it doesn't break the script
-    | append $dotnu_vars_delim
-    | append $extracted_command.1
-    | str join "\n"
-    | $in + "\n"
-    | if $echo {
-        return $in
-    } else {
-        save --force $filename
-
-        $" ^($code_editor) \"($filename)\"; commandline edit --replace ' source \"($filename)\"'"
-        | commandline edit --replace $in
-    }
-}
-
 # Extract a command with its dependency cascade from a module into one self-contained script.
 #
-# Runtime analog of `extract-command-code`: the module is imported into a clean `nu -n`
-# process and command bodies are dumped via `view source`, so Nushell itself resolves
-# `export use` chains, submodules and `main` renaming.
+# The module is imported into a clean `nu -n` process and command bodies are dumped via
+# `view source`, so Nushell itself resolves `export use` chains, submodules and `main`
+# renaming. Private dependencies are embedded as plain `def`, in dependency order.
+#
+# With `--vars` (or a non-empty `--set-vars`) the target is emitted as a debug scaffold
+# instead: its parameters become `let` bindings (signature defaults, overridable via
+# `--set-vars`) and its body is unwrapped to the top level, so you can source the script and
+# step the body with the variables in scope. Its dependencies stay embedded as `def`. When
+# saved with `--output`, variable values you edit in the file are preserved on re-extraction
+# unless `--clear-vars` is passed.
 #
 # Importing runs `export-env` blocks (the module's own and those of transitively imported
 # local modules) — the only channel of arbitrary code execution at import — so the command
@@ -204,6 +155,9 @@ export def extract-module-command [
     command_name: string # exposed name of the command to extract (`main` means the module itself)
     --allow-export-env # proceed even when the module contains export-env blocks
     --output: path # save the assembled script to this file instead of returning it
+    --vars # emit the target's parameters as `let` bindings and unwrap its body into a sourceable debug scaffold
+    --set-vars: record = {} # variable values overriding the signature defaults (implies --vars)
+    --clear-vars # with --output, discard variable values previously saved in the file instead of preserving them
 ] {
     let module = module-files $module_path
     let scan = $module.files | each {|file| scan-module-file $file } | flatten
@@ -348,7 +302,7 @@ export def extract-module-command [
         | str replace --regex '^export ' ''
         | uniq
 
-    let script = $ordered
+    let defs_script = $ordered
         | each {|name|
             $sources
             | where name == $name
@@ -359,12 +313,75 @@ export def extract-module-command [
         | str join ((char nl) + (char nl))
         | $in + (char nl)
 
-    # fail fast on any exposure case the assembly can't map (see "Known limits" above)
-    let check = nu -n -c $script | complete
+    # fail fast on any exposure case the assembly can't map (see "Known limits" above).
+    # Checked on the def-form script: it only defines commands, so `nu -n` parses without
+    # running a body — unlike the --vars scaffold, whose top-level body would execute here.
+    let check = nu -n -c $defs_script | complete
     if $check.exit_code != 0 {
         error make --unspanned {
             msg: $"assembled script does not parse under `nu -n`:\n($check.stderr)"
         }
+    }
+
+    let vars_mode = $vars or ($set_vars | is-not-empty)
+    let script = if not $vars_mode { $defs_script } else {
+        # markers bracket the vars block so a later re-extraction can read the edited values
+        # back out without tripping over `let`s inside the embedded dep bodies
+        let vars_start = '#dotnu-vars-start'
+        let vars_end = '#dotnu-vars-end'
+
+        # dependencies: the cascade minus the target, still as (export-restored) defs
+        let dep_defs = $ordered
+            | where $it != $target
+            | each {|name|
+                $sources | where name == $name | get 0.source
+                | if $name in $exported_names { 'export ' + $in } else { }
+            }
+
+        let target_row = $sources | where name == $target | get 0
+
+        # signature defaults -> {name: value}; switches default to false, rest to []
+        let signature_vars = $target_row.params
+            | each {
+                if ($in.parameter_type == 'rest') {
+                    if ($in.parameter_name == '') { upsert parameter_name 'rest' } else { }
+                    | default [] parameter_default
+                } else { }
+            }
+            | where parameter_name != null
+            | reduce --fold {} {|p acc|
+                let name = $p.parameter_name | str replace --all '-' '_' | str replace '$' ''
+                let value = $p.parameter_default? | default (if $p.parameter_type == 'switch' { false })
+                $acc | upsert $name $value
+            }
+
+        # values the user edited in a previous extraction to --output win over the defaults
+        let preserved = if $output != null and ($output | path exists) and not $clear_vars {
+            open $output
+            | parse --regex ('(?s)' + $vars_start + '(?<vars>.*?)' + $vars_end)
+            | get --optional vars.0
+            | default ''
+            | variable-definitions-to-record
+        } else { {} }
+
+        let vars_lines = $signature_vars
+            | merge $preserved
+            | merge $set_vars
+            | items {|k v| $"let $($k) = ($v | to nuon)" }
+
+        # comment the def header and closing brace, leaving the body live at top level
+        let head_comment = '# ' + ($target_row.source | str replace --regex '(?s)(\]\s*\{).*' '$1')
+        let body = $target_row.source
+            | str replace --regex '(?s)^.*?\]\s*\{' ''
+            | str replace --regex '(?s)\}\s*$' ''
+            | str trim --char (char nl)
+
+        let target_block = [$head_comment $vars_start] ++ $vars_lines ++ [$vars_end $body]
+            | str join (char nl)
+
+        $header ++ $dep_defs ++ [$target_block]
+        | str join ((char nl) + (char nl))
+        | $in + (char nl)
     }
 
     if $output == null { $script } else { $script | save --force $output }
@@ -962,20 +979,6 @@ export def escape-for-quotes []: string -> string {
     str replace --all --regex '(\\|\")' '\$1'
 }
 
-# context aware completions for defined command names in nushell module files
-@example '' {
-    nu-completion-command-name 'dotnu extract-command-code tests/assets/b/example-mod1.nu' | first 3
-} --result [main lscustom "command-5"]
-export def nu-completion-command-name [
-    context: string
-] {
-    $context | str replace --regex '^.*? extract-command-code ' ''
-    | str trim | split row ' ' | first
-    | path expand | open $in --raw | lines
-    | where $it =~ '^(export )?def '
-    | each { extract-command-name }
-}
-
 # Extract table with information on which commands use which commands
 @example '' {
     list-module-commands tests/assets/b/example-mod1.nu | first 3
@@ -1168,16 +1171,22 @@ export def export-ify-file [
     | save --force $file
 }
 
-# Import an export-ified module copy in a clean `nu -n` and dump `name -> source` for
-# every exposed command — one process for the whole module instead of one per command
+# Import an export-ified module copy in a clean `nu -n` and dump `name -> source` (plus the
+# parameter list, for --vars scaffolding) for every exposed command — one process for the
+# whole module instead of one per command
 export def dump-module-commands [
     copy_path: path # the export-ified temp copy (directory or single .nu file)
     module_name: string
-]: nothing -> table<name: string, source: string> {
+]: nothing -> table<name: string, source: string, params: list> {
     let script = [
         $"use '($copy_path)' *"
         $"scope modules | where name == '($module_name)' | get 0.commands.name"
-        "| each {|n| {name: $n source: (view source $n)} }"
+        "| each {|n| {"
+        "    name: $n"
+        "    source: (view source $n)"
+        # rebuild each param row to plain fields — a `completion` closure would break `to nuon`
+        "    params: (scope commands | where name == $n | get --optional 0.signatures | default {} | values | get --optional 0 | default [] | each {|p| {parameter_name: $p.parameter_name, parameter_type: $p.parameter_type, syntax_shape: $p.syntax_shape, parameter_default: $p.parameter_default} })"
+        "} }"
         "| to nuon"
     ] | str join (char nl)
 
@@ -1201,62 +1210,6 @@ export def 'join-next' [
     | rename caller callee
     | upsert step {|i| $i.step + 1 }
     | where callee != null
-}
-
-export def 'dummy-command' [
-    command: string
-    file: path
-    dotnu_vars_delim: string
-] {
-    # the closure below is used as highlighted in an editor constructor
-    # for the command that will be executed in `nu -c`
-    let dummy_closure = {|function|
-        let params = scope commands
-            | where name == $command
-            | get --optional signatures.0
-            | if $in == null {
-                error make --unspanned {msg: 'no command $command was found'}
-            } else { }
-            | values
-            | get 0
-            | each {
-                if ($in.parameter_type == 'rest') {
-                    if ($in.parameter_name == '') {
-                        # if rest parameters named $rest, in the signatures it doesn't have a name
-                        upsert parameter_name 'rest'
-                    } else { }
-                    | default [] parameter_default
-                } else { }
-            }
-            | where parameter_name != null
-            | each {|i|
-                let param = $i.parameter_name | str replace --all '-' '_' | str replace '$' ''
-
-                let value = $i.parameter_default?
-                    | default (if $i.parameter_type == 'switch' { false })
-                    | to nuon # to handle nuls
-
-                $"let $($param) = ($value) # ($i.syntax_shape)"
-            }
-            | to text
-
-        let main = view source $command
-            | lines
-            | upsert 0 {|i| '# ' + $i }
-            | drop
-            | append '# }'
-            | prepend $dotnu_vars_delim
-            | to text
-
-        "source '$file'\n\n" + $params + "\n\n" + $main
-    }
-
-    view source $dummy_closure
-    | lines | skip | drop | to text
-    | str replace --all '$command' $command
-    | str replace --all '$file' $file
-    | str replace --all '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
-    | $"source '($file)'\n\n($in)" # quote the path so a space in it doesn't break the script
 }
 
 @example '' {
