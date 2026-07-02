@@ -395,14 +395,17 @@ export def run-expand-pipeline [
 ]: nothing -> list<string> {
     cd $dir
 
-    ^$nu.current-exe --no-config-file --commands $pipeline
+    # Why: `| print --no-newline` captures the pipeline's returned text exactly. The default
+    # implicit print appends its own newline on top of `to text`'s, leaving a spurious trailing
+    # blank line; with it suppressed, plain `lines` drops only the text's own terminator, so one
+    # output line stays one code line and genuine leading/trailing blank lines survive.
+    ^$nu.current-exe --no-config-file --commands ($pipeline + ' | print --no-newline')
     | complete
     | if $in.exit_code != 0 {
         error make {msg: $"`#**` pipeline failed: ($pipeline)\n($in.stderr)"}
     } else {
         $in.stdout
     }
-    | str trim --char "\n"
     | lines
 }
 

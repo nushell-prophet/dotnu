@@ -470,6 +470,15 @@ def "expand-code is idempotent on re-run" [] {
     assert equal ($script | expand-code) ($script | expand-code | expand-code)
 }
 
+@test
+def "expand-code preserves blank lines the pipeline emits" [] {
+    # `lines` drops only `to text`'s trailing newline, so a leading/trailing blank line stays.
+    let script = "#** ['' mid ''] | to text\n#**end"
+    let result = $script | expand-code
+
+    assert equal $result "#** ['' mid ''] | to text\n\nmid\n\n#**end\n"
+}
+
 # =============================================================================
 # Tests for embed-add
 # =============================================================================
