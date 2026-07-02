@@ -168,23 +168,24 @@ dotnu embeds-remove --help
 
 A directive is a line beginning with `#**`; everything after the marker is a Nushell pipeline that must return text. Each line of that text becomes one generated code line, inserted right after the directive and up to a `#**end` marker on its own line.
 
-Start with an empty block — just the directive and its end marker:
+Start with an empty block — here in a module's `mod.nu`, just the directive and its end marker:
 
 ```nushell no-run
-#** ls todo/ | get name | each { $"open -r ($in)" } | to text
+#** ls *.nu | where name != 'mod.nu' | get name | each { $"export use ($in) *" } | to text
 #**end
 ```
 
-Running `dotnu expand-code file.nu` fills the block:
+Running `dotnu expand-code mod.nu` fills the block, re-exporting every sibling command file:
 
 ```nushell no-run
-#** ls todo/ | get name | each { $"open -r ($in)" } | to text
-open -r todo/20251216-022041.md
-open -r todo/20260630-090000.md
+#** ls *.nu | where name != 'mod.nu' | get name | each { $"export use ($in) *" } | to text
+export use config.nu *
+export use greet.nu *
+export use history.nu *
 #**end
 ```
 
-The directive and the `#**end` marker are never modified, so a re-run replaces only the lines between them — refreshing the generated code whenever the inputs change (here, whenever `todo/` changes). Relative paths in the pipeline resolve against the file's own directory.
+The directive and the `#**end` marker are never modified, so a re-run replaces only the lines between them — refreshing the generated code whenever the inputs change (here, whenever you add or remove a command file). Relative paths in the pipeline resolve against the file's own directory, so `ls *.nu` sees the module's own files.
 
 Like `embeds-update`, you can run it on a file path (`dotnu expand-code file.nu`) or pipe a script in and get the result back (`$script | dotnu expand-code`). Pass `--echo` to print the result instead of saving to the file.
 
