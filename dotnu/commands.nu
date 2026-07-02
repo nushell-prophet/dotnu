@@ -23,10 +23,16 @@ export def 'dependencies' [
     --keep-builtins # keep builtin commands in the result page
     --definitions-only # output only commands' names definitions
 ] {
+    # Compute the exclusion list once, not once per file. `--definitions-only`
+    # returns before the exclusion filter, so skip the slow `help commands` then.
+    let excluded_commands = if $definitions_only { [] } else {
+        excluded-command-names --keep-builtins=$keep_builtins
+    }
+
     let callees_to_merge = $paths
         | sort # ensure consistent order across platforms
         | each {
-            list-module-commands $in --keep-builtins=$keep_builtins --definitions-only=$definitions_only
+            list-module-commands $in --definitions-only=$definitions_only --excluded-commands $excluded_commands
         }
         | flatten
 
@@ -979,6 +985,14 @@ export def escape-for-quotes []: string -> string {
     str replace --all --regex '(\\|\")' '\$1'
 }
 
+# Command names to exclude from call analysis: keywords always, built-ins too
+# unless `--keep-builtins`. Single source of truth so `list-module-commands` and
+# `dependencies` can't disagree on what counts as excluded.
+export def excluded-command-names [--keep-builtins]: nothing -> list<string> {
+    let excluded_types = if $keep_builtins { ['keyword'] } else { ['keyword' 'built-in'] }
+    help commands | where command_type in $excluded_types | get name
+}
+
 # Extract table with information on which commands use which commands
 @example '' {
     list-module-commands tests/assets/b/example-mod1.nu | first 3
@@ -990,6 +1004,7 @@ export def list-module-commands [
     module_path: path # path to a .nu module file.
     --keep-builtins # keep builtin commands in the result page
     --definitions-only # output only commands' names definitions
+    --excluded-commands: list<string> # precomputed exclusion list; when omitted, computed from `help commands`
 ] {
     let script_content = open $module_path --raw
         | normalize-newlines
@@ -1021,11 +1036,15 @@ export def list-module-commands [
 
     let defs_by_start = $defined_defs | sort-by start
 
-    # Why: compute the exclusion list once. A subexpression inside `where` is
-    # re-evaluated per row, so an inline `help commands` here would run once per
-    # token — expensive on the hot path (`dependencies` calls this per file).
-    let excluded_types = if $keep_builtins { ['keyword'] } else { ['keyword' 'built-in'] }
-    let excluded_commands = help commands | where command_type in $excluded_types | get name
+    # Why: `help commands` is slow. On the hot path `dependencies` computes the
+    # exclusion once and passes it here per file; standalone callers fall back to
+    # computing it themselves. Not `default (...)` because: its argument evaluates
+    # eagerly, so `help commands` would run even when the list is already supplied.
+    let excluded_commands = if $excluded_commands != null {
+        $excluded_commands
+    } else {
+        excluded-command-names --keep-builtins=$keep_builtins
+    }
 
     # Range-based lookup using statement boundaries
     # For defs with end ranges, tokens must be within [start, end)
