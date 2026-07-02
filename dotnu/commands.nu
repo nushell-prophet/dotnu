@@ -688,6 +688,12 @@ export def list-module-commands [
 
     let defs_by_start = $defined_defs | sort-by start
 
+    # Why: compute the exclusion list once. A subexpression inside `where` is
+    # re-evaluated per row, so an inline `help commands` here would run once per
+    # token — expensive on the hot path (`dependencies` calls this per file).
+    let excluded_types = if $keep_builtins { ['keyword'] } else { ['keyword' 'built-in'] }
+    let excluded_commands = help commands | where command_type in $excluded_types | get name
+
     # Range-based lookup using statement boundaries
     # For defs with end ranges, tokens must be within [start, end)
     # For attributes (end=null), use the old "start <=" logic
@@ -714,10 +720,7 @@ export def list-module-commands [
         }
         | where caller != null and caller !~ '^@' # exclude tokens inside attribute blocks
         | where shape in ['shape_internalcall' 'shape_external']
-        | where content not-in (help commands | where command_type == 'keyword' | get name) # always exclude keywords (def, export def, etc.)
-        | if $keep_builtins { } else {
-            where content not-in (help commands | where command_type == 'built-in' | get name)
-        }
+        | where content not-in $excluded_commands # exclude keywords (def, export def, etc.) and, unless --keep-builtins, built-ins
         | select caller content filename_of_caller
         | rename --column {content: callee}
 
