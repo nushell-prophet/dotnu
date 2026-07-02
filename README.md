@@ -429,7 +429,7 @@ dotnu extract-command-code --help
 
 ### `dotnu list-module-exports`
 
-List all exported definitions from a module file. Finds commands from `export def` and `export use [...commands]` patterns.
+List all exported definitions from a module file. Finds commands from `export def` and `export use` patterns, including bare and glob re-exports (resolved by reading the referenced submodule).
 
 ```nushell
 dotnu list-module-exports dotnu/mod.nu | first 5

@@ -210,9 +210,11 @@ def "dependencies handles files with @example containing same-file calls" [] {
     # This tests the fix for infinite loop when @example blocks call commands defined in the same file
     let result = dependencies dotnu/commands.nu
 
-    # Should complete without hanging and have no self-references
-    let self_refs = $result | where caller == callee
-    assert (($self_refs | length) == 0) "should have no self-referential calls"
+    # extract-exported-commands is genuinely recursive — the only self-reference
+    # allowed; anything else would be a false edge from an @example block.
+    # (`where caller == callee` compares against the string "callee" — use a closure)
+    let self_refs = $result | where {|row| $row.caller == $row.callee }
+    assert equal ($self_refs | get caller) ['extract-exported-commands']
 }
 
 @test
@@ -385,6 +387,25 @@ def "list-module-exports excludes non-exported" [] {
     # Private commands should not be in exported list
     assert ('sort-by-custom' not-in $result)
     assert ('command-3' not-in $result)
+}
+
+# Fixture matches `scope commands` ground truth:
+# nu -n -c 'use tests/assets/export-use *; scope commands | where type == custom | get name'
+@test
+def "list-module-exports resolves export use forms" [] {
+    let result = list-module-exports tests/assets/export-use/mod.nu
+
+    # `export use gradient.nu [main]` → submodule name, not parent module name
+    assert ('gradient' in $result)
+    assert ('unused' not-in $result)
+    # bare `export use helpers.nu` → its main plus prefixed subcommands
+    assert ('helpers' in $result)
+    assert ('helpers clean' in $result)
+    # `export use extra.nu *` → its main as stem, other exports unprefixed
+    assert ('extra' in $result)
+    assert ('shine' in $result)
+    # own `export def main` still maps to the module name
+    assert ('export-use' in $result)
 }
 
 # =============================================================================

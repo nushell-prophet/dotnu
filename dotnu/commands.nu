@@ -181,12 +181,13 @@ export def 'extract-command-code' [
 
 # List all exported definitions from a module file
 #
-# Finds commands from `export def` and `export use [...commands]` patterns.
+# Finds commands from `export def` and `export use` patterns, including bare
+# and glob re-exports (resolved by reading the referenced submodule).
 export def 'list-module-exports' [
     path: path
 ]: nothing -> list<string> {
     open $path --raw
-    | extract-exported-commands
+    | extract-exported-commands ($path | path expand | path dirname)
     | replace-main-with-module-name $path
     | if ($in | is-empty) {
         print 'No command found'
@@ -1073,10 +1074,18 @@ export def capture-marker [
 
 # Extract exported command names using AST
 #
-# Handles both patterns:
-# - `export def cmd-name []` → extracts cmd-name
-# - `export use module.nu ["cmd1" "cmd2"]` → extracts cmd1, cmd2
-export def extract-exported-commands []: string -> list<string> {
+# Handles these patterns:
+# - `export def cmd-name []` → cmd-name
+# - `export use module.nu [cmd1 main]` → cmd1, module (item `main` names the submodule)
+# - `export use module.nu` → module, plus `module <cmd>` for each of its exports
+# - `export use module.nu *` → module (its main), plus its other exports as-is
+#
+# Bare and glob re-exports need the referenced file: they resolve relative to
+# `base_dir` and recurse. Without `base_dir` (or a missing file) they degrade
+# to the module stem alone — the re-exported subcommands can't be known.
+export def extract-exported-commands [
+    base_dir?: path # directory that `export use` paths are relative to
+]: string -> list<string> {
     let tokens = ast --flatten $in | flatten span
 
     $tokens
@@ -1088,14 +1097,51 @@ export def extract-exported-commands []: string -> list<string> {
             # Command name is next token
             $tokens | get ($idx + 1) | get content | str trim --char "'" | str trim --char '"'
         } else {
-            # export use: skip module path, get shape_string tokens from list
-            $tokens
-            | skip ($idx + 2)
-            | take while { $in.shape in ['shape_string' 'shape_list'] }
-            | where shape == 'shape_string'
-            | get content
-            | str trim --char '"'
-            | str trim --char "'"
+            # export use: module path is next token, then optional item list
+            let module_ref = $tokens
+                | get ($idx + 1)
+                | get content
+                | str trim --char "'"
+                | str trim --char '"'
+            # importing a module's `main` yields a command named after the module
+            let stem = $module_ref
+                | path split
+                | where $it != 'mod.nu'
+                | last
+                | str replace --regex '\.nu$' ''
+            let items = $tokens
+                | skip ($idx + 2)
+                | take while { $in.shape in ['shape_string' 'shape_list'] }
+                | where shape == 'shape_string'
+                | get content
+                | str trim --char '"'
+                | str trim --char "'"
+
+            if ($items | is-not-empty) and $items != ['*'] {
+                $items | each { if $in == 'main' { $stem } else { } }
+            } else if $base_dir == null {
+                [$stem]
+            } else {
+                let target = $base_dir
+                    | path join $module_ref
+                    | if ($in | path type) == 'dir' { path join 'mod.nu' } else { }
+
+                if not ($target | path exists) {
+                    [$stem]
+                } else {
+                    open $target --raw
+                    | extract-exported-commands ($target | path dirname)
+                    | each {
+                        if $in == 'main' {
+                            $stem
+                        } else if $items == ['*'] {
+                            $in
+                        } else {
+                            $"($stem) ($in)"
+                        }
+                    }
+                }
+            }
         }
     }
     | flatten
