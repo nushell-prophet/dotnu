@@ -917,9 +917,12 @@ export def variable-definitions-to-record []: string -> record {
 
     let script = $script_with_variable_definitions + $record_builder_code
 
+    # Fail fast: we already have parsed `let` definitions, so a non-zero exit means they
+    # don't evaluate (e.g. a broken vars header in a previously extracted file). Report it
+    # instead of returning {} and silently dropping the user's saved variables.
     let result = (nu -n -c $script | complete)
     if $result.exit_code != 0 {
-        return {}
+        error make --unspanned {msg: $"failed to evaluate variable definitions:\n($result.stderr)"}
     }
     $result.stdout | from nuon | default {}
 }
