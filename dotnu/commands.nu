@@ -634,6 +634,25 @@ export def run-expand-pipeline [
     | lines
 }
 
+# Find attribute decorators (@name) in ast-complete tokens.
+#
+# The `@` shows up as the last char of a shape_gap token; the token right after it is the
+# attribute name. Using the AST (not a text scan) avoids false positives from `@name` inside
+# strings or comments. Returns one row per decorator with the name token, its index, and the
+# byte offset of the `@`.
+export def find-attribute-tokens []: table -> table<name_index: int, name_token: any, at_start: int> {
+    enumerate
+    | window 2
+    | where {|pair| $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@") }
+    | each {|pair|
+        {
+            name_index: $pair.1.index
+            name_token: $pair.1.item
+            at_start: ($pair.0.item.end - 1) # @ is the last char in the gap
+        }
+    }
+}
+
 # Find @example blocks with their code and result sections using AST parsing
 #
 # Uses ast-complete to accurately detect @example attributes, avoiding false positives
@@ -647,18 +666,11 @@ export def find-examples []: string -> table<original: string, code: string> {
         return []
     }
 
-    # Find @example: shape_gap ending with "@" followed by "example" token
-    # The gap may include preceding newlines (e.g., "\n\n@")
+    # Find @example: an attribute decorator whose name token is "example"
     let example_indices = $tokens
-        | enumerate
-        | window 2
-        | where {|pair|
-            (
-                $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
-                and $pair.1.item.content == "example"
-            )
-        }
-        | each { $in.1.index } # Get index of "example" token
+        | find-attribute-tokens
+        | where {|a| $a.name_token.content == "example" }
+        | get name_index
 
     if ($example_indices | is-empty) {
         return []
@@ -989,17 +1001,10 @@ export def list-module-commands [
         | select caller start end
 
     # Phase 1b: Find attributes using ast-complete
-    # The @ prefix appears as shape_gap, followed by the attribute token
     let attribute_definitions = $all_tokens
-        | enumerate
-        | window 2
-        | where {|pair|
-            $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
-        }
-        | each {|pair|
-            let attr_token = $pair.1.item
-            let at_start = $pair.0.item.end - 1 # @ is last char in the gap
-            {caller: ('@' + ($attr_token.content | split row ' ' | first)) start: $at_start}
+        | find-attribute-tokens
+        | each {|a|
+            {caller: ('@' + ($a.name_token.content | split row ' ' | first)) start: $a.at_start}
         }
         | insert end null # attributes don't have scope ranges
 
