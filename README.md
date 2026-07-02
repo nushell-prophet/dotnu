@@ -413,7 +413,7 @@ dotnu extract-module-command tests/assets/module-embed greet
 
 Pass `--vars` (or a non-empty `--set-vars`) to turn the target into a debug scaffold instead: its parameters become `let` bindings you can edit, and its body is unwrapped to the top level, so sourcing the script runs the body with the variables in scope. The dependencies stay embedded as `def`. With `--output`, values you edit in the saved file are kept on re-extraction unless you pass `--clear-vars`.
 
-```nushell no-run
+```nushell
 dotnu extract-module-command tests/assets/module-embed greet-loud --vars
 # => use std/assert
 # =>
