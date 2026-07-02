@@ -78,7 +78,7 @@ export def 'set-x' [
     let out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
 
     open $file
-    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+    | normalize-newlines
     | str trim --char (char nl)
     | split row -r $regex
     | each {|block|
@@ -214,7 +214,7 @@ export def 'embeds-update' [
     }
 
     let script = if $input == null { open $file } else { $input }
-        | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+        | normalize-newlines
         | embeds-remove
 
     let results = execute-and-parse-results $script --script_path=$file
@@ -245,7 +245,7 @@ export def 'examples-update' [
     --echo # output updates to stdout instead of saving
 ] {
     let content = open $file
-        | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+        | normalize-newlines
 
     let examples = $content | find-examples
 
@@ -509,6 +509,11 @@ export def 'get-dotnu-capture-path' [] {
     $env.dotnu?.embeds-capture-path? | default dotnu-embeds-capture.nu
 }
 
+# Normalize Windows CRLF line endings to LF; pass through unchanged elsewhere.
+export def normalize-newlines []: string -> string {
+    if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+}
+
 export def 'git-autocommit-dotnu-capture' [] {
     let path = get-dotnu-capture-path
 
@@ -562,7 +567,7 @@ export def check-clean-working-tree [
 } --result {a: null}
 export def variable-definitions-to-record []: string -> record {
     let script_with_variable_definitions = str replace -a ';' ";\n"
-        | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+        | normalize-newlines
         | $in + (char nl)
 
     let parsed_vars = $script_with_variable_definitions
@@ -652,7 +657,7 @@ export def list-module-commands [
     --definitions-only # output only commands' names definitions
 ] {
     let script_content = open $module_path -r
-        | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+        | normalize-newlines
     let all_tokens = $script_content | ast-complete
     let statements = $script_content | split-statements
 
@@ -738,7 +743,7 @@ export def 'module-commands-code-to-record' [
     module_path: path # path to a Nushell module file
 ] {
     open $module_path -r
-    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+    | normalize-newlines
     | split-statements
     | where statement =~ '^(export )?def '
     | each {|s|
@@ -915,7 +920,7 @@ export def find-capture-points [] {
 
 # Removes annotation lines starting with "# => " from the script
 export def embeds-remove [] {
-    if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+    normalize-newlines
     | lines
     | where not ($it starts-with "# => ")
     | str join "\n"
