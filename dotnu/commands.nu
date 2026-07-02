@@ -79,11 +79,13 @@ export def 'filter-commands-with-no-tests' [] {
     let cols = try { $input | columns } catch { null }
     if $cols == null or (($input | is-not-empty) and ($required | any {|c| $c not-in $cols })) {
         error make --unspanned {
-            msg: ([
-                "`filter-commands-with-no-tests` expects the output of `dotnu dependencies`:"
-                $"a table with columns ($required | str join ', ')."
-                "  dotnu dependencies ...(glob '*.nu') | dotnu filter-commands-with-no-tests"
-            ] | str join (char nl))
+            msg: (
+                [
+                    "`filter-commands-with-no-tests` expects the output of `dotnu dependencies`:"
+                    $"a table with columns ($required | str join ', ')."
+                    "  dotnu dependencies ...(glob '*.nu') | dotnu filter-commands-with-no-tests"
+                ] | str join (char nl)
+            )
         }
     }
 

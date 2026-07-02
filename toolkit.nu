@@ -52,10 +52,10 @@ export def 'main test-unit' [
 
     # Convert to flat table format
     let flat = $results
-    | each {|row|
-        let status = if $row.result == 'PASS' { 'passed' } else { 'failed' }
-        {type: 'unit' name: $row.test status: $status file: null}
-    }
+        | each {|row|
+            let status = if $row.result == 'PASS' { 'passed' } else { 'failed' }
+            {type: 'unit' name: $row.test status: $status file: null}
+        }
 
     if not $json {
         $flat | each {|r| print-test-result $r }
@@ -106,18 +106,18 @@ export def 'main test-integration' [
             run-snapshot-test 'coverage' ([tests output-yaml coverage-untested.nuon] | path join) {
                 # Public API from mod.nu
                 let public_api = open ([dotnu mod.nu] | path join)
-                | lines
-                | where $it =~ '^\s+"'
-                | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
+                    | lines
+                    | where $it =~ '^\s+"'
+                    | each { $in | str trim | str replace -r '^"([^"]+)".*' '$1' }
 
                 # Find untested commands
                 let untested = ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"]
-                | each { glob $in }
-                | flatten
-                | dependencies ...$in
-                | filter-commands-with-no-tests
-                | where caller in $public_api
-                | select caller
+                    | each { glob $in }
+                    | flatten
+                    | dependencies ...$in
+                    | filter-commands-with-no-tests
+                    | where caller in $public_api
+                    | select caller
 
                 # Why: serialize as nuon, not yaml — `to yaml`'s list indentation
                 # changed between nushell versions and drifted this snapshot on
@@ -131,10 +131,10 @@ export def 'main test-integration' [
             }
         )
     ]
-    # Run numd on README if available
-    | if (scope modules | where name == 'numd' | is-not-empty) {
-        append (run-snapshot-test 'numd-readme' 'README.md' { numd run README.md })
-    } else { }
+        # Run numd on README if available
+        | if (scope modules | where name == 'numd' | is-not-empty) {
+            append (run-snapshot-test 'numd-readme' 'README.md' { numd run README.md })
+        } else { }
 
     if not $json {
         $results | each {|r| print-test-result $r }
@@ -171,9 +171,9 @@ def run-snapshot-test [name: string output_file: string command_src: closure] {
     mkdir ($output_file | path dirname)
 
     let command_text = view source $command_src
-    | lines | skip | drop | str trim
-    | each { $'# ($in)' }
-    | str join (char nl)
+        | lines | skip | drop | str trim
+        | each { $'# ($in)' }
+        | str join (char nl)
 
     try {
         $command_text + (char nl) + (do $command_src)
