@@ -856,28 +856,6 @@ export def 'get-command-from-hist' [] {
     }
 }
 
-export def check-clean-working-tree [
-    module_path: path
-] {
-    cd ($module_path | path dirname)
-
-    let git_status = git status --short
-
-    $git_status
-    | lines
-    | parse '{s} {m} {f}'
-    | where f =~ $'($module_path | path basename)$'
-    | is-not-empty
-    | if $in {
-        error make --unspanned {
-            msg: (
-                "Working tree isn't empty. Please commit or stash changed files, " +
-                "or use `--no-git-check` flag. Uncommitted files:\n" + $git_status
-            )
-        }
-    }
-}
-
 # Make a record from code with variable definitions
 @example '' {
     "let $quiet = false; let no_timestamp = false" | variable-definitions-to-record
@@ -1185,25 +1163,6 @@ export def dump-module-commands [
     }
 
     $result.stdout | from nuon
-}
-
-# Format example blocks (annotation, command, result) and a command description as `# `-prefixed comment lines
-export def format-substitutions [
-    examples: table
-    command_description: string
-] {
-    $examples
-    | each {|i|
-        [$i.annotation $i.command $i.result]
-        | compact --empty
-        | str join (char nl) # `to text` produces trailing empty line
-    }
-    | prepend $command_description
-    | compact --empty
-    | str join $"(char nl)(char nl)"
-    | lines
-    | each { $"# ($in)" | str trim }
-    | to text
 }
 
 # helper function for use inside of generate

@@ -90,7 +90,7 @@ This is upstream of `dependencies`, `scan-module-file` (so `extract-module-comma
 
 `extract-command-code` (+ `dummy-command`, ~120 lines of view-source templating) and `extract-module-command` (runtime, newer) overlap heavily. If the vars-preservation / `--set-vars` workflow migrated onto the runtime extractor, the whole `dummy-command` machinery could retire. Big reduction, but it changes a public command's behavior — needs a decision, not a drive-by.
 
-## 5. dead code [verified by repo-wide grep]
+~~## 5. dead code [verified by repo-wide grep]~~ done
 
 - `check-clean-working-tree` (`commands.nu:859-879`): no production caller, only its own test. Its error text offers a `--no-git-check` flag that exists nowhere — leftover from a removed feature. Delete command + test (~30 lines).
 - `format-substitutions` (`commands.nu:1191-1207`): no production caller, only its own test. Delete command + test (~25 lines).
@@ -104,7 +104,7 @@ This is upstream of `dependencies`, `scan-module-file` (so `extract-module-comma
 
 ## Suggested order
 
-1. §5 dead code (pure deletion, zero risk)
+1. ~~§5 dead code (pure deletion, zero risk)~~ done
 2. §3.1 split-statements comment fix (verified bug, affects most commands)
 3. §1.1–1.3 embeds-update splice rewrite + count assert (verified bugs, one coherent change)
 4. §2.1–2.2 examples-update regex + dead field

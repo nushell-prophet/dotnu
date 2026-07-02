@@ -605,16 +605,6 @@ def "module-commands-code-to-record handles lines before first def" [] {
 # delimiters. Testing is done indirectly through embeds-update tests.
 
 @test
-def "check-clean-working-tree passes for unmodified files" [] {
-    # This file should not be modified in git, so the check should pass
-    # If modified, the test will catch regressions in git status parsing
-    check-clean-working-tree tests/assets/b/example-mod1.nu
-
-    # If we get here without error, the check passed
-    assert true
-}
-
-@test
 def "dummy-command generates executable code" [] {
     let result = dummy-command 'lscustom' tests/assets/b/example-mod1.nu '#END#'
 
@@ -622,19 +612,6 @@ def "dummy-command generates executable code" [] {
     assert (($result | describe) == 'string')
     # Should contain use/source statement
     assert (($result =~ 'use') or ($result =~ 'source'))
-}
-
-@test
-def "format-substitutions formats example documentation" [] {
-    let examples = [
-        {annotation: "Example:" command: "ls" result: "files..."}
-    ]
-    let result = format-substitutions $examples "List files command"
-
-    # Should include description
-    assert ($result =~ 'List files command')
-    # Should be formatted as comments
-    assert ($result =~ '^# ')
 }
 
 @test
