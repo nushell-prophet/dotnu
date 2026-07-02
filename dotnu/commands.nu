@@ -118,7 +118,7 @@ export def 'extract-command-code' [
     --clear-vars # clear variables previously set in the extracted .nu file
     --echo # output the command to the terminal
     --set-vars: record = {} # set variables for a command
-    --code-editor = 'code' # code is my editor of choice to open the result file
+    --code-editor: string = 'code' # code is my editor of choice to open the result file
 ] {
     let command = $command
         | if $in =~ '\s' and $in !~ "^(\"|')" {
@@ -597,7 +597,7 @@ export def variable-definitions-to-record []: string -> record {
     'export def --env "test" --wrapped' | lines | last | extract-command-name
 } --result "test"
 export def 'extract-command-name' [
-    module_path? # path to a nushell module file
+    module_path?: path # path to a nushell module file
 ] {
     str replace --regex '\[.*' ''
     | str replace --regex '^(export )?def ' ''
@@ -607,7 +607,7 @@ export def 'extract-command-name' [
 }
 
 export def replace-main-with-module-name [
-    $path
+    $path: path
 ] {
     let input = $in
     let module_name = $path
@@ -757,8 +757,8 @@ export def 'module-commands-code-to-record' [
 
 # Format example blocks (annotation, command, result) and a command description as `# `-prefixed comment lines
 export def format-substitutions [
-    $examples
-    $command_description
+    $examples: table
+    $command_description: string
 ] {
     $examples
     | each {|i|
@@ -779,7 +779,7 @@ export def format-substitutions [
     [[caller callee step filename_of_caller]; [a b 0 test] [b c 0 test]] | join-next $in
 } --result [[caller callee step filename_of_caller]; [a c 1 test]]
 export def 'join-next' [
-    callees_to_merge
+    callees_to_merge: table
 ] {
     join --left $callees_to_merge callee caller
     | select caller callee_ step filename_of_caller
@@ -789,9 +789,9 @@ export def 'join-next' [
 }
 
 export def 'dummy-command' [
-    $command
-    $file
-    $dotnu_vars_delim
+    $command: string
+    $file: path
+    $dotnu_vars_delim: string
 ] {
     # the closure below is used as highlighted in an editor constructor
     # for the command that will be executed in `nu -c`
