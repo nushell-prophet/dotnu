@@ -5,6 +5,7 @@ export use commands.nu [
     "embeds-setup"
     "embeds-update"
     "examples-update"
+    "expand-code"
     "extract-command-code"
     "filter-commands-with-no-tests"
     "generate-numd"

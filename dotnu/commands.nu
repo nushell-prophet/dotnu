@@ -288,6 +288,124 @@ export def 'examples-update' [
     | if $echo { } else { save --force $file }
 }
 
+# Generate code lines from `#**` directive comments — the inverse of `embeds-update`.
+#
+# `embeds-update` runs code and writes its *output* back as `# =>` comments. `expand-code`
+# runs a pipeline written *inside* a `#** <pipeline>` comment and writes that pipeline's text
+# result back as real code lines, right after the directive and up to the matching `#**end`.
+#
+# The directive and end marker are never touched, so re-running only refreshes the lines
+# between them — keeping generated code in sync with whatever the pipeline reads.
+export def 'expand-code' [
+    file?: path # .nu file to expand in place; omit to pipe the script in and get the result back
+    --echo # output the result to stdout instead of saving to the file
+]: [string -> string nothing -> string nothing -> nothing] {
+    let input = $in
+
+    if $input == null and $file == null {
+        error make {msg: 'pipe in a script or provide a path'}
+    }
+
+    let source_lines = (if $input == null { open $file } else { $input })
+        | normalize-newlines
+        | lines
+
+    let dir = if $file != null { $file | path dirname } else { $env.PWD }
+
+    let expanded = $source_lines
+        | find-expand-directives
+        | insert output {|d| run-expand-pipeline $d.pipeline $dir }
+
+    # Single pass: emit the directive then its fresh output, skip the old generated lines
+    # (strictly between directive and `#**end`), and emit every other line — including the
+    # `#**end` marker — unchanged. `skip_to` marks the last stale line to drop.
+    let result = $source_lines
+        | enumerate
+        | reduce --fold {out: [] skip_to: (-1)} {|it acc|
+            let idx = $it.index # Why: `where` below rebinds `$it` to its own row, shadowing this one
+            let directive = $expanded | where start == $idx
+            if not ($directive | is-empty) {
+                {
+                    out: ($acc.out | append $it.item | append $directive.0.output)
+                    skip_to: ($directive.0.end - 1)
+                }
+            } else if $it.index <= $acc.skip_to {
+                $acc
+            } else {
+                {out: ($acc.out | append $it.item) skip_to: $acc.skip_to}
+            }
+        }
+        | get out
+        | str join "\n"
+        | $in + "\n"
+
+    if $echo or ($input != null) { $result } else { $result | save --force $file }
+}
+
+# Scan script lines for `#** <pipeline>` … `#**end` blocks.
+#
+# Returns one row per directive with its 0-based `start` line, matching `end` line, and the
+# `pipeline` text after the marker. Errors on an unclosed directive, an empty pipeline, or a
+# stray `#**end`.
+#
+# Why: `expand-code` gets its own scanner rather than sharing one with `embeds`/`numd`. The
+# marker shapes differ enough (`# =>` vs fenced blocks vs `#**`…`#**end`) that a shared helper
+# would be mostly branching. Factor one out later only if the scanning code clearly repeats.
+export def find-expand-directives []: list<string> -> table<start: int, end: int, pipeline: string> {
+    let paired = $in
+        | enumerate
+        | where item =~ '^\s*#\*\*'
+        | reduce --fold {open: null pairs: []} {|it acc|
+            if $it.item =~ '^\s*#\*\*end\s*$' {
+                if $acc.open == null {
+                    error make {msg: $"`#**end` on line ($it.index + 1) has no matching `#**` directive"}
+                }
+                {
+                    open: null
+                    pairs: ($acc.pairs | append {start: $acc.open.index end: $it.index pipeline: $acc.open.pipeline})
+                }
+            } else {
+                if $acc.open != null {
+                    error make {msg: $"`#**` directive on line ($acc.open.index + 1) is not closed by `#**end` before the next directive on line ($it.index + 1)"}
+                }
+
+                let pipeline = $it.item | str replace --regex '^\s*#\*\*' '' | str trim
+                if ($pipeline | is-empty) {
+                    error make {msg: $"`#**` directive on line ($it.index + 1) has no pipeline"}
+                }
+
+                {open: {index: $it.index pipeline: $pipeline} pairs: $acc.pairs}
+            }
+        }
+
+    if $paired.open != null {
+        error make {msg: $"`#**` directive on line ($paired.open.index + 1) has no `#**end`"}
+    }
+
+    $paired.pairs
+}
+
+# Run a `#**` directive's pipeline in `dir` and return its text output split into code lines.
+#
+# Why: `--no-config-file` mirrors `embeds` — a directive pipeline is meant to be self-contained
+# builtins, so config/env must not leak in and change its result.
+export def run-expand-pipeline [
+    pipeline: string
+    dir: path
+]: nothing -> list<string> {
+    cd $dir
+
+    ^$nu.current-exe --no-config-file --commands $pipeline
+    | complete
+    | if $in.exit_code != 0 {
+        error make {msg: $"`#**` pipeline failed: ($pipeline)\n($in.stderr)"}
+    } else {
+        $in.stdout
+    }
+    | str trim --char "\n"
+    | lines
+}
+
 # Find @example blocks with their code and result sections using AST parsing
 #
 # Uses ast-complete to accurately detect @example attributes, avoiding false positives

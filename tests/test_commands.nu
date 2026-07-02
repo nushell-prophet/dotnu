@@ -415,6 +415,62 @@ def "embeds-update preserves script structure" [] {
 }
 
 # =============================================================================
+# Tests for find-expand-directives
+# =============================================================================
+
+@test
+def "find-expand-directives pairs a directive with its end marker" [] {
+    let result = ("#** ls | to text\nfoo\n#**end" | lines) | find-expand-directives
+
+    assert equal ($result | length) 1
+    assert equal $result.0.start 0
+    assert equal $result.0.end 2
+    assert equal $result.0.pipeline 'ls | to text'
+}
+
+@test
+def "find-expand-directives errors on an unclosed directive" [] {
+    assert error { ("#** ls | to text\nfoo" | lines) | find-expand-directives }
+}
+
+@test
+def "find-expand-directives errors on a stray end marker" [] {
+    assert error { ("#**end" | lines) | find-expand-directives }
+}
+
+@test
+def "find-expand-directives errors on an empty pipeline" [] {
+    assert error { ("#**\n#**end" | lines) | find-expand-directives }
+}
+
+# =============================================================================
+# Tests for expand-code
+# =============================================================================
+
+@test
+def "expand-code fills a directive block with generated lines" [] {
+    let script = "#** [a b c] | each { $\"open ($in)\" } | to text\n#**end"
+    let result = $script | expand-code
+
+    assert equal $result "#** [a b c] | each { $\"open ($in)\" } | to text\nopen a\nopen b\nopen c\n#**end\n"
+}
+
+@test
+def "expand-code replaces stale generated lines and keeps surrounding code" [] {
+    let script = "before\n#** [x y] | each { $\"z ($in)\" } | to text\nOLD\nMORE OLD\n#**end\nafter"
+    let result = $script | expand-code
+
+    assert equal $result "before\n#** [x y] | each { $\"z ($in)\" } | to text\nz x\nz y\n#**end\nafter\n"
+}
+
+@test
+def "expand-code is idempotent on re-run" [] {
+    let script = "#** [a b c] | each { $\"open ($in)\" } | to text\n#**end"
+
+    assert equal ($script | expand-code) ($script | expand-code | expand-code)
+}
+
+# =============================================================================
 # Tests for embed-add
 # =============================================================================
 

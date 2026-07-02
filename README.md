@@ -162,6 +162,32 @@ dotnu embeds-remove --help
 # =>
 ```
 
+## Expand Code — Generate Code from Directives
+
+`dotnu expand-code` is the inverse of `embeds-update`. Where `embeds-update` runs code and writes its *output* back as `# =>` comments, `expand-code` runs a pipeline written *inside* a comment and writes that pipeline's text result back as **real code lines**.
+
+A directive is a line beginning with `#**`; everything after the marker is a Nushell pipeline that must return text. Each line of that text becomes one generated code line, inserted right after the directive and up to a `#**end` marker on its own line.
+
+Start with an empty block — just the directive and its end marker:
+
+```nushell
+#** ls todo/ | get name | each { $"open -r ($in)" } | to text
+#**end
+```
+
+Running `dotnu expand-code file.nu` fills the block:
+
+```nushell
+#** ls todo/ | get name | each { $"open -r ($in)" } | to text
+open -r todo/20251216-022041.md
+open -r todo/20260630-090000.md
+#**end
+```
+
+The directive and the `#**end` marker are never modified, so a re-run replaces only the lines between them — refreshing the generated code whenever the inputs change (here, whenever `todo/` changes). Relative paths in the pipeline resolve against the file's own directory.
+
+Like `embeds-update`, you can run it on a file path (`dotnu expand-code file.nu`) or pipe a script in and get the result back (`$script | dotnu expand-code`). Pass `--echo` to print the result instead of saving to the file.
+
 ## Dependency Analysis
 
 ### `dotnu dependencies`
