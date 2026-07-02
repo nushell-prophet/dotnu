@@ -8,7 +8,7 @@ Full-file audit (2026-07-02). Items marked **[verified]** were reproduced live d
 
 ~~## 1. embeds group (priority)~~ done
 
-### 1.1 [verified] `embeds-update` rewrites unrelated blank lines — replace the string-splice with an index-based splice
+~~### 1.1 [verified] `embeds-update` rewrites unrelated blank lines — replace the string-splice with an index-based splice~~ done
 
 `"let a = 1\n\n\n\nlet b = 2\n" | embeds-update --echo` collapses the four blank lines to one. Cause: the final `str replace --all --regex '\n{3,}' "\n\n"` (`commands.nu:438`) runs over the whole script, not just around capture points.
 
@@ -16,57 +16,57 @@ The squash exists only to clean up after the fragile string-replacement splice (
 
 Fix: rebuild by line index instead. `find-capture-points` already scans `lines`; make it return `lines | enumerate | where ...` (index + line). Then `embeds-update` walks the enumerated script lines and appends each result right after its capture index — exact insertion, no markers, no anchor hack, no squash. All three hacks and their comments go away (~10 lines less, and the blank-line corruption is fixed as a side effect).
 
-### 1.2 [verified] silent misalignment: results are zipped onto capture points without a count check
+~~### 1.2 [verified] silent misalignment: results are zipped onto capture points without a count check~~ done
 
 Repro: a capture point inside a `def` that is called twice. The def's line gets its own first output, and the *unrelated* top-level capture line gets the def's second output; the real output of that line is dropped. No error, wrong annotations written.
 
 `execute-and-parse-results` even documents this limit in a comment (`commands.nu:1341-1344`), but `zip` (`commands.nu:426`) silently truncates to the shorter list. Fail-fast fix: after execution, `if ($results | length) != ($points | length) { error make ... }` with a message naming the likely cause (capture point inside a def, or executed in a loop). Cheap, and turns silent corruption into a clear error.
 
-### 1.3 make the capture-point invariant structural, not documented
+~~### 1.3 make the capture-point invariant structural, not documented~~ done
 
 The `$capture_point` const comment (`commands.nu:7-11`) warns that `find-capture-points` and `execute-and-parse-results` must agree or outputs misalign. With 1.1's enumerated table, pass the *indices* into `execute-and-parse-results` and replace lines by index there (instead of re-matching the regex per line, `commands.nu:1327-1333`). Then only one function ever scans for capture points, and the invariant can't break by construction.
 
-### 1.4 drop the `view source` closure metaprogramming in `execute-and-parse-results`
+~~### 1.4 drop the `view source` closure metaprogramming in `execute-and-parse-results`~~ done
 
 `commands.nu:1310-1324` builds the injected `embed-in-script` def from a closure via `view source` plus an order-sensitive chain of single-occurrence `str replace` calls (`capture-marker --close` must be replaced before `capture-marker`). `comment-hash-colon` carries a `--source-code` dual mode and an inner closure (`commands.nu:1285-1303`) just to support this inlining.
 
 Verified simpler path: `view source <def-name>` works on plain defs and drops `@example` attributes. So: (a) simplify `comment-hash-colon` to a plain one-pipeline def (no flag, no closure); (b) prepend `view source comment-hash-colon` verbatim into the generated script; (c) write the `embed-in-script` def as a plain interpolated string with the markers baked in. Removes the whole replace chain and the dual-mode flag (~15 lines, and no more dependence on `view source` closure formatting).
 
-### 1.5 single const for the `# => ` prefix
+~~### 1.5 single const for the `# => ` prefix~~ done
 
 The annotation prefix is hardcoded twice and must agree: `comment-hash-colon` writes it (`commands.nu:1290`), `embeds-remove` strips it (`commands.nu:1357`). Hoist to a const next to `$capture_point`, for the same reason that const exists.
 
-### 1.6 `embed-add` polish
+~~### 1.6 `embed-add` polish~~ done
 
 - `--dry_run` (`commands.nu:793`) is the only snake_case flag in the codebase — rename to `--dry-run`.
 - Stray `#todo: --` in the signature (`commands.nu:794`).
 - The strip regex `'(?s)\| ?dotnu embed-add.*$'` (`commands.nu:804`) assumes the command is invoked as `dotnu embed-add`; with `use dotnu/commands.nu *` the bare `embed-add` call is not stripped and lands in the capture file. Make the `dotnu ` prefix optional in the regex.
 
-### 1.7 `get-command-from-hist` prints instead of failing
+~~### 1.7 `get-command-from-hist` prints instead of failing~~ done
 
 On non-sqlite history it `print`s a message and returns nothing (`commands.nu:855-856`); the caller then dies on `get previous` with a confusing error far from the cause. Fail-fast: `error make` there.
 
 ~~## 2. examples group~~ done
 
-### 2.1 [verified] `examples-update` silently skips multi-line `--result` values
+~~### 2.1 [verified] `examples-update` silently skips multi-line `--result` values~~ done
 
 `"} --result [a\nb]" | str replace --regex '\} --result .+$' 'X'` does not match (`.` doesn't cross newlines, no `(?s)`), so the replace at `commands.nu:484` no-ops. `find-examples` deliberately supports multi-line results (the bracket-depth matcher, `commands.nu:676-693`), so the two halves disagree. Fix: `'(?s)\} --result .+$'`, plus a test with a multi-line result fixture.
 
-### 2.2 dead `result_line` field in `find-examples`
+~~### 2.2 dead `result_line` field in `find-examples`~~ done
 
 `commands.nu:701` says "not used, kept for interface compatibility" — but the only caller (`examples-update`) reads just `original` and `code`. Remove the field, its type signature entry, and the `result_line: ""` plumbing in both branches (~8 lines).
 
-### 2.3 `execute-example` error channel is shape-sniffing
+~~### 2.3 `execute-example` error channel is shape-sniffing~~ done
 
 It returns either a string or `{error: string}`, and the caller dispatches on `describe == "record<error: string>"` (`commands.nu:462`) — breaks the moment the record gains a field. Either `error make` inside and `try`/`catch` in the caller, or return a uniform `{ok: bool, ...}` record.
 
-### 2.4 attribute detection is duplicated
+~~### 2.4 attribute detection is duplicated~~ done
 
 The window-2 "shape_gap ends with `@`" pattern lives in `find-examples` (`commands.nu:629-638`) and again in `list-module-commands` (`commands.nu:996-1005`). Extract one helper (e.g. `find-attribute-tokens []: table -> table` over `ast-complete` output) used by both.
 
 ~~## 3. parsing infrastructure~~ done
 
-### 3.1 [verified] `split-statements`: braces inside comments corrupt depth tracking
+~~### 3.1 [verified] `split-statements`: braces inside comments corrupt depth tracking~~ done
 
 `"# {\nlet a = 1\nlet b = 2" | split-statements` returns ONE statement — the `{` in the comment bumps the depth counter and everything after merges. Cause: comments are bundled into `shape_gap` tokens and `commands.nu:1530-1534` counts `{`/`}` in raw gap content.
 
