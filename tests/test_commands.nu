@@ -275,6 +275,22 @@ def "filter-commands-with-no-tests filters tested commands" [] {
     assert (($result | length) > 0)
 }
 
+@test
+def "filter-commands-with-no-tests rejects non-dependencies input" [] {
+    # nothing, a scalar, and a wrong-shaped table all point back to `dotnu dependencies`
+    let msgs = [
+        (try { filter-commands-with-no-tests; '' } catch {|e| $e.msg })
+        (try { "demo.nu" | filter-commands-with-no-tests; '' } catch {|e| $e.msg })
+        (try { [[a b]; [1 2]] | filter-commands-with-no-tests; '' } catch {|e| $e.msg })
+    ]
+    for msg in $msgs { assert ($msg =~ 'dotnu dependencies') }
+}
+
+@test
+def "filter-commands-with-no-tests passes an empty dependencies result through" [] {
+    assert equal ([] | filter-commands-with-no-tests) []
+}
+
 # =============================================================================
 # Tests for generate-numd
 # =============================================================================

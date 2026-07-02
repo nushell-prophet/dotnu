@@ -70,6 +70,23 @@ export def 'dependencies' [
 } --result [[caller filename_of_caller]; [question "ask.nu"] [hello "hello.nu"] [say "mod.nu"]]
 export def 'filter-commands-with-no-tests' [] {
     let input = $in
+
+    # Why: this command consumes `dotnu dependencies` output; guard the shape here so a
+    # stray or empty pipeline gets one clear message instead of a raw column/input-type
+    # error from deep in the body. An empty list is a valid (trivial) dependencies
+    # result, so let it through.
+    let required = [caller callee filename_of_caller step]
+    let cols = try { $input | columns } catch { null }
+    if $cols == null or (($input | is-not-empty) and ($required | any {|c| $c not-in $cols })) {
+        error make --unspanned {
+            msg: ([
+                "`filter-commands-with-no-tests` expects the output of `dotnu dependencies`:"
+                $"a table with columns ($required | str join ', ')."
+                "  dotnu dependencies ...(glob '*.nu') | dotnu filter-commands-with-no-tests"
+            ] | str join (char nl))
+        }
+    }
+
     let covered_with_tests = $input
         | where caller =~ 'test' or filename_of_caller =~ '^test.*\.nu$'
         | get callee
