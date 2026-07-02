@@ -893,3 +893,79 @@ def "split-statements provides byte positions" [] {
     assert equal $result.0.end 9
     assert equal $result.1.start 11
 }
+
+# =============================================================================
+# Tests for extract-module-command
+# =============================================================================
+
+@test
+def "extract-module-command embeds private deps in a runnable script" [] {
+    let script = extract-module-command tests/assets/module-embed greet
+
+    let run = nu -n -c ($script + "\ngreet") | complete
+    assert equal ($run.stdout | str trim) 'hello world!'
+    assert ($script =~ 'export def greet ') # originally exported commands stay exported
+    assert ($script =~ '(?m)^def subject') # private deps stay private
+    assert ($script =~ 'use std/assert') # external imports reproduced, not embedded
+    assert ($script !~ 'shout') # unreachable commands are left out
+}
+
+@test
+def "extract-module-command exposes main as the module name" [] {
+    let script = extract-module-command tests/assets/module-embed main
+
+    assert ($script =~ 'export def module-embed ')
+
+    let run = nu -n -c ($script + "\nmodule-embed") | complete
+    assert equal ($run.stdout | str trim) 'hello world!'
+}
+
+@test
+def "extract-module-command follows export use into submodules" [] {
+    let script = extract-module-command tests/assets/module-embed shout
+
+    let run = nu -n -c ($script + "\nshout") | complete
+    assert equal ($run.stdout | str trim) 'LOUD'
+    assert ($script =~ '(?m)^def shout-suffix') # submodule's private dep embedded
+}
+
+@test
+def "extract-module-command refuses modules with export-env" [] {
+    let error_msg = try {
+        extract-module-command tests/assets/module-with-env env-greet
+        ''
+    } catch {|err| $err.msg }
+
+    assert ($error_msg =~ 'export-env')
+    assert ($error_msg =~ 'mod.nu')
+}
+
+@test
+def "extract-module-command passes with --allow-export-env" [] {
+    let script = extract-module-command tests/assets/module-with-env env-greet --allow-export-env
+
+    assert ($script !~ 'export-env') # env blocks are not carried into the output
+
+    let run = nu -n -c ($script + "\nenv-greet") | complete
+    assert equal ($run.stdout | str trim) 'hi'
+}
+
+@test
+def "extract-module-command refuses duplicate names across files" [] {
+    let error_msg = try {
+        extract-module-command tests/assets/module-dup cmd-a
+        ''
+    } catch {|err| $err.msg }
+
+    assert ($error_msg =~ 'helper')
+    assert ($error_msg =~ 'a.nu')
+    assert ($error_msg =~ 'b.nu')
+}
+
+@test
+def "extract-module-command handles a single-file module" [] {
+    let script = extract-module-command tests/assets/export-use/helpers.nu clean
+
+    let run = nu -n -c ($script + "\nclean") | complete
+    assert equal ($run.stdout | str trim) 'helpers clean'
+}

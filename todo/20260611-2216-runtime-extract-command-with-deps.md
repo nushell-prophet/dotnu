@@ -1,8 +1,9 @@
 ---
 task-name: runtime extract command with deps into one embedded file
-status: draft
+status: completed
 created: 2026-06-11
 updated: 2026-07-02
+completed: 2026-07-02
 related_files:
   - dotnu/commands.nu
 ---
@@ -47,24 +48,24 @@ Caveat on approach: the temp-copy rewrite below has grown (defs + uses + collisi
 
 ## Requirements
 
-- [ ] Signature: `<command> <module_path> <command_name> [--allow-export-env]`; `module_path` accepts a directory or a single `.nu` file (single-file modules exist)
-- [ ] `export-env` anywhere in the module without the flag → error with file list, no import happens
-- [ ] Local `use` target resolving outside the module directory → error
-- [ ] Duplicate command names across module files (after export-ification) → error
-- [ ] Output file is self-contained: `nu -n` parses it without errors, the target command is callable
-- [ ] Private dependencies (`def` without `export`) are extracted and land in the output as plain `def`
-- [ ] Definition order is topological; no duplicates
-- [ ] Tests: simple cascade; submodule via `export use`; private helper imported via plain `use` (the verified gap); refusal on `export-env`; pass with `--allow-export-env`; refusal on duplicate names
+- [x] Signature: `<command> <module_path> <command_name> [--allow-export-env]`; `module_path` accepts a directory or a single `.nu` file (single-file modules exist)
+- [x] `export-env` anywhere in the module without the flag → error with file list, no import happens
+- [x] Local `use` target resolving outside the module directory → error
+- [x] Duplicate command names across module files (after export-ification) → error
+- [x] Output file is self-contained: `nu -n` parses it without errors, the target command is callable
+- [x] Private dependencies (`def` without `export`) are extracted and land in the output as plain `def`
+- [x] Definition order is topological; no duplicates
+- [x] Tests: simple cascade; submodule via `export use`; private helper imported via plain `use` (the verified gap); refusal on `export-env`; pass with `--allow-export-env`; refusal on duplicate names
 
 ## Implementation plan
 
-- [ ] Step 1: safety scan — AST over all module `.nu` files: collect `export-env` (error/flag), local `use` targets (error if outside module dir), and all top-level command names (error on duplicates; record original export status)
-- [ ] Step 2: temp copy named after the module, rewrite top-level `def` → `export def` and top-level local `use` → `export use` in all `.nu` files
-- [ ] Step 3: one `nu -n -c` call — `use <copy> *`, enumerate via `scope modules`, `view source` each, output nuon record `name -> source`
-- [ ] Step 4: cascade — extract calls from each body (AST tokens ∩ record names), BFS with visited set; reuse `dependencies` helpers
-- [ ] Step 5: toposort, assemble text, reproduce external `use` lines (e.g. `std`), `--output` / stdout
-- [ ] Step 6: tests in `tests/test_commands.nu`: fixture module with a submodule, a private helper behind plain `use`, and a duplicate-name variant; fixture with `export-env`
-- [ ] Step 7: decide on `mod.nu` export (public command or internal at first)
+- [x] Step 1: safety scan — AST over all module `.nu` files: collect `export-env` (error/flag), local `use` targets (error if outside module dir), and all top-level command names (error on duplicates; record original export status)
+- [x] Step 2: temp copy named after the module, rewrite top-level `def` → `export def` and top-level local `use` → `export use` in all `.nu` files
+- [x] Step 3: one `nu -n -c` call — `use <copy> *`, enumerate via `scope modules`, `view source` each, output nuon record `name -> source`
+- [x] Step 4: cascade — extract calls from each body (AST tokens ∩ record names), BFS with visited set; reuse `dependencies` helpers
+- [x] Step 5: toposort, assemble text, reproduce external `use` lines (e.g. `std`), `--output` / stdout
+- [x] Step 6: tests in `tests/test_commands.nu`: fixture module with a submodule, a private helper behind plain `use`, and a duplicate-name variant; fixture with `export-env`
+- [x] Step 7: decide on `mod.nu` export (public command or internal at first)
 
 ## Affected files
 
@@ -76,3 +77,22 @@ Caveat on approach: the temp-copy rewrite below has grown (defs + uses + collisi
 - Command name: `extract-command-code-runtime`? `embed-command`?
 - Should the target command be `export def` in the output, so the file works both as a script source and as a module?
 - Commands from external imported modules (e.g. `std`): reproduced as `use` lines in the output — is "resolves outside the module dir" the right definition of external?
+
+## Execution result
+
+**Date:** 2026-07-02
+
+**Created files:**
+- `tests/assets/module-embed/` (mod.nu, helpers.nu, pub.nu) — fixture: submodule via `export use`, private helper behind plain `use`, private def, `std` import, `main`
+- `tests/assets/module-with-env/mod.nu` — fixture with `export-env`
+- `tests/assets/module-dup/` (mod.nu, a.nu, b.nu) — fixture with the same private name in two files
+
+**Modified files:**
+- `dotnu/commands.nu` — `extract-module-command` plus helpers `module-files`, `scan-module-file`, `export-ify-file`, `dump-module-commands`
+- `dotnu/mod.nu` — exported publicly
+- `tests/test_commands.nu` — 7 tests covering all requirement scenarios
+- `README.md`, `CLAUDE.md` — documentation
+- `tests/output-yaml/coverage-untested.nuon` — coverage snapshot (public API 14 → 15)
+
+**Summary:**
+Implemented as planned, all 92 tests pass. Open questions resolved: name `extract-module-command`; original export status is restored in the output (private deps stay plain `def`), so the file works both sourced and as a module; external imports are any `use` whose target doesn't resolve to a local path — they are reproduced as `use` lines. One deviation: `where exported` (bare boolean column) is written as `where exported == true` because topiary's grammar can't parse the bare form.

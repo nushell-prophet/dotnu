@@ -179,6 +179,194 @@ export def 'extract-command-code' [
     }
 }
 
+# Extract a command with its dependency cascade from a module into one self-contained script.
+#
+# Runtime analog of `extract-command-code`: the module is imported into a clean `nu -n`
+# process and command bodies are dumped via `view source`, so Nushell itself resolves
+# `export use` chains, submodules and `main` renaming.
+#
+# Importing runs `export-env` blocks (the module's own and those of transitively imported
+# local modules) — the only channel of arbitrary code execution at import — so the command
+# refuses modules containing `export-env` unless --allow-export-env is set. Even then,
+# `export-env` blocks are not carried into the output, so commands relying on `$env` values
+# they set will extract fine but break at runtime.
+#
+# Known limits: imports of external modules (`std` etc.) are reproduced as `use` lines in
+# the output, not embedded, and their own `export-env` blocks are outside the safety scan;
+# attributes (`@example`) are dropped by `view source`; commands exposed with a submodule
+# prefix (`use sub.nu` without `*` or an item list) land in the output as plain `def`
+# because their prefixed names can't be matched back to the static scan.
+export def extract-module-command [
+    module_path: path # path to a module directory or a single .nu module file
+    command_name: string # exposed name of the command to extract (`main` means the module itself)
+    --allow-export-env # proceed even when the module contains export-env blocks
+    --output: path # save the assembled script to this file instead of returning it
+] {
+    let module = module-files $module_path
+    let scan = $module.files | each {|file| scan-module-file $file } | flatten
+
+    let env_files = $scan | where kind == 'export-env' | get file | uniq
+    if not $allow_export_env and ($env_files | is-not-empty) {
+        error make --unspanned {
+            msg: (
+                "importing this module would run `export-env` blocks from:\n"
+                + ($env_files | str join (char nl))
+                + "\nInspect them, then rerun with `--allow-export-env` to accept that."
+            )
+        }
+    }
+
+    let local_uses = $scan | where kind == 'use' and resolved_use != null
+    if not $module.is_dir and ($local_uses | is-not-empty) {
+        error make --unspanned {
+            msg: (
+                "a single-file module with local imports can't be extracted — the imported files are outside the module:\n"
+                + ($local_uses.statement | str join (char nl))
+            )
+        }
+    }
+
+    let escaping = $local_uses | where {|row|
+            try {
+                $row.resolved_use | path relative-to $module.source | ignore
+                false
+            } catch { true }
+        }
+    if ($escaping | is-not-empty) {
+        error make --unspanned {
+            msg: (
+                "these imports resolve outside the module directory and would break in the extraction copy:\n"
+                + ($escaping.statement | str join (char nl))
+            )
+        }
+    }
+
+    let defs = $scan | where kind == 'def'
+    let duplicated = $defs
+        | group-by name --to-table
+        | where {|group| ($group.items.file | uniq | length) > 1 }
+    if ($duplicated | is-not-empty) {
+        # after export-ification same-named commands from different files would
+        # silently shadow each other (last import wins), extracting the wrong body
+        error make --unspanned {
+            msg: (
+                "the same command name is defined in several module files:\n"
+                + ($duplicated | each { $"($in.name): ($in.items.file | uniq | str join ', ')" } | str join (char nl))
+            )
+        }
+    }
+
+    # temp copy named after the module, so its `main` is exposed under the module name
+    let tmp_dir = mktemp --directory
+    let copy = $tmp_dir | path join (if $module.is_dir { $module.name } else { $module.name + '.nu' })
+    if $module.is_dir {
+        cp --recursive $module.source $copy
+    } else {
+        cp $module.source $copy
+    }
+
+    # make everything reachable from outside: private defs and private local imports
+    # become `export def` / `export use` — in the copy only
+    $module.files | each {|file|
+        let offsets = $scan
+            | where {|row|
+                $row.file == $file and not $row.exported and (
+                    $row.kind == 'def' or ($row.kind == 'use' and $row.resolved_use != null)
+                )
+            }
+            | get start
+        let copy_file = if $module.is_dir {
+            $copy | path join ($file | path relative-to $module.source)
+        } else { $copy }
+        export-ify-file $copy_file $offsets
+    }
+
+    let sources = dump-module-commands $copy $module.name
+    rm --recursive --force $tmp_dir
+
+    let names = $sources | get name
+    let target = $command_name | if $in == 'main' { $module.name } else { }
+    if $target not-in $names {
+        error make --unspanned {
+            msg: $"no command `($target)` among the module commands: ($names | str join ', ')"
+        }
+    }
+
+    let edges = $sources
+        | insert calls {|row|
+            $row.source
+            | ast-complete
+            | where shape in ['shape_internalcall' 'shape_external']
+            | get content
+            | uniq
+            | where $it in $names and $it != $row.name
+        }
+        | select name calls
+
+    # cascade: BFS from the target over the call graph
+    mut reachable = [$target]
+    mut frontier = [$target]
+    while ($frontier | is-not-empty) {
+        let front = $frontier
+        let known = $reachable
+        let next = $edges
+            | where name in $front
+            | get calls
+            | flatten
+            | uniq
+            | where $it not-in $known
+        $reachable = $reachable ++ $next
+        $frontier = $next
+    }
+
+    # dependencies before dependents: the parser requires a def before its call site
+    mut ordered = []
+    mut remaining = $reachable
+    while ($remaining | is-not-empty) {
+        let rem = $remaining
+        let ready = $edges
+            | where name in $rem
+            | where {|row| $row.calls | where $it in $rem | is-empty }
+            | get name
+        if ($ready | is-empty) {
+            # unreachable: a call cycle between top-level defs can't parse in Nushell
+            error make --unspanned {msg: 'internal error: call-graph cycle in topological sort'}
+        }
+        $ordered = $ordered ++ $ready
+        $remaining = $rem | where $it not-in $ready
+    }
+
+    # `view source` returns every body as plain `def` — restore `export` where the origin had it
+    # Not bare `where exported` because: topiary's nushell grammar can't parse it
+    let exported_names = $defs | where exported == true | get name
+    let header = $scan
+        | where kind == 'use' and resolved_use == null
+        | get statement
+        | str replace --regex '^export ' ''
+        | uniq
+
+    let script = $ordered
+        | each {|name|
+            $sources
+            | where name == $name
+            | get 0.source
+            | if $name in $exported_names { 'export ' + $in } else { }
+        }
+        | prepend $header
+        | str join ((char nl) + (char nl))
+        | $in + (char nl)
+
+    # fail fast on any exposure case the assembly can't map (see "Known limits" above)
+    let check = nu -n -c $script | complete
+    if $check.exit_code != 0 {
+        error make --unspanned {
+            msg: $"assembled script does not parse under `nu -n`:\n($check.stderr)"
+        }
+    }
+
+    if $output == null { $script } else { $script | save --force $output }
+}
+
 # List all exported definitions from a module file
 #
 # Finds commands from `export def` and `export use` patterns, including bare
@@ -888,6 +1076,115 @@ export def 'module-commands-code-to-record' [
         {$name: $s.statement}
     }
     | into record
+}
+
+# Resolve a module path (a directory or a single .nu file) to its name, root and file list
+export def module-files [
+    module_path: path
+]: nothing -> record<name: string, source: path, is_dir: bool, files: list<path>> {
+    let expanded = $module_path | path expand
+    if ($expanded | path type) == 'dir' {
+        {
+            name: ($expanded | path basename)
+            source: $expanded
+            is_dir: true
+            files: (glob ($expanded | path join '**' '*.nu') | sort)
+        }
+    } else {
+        {
+            name: ($expanded | path parse | get stem)
+            source: $expanded
+            is_dir: false
+            files: [$expanded]
+        }
+    }
+}
+
+# Classify a module file's top-level statements for `extract-module-command`.
+#
+# One row per statement: byte offset, kind (def / use / export-env / other), whether it's
+# already exported, the def's exposed name (`main` renamed to the module name), and for
+# `use` rows the absolute target path when it resolves to a local file or directory
+# (null for external modules like `std`).
+export def scan-module-file [
+    file: path
+]: nothing -> table {
+    let dir = $file | path dirname
+
+    open $file --raw
+    | normalize-newlines
+    | split-statements
+    | insert file $file
+    | insert kind {|row|
+        if $row.statement =~ '^(export )?def ' {
+            'def'
+        } else if $row.statement =~ '^(export )?use ' {
+            'use'
+        } else if $row.statement =~ '^export-env\b' {
+            'export-env'
+        } else { 'other' }
+    }
+    | insert exported {|row| $row.statement | str starts-with 'export ' }
+    | insert name {|row|
+        if $row.kind == 'def' {
+            $row.statement | lines | first | extract-command-name | replace-main-with-module-name $file
+        } else { null }
+    }
+    | insert resolved_use {|row|
+        if $row.kind != 'use' { null } else {
+            let target = $row.statement
+                | parse --regex r#'^(?:export )?use\s+(?:"(?<dq>[^"]+)"|'(?<sq>[^']+)'|(?<bare>\S+))'#
+                | get 0
+                | [$in.dq $in.sq $in.bare]
+                | compact
+                | first
+            let candidate = if ($target | str starts-with '/') or ($target =~ '^[A-Za-z]:') {
+                $target
+            } else {
+                $dir | path join $target
+            }
+
+            if ($candidate | path exists) { $candidate | path expand } else { null }
+        }
+    }
+}
+
+# Prefix the statements at the given byte offsets with `export ` — used on the temp copy
+# to make private defs and private local imports reachable for `view source`
+export def export-ify-file [
+    file: path # rewritten in place
+    offsets: list<int> # byte offsets of top-level statements, from `scan-module-file`
+] {
+    let source_bytes = open $file --raw | normalize-newlines | encode utf8
+
+    $offsets
+    | sort --reverse
+    | reduce --fold $source_bytes {|off acc|
+        ($acc | bytes at 0..<$off) ++ ('export ' | encode utf8) ++ ($acc | bytes at $off..)
+    }
+    | decode utf8
+    | save --force $file
+}
+
+# Import an export-ified module copy in a clean `nu -n` and dump `name -> source` for
+# every exposed command — one process for the whole module instead of one per command
+export def dump-module-commands [
+    copy_path: path # the export-ified temp copy (directory or single .nu file)
+    module_name: string
+]: nothing -> table<name: string, source: string> {
+    let script = [
+        $"use '($copy_path)' *"
+        $"scope modules | where name == '($module_name)' | get 0.commands.name"
+        "| each {|n| {name: $n source: (view source $n)} }"
+        "| to nuon"
+    ] | str join (char nl)
+
+    let result = nu -n -c $script | complete
+    if $result.exit_code != 0 {
+        error make --unspanned {msg: $"module import failed:\n($result.stderr)"}
+    }
+
+    $result.stdout | from nuon
 }
 
 # Format example blocks (annotation, command, result) and a command description as `# `-prefixed comment lines

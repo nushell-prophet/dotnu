@@ -427,6 +427,26 @@ dotnu extract-command-code --help
 # =>
 ```
 
+### `dotnu extract-module-command`
+
+Extract a command with its whole dependency cascade from a module into one self-contained script. Unlike `extract-command-code` (static parsing of one file), the module is imported into a clean `nu -n` process and command bodies are dumped via `view source`, so Nushell itself resolves `export use` chains, submodules and `main` renaming. Private dependencies are embedded as plain `def`, definitions come in dependency order, and imports of external modules (`std` etc.) are reproduced as `use` lines.
+
+Importing a module runs its `export-env` blocks, so the command refuses modules containing `export-env` unless you pass `--allow-export-env` after inspecting them.
+
+```nushell
+dotnu extract-module-command tests/assets/module-embed greet
+# => use std/assert
+# =>
+# => export def greet-word [] {
+# =>     assert true
+# =>     'hello'
+# => }
+# =>
+# => def subject [] { 'world' }
+# =>
+# => export def greet [] { $"(greet-word) (subject)!" }
+```
+
 ### `dotnu list-module-exports`
 
 List all exported definitions from a module file. Finds commands from `export def` and `export use` patterns, including bare and glob re-exports (resolved by reading the referenced submodule).
