@@ -122,7 +122,7 @@ dotnu embed-add --help
 # =>   -h, --help: Display the help message for this command
 # =>   -p, --pipe-further: output input further to the pipeline
 # =>   --published: output the published representation into terminal
-# =>   --dry_run: todo: --
+# =>   --dry-run
 # =>
 # => Command Type:
 # =>   > custom
