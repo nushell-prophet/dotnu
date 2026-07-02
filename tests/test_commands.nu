@@ -787,7 +787,7 @@ def "execute-example handles multiline result" [] {
 
 @test
 def "examples-update updates result values" [] {
-    let temp = $nu.temp-dir | path join 'test-examples-update.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-update-single.nu'
     '@example "add" { 1 + 1 } --result 0
 export def dummy [] { 1 }' | save -f $temp
 
@@ -799,7 +799,7 @@ export def dummy [] { 1 }' | save -f $temp
 
 @test
 def "examples-update handles multiple examples" [] {
-    let temp = $nu.temp-dir | path join 'test-examples-update.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-update-multiple.nu'
     '@example "first" { 1 + 1 } --result 0
 export def foo [] {}
 
@@ -814,7 +814,7 @@ export def bar [] {}' | save -f $temp
 
 @test
 def "examples-update preserves file when no examples" [] {
-    let temp = $nu.temp-dir | path join 'test-examples-update.nu'
+    let temp = $nu.temp-dir | path join 'test-examples-update-none.nu'
     let content = 'export def foo [] { 1 }'
     $content | save -f $temp
 
