@@ -1509,10 +1509,14 @@ export def split-statements []: string -> table<statement: string, start: int, e
         }
 
         # Statement boundary at top level
-        # Also check shape_gap that starts with newline (comments are bundled into gaps)
+        # A shape_gap bundles any trailing comment plus the newline that follows it, so
+        # strip the comment tail (as the depth counter above does) and treat the gap as a
+        # boundary when it contains a newline — not only when it starts with one. Without
+        # the strip, a line like `if true { 1 } # note` leaves the gap as ` # note }\n`,
+        # which does not start with `\n`, so the next statement merges into this one.
         let is_boundary = (
             $token.shape in ["shape_semicolon" "shape_newline"]
-            or ($token.shape == "shape_gap" and ($token.content | str starts-with "\n"))
+            or ($token.shape == "shape_gap" and (($token.content | str replace --all --regex '#.*' '') | str contains "\n"))
         )
         if $depth == 0 and $is_boundary {
             let stmt_text = $bytes | bytes at $stmt_start..<$token.start | decode utf8 | str trim

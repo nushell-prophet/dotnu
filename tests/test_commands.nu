@@ -912,6 +912,18 @@ def "split-statements ignores braces inside comments" [] {
 }
 
 @test
+def "split-statements splits after a trailing comment following a block" [] {
+    # The newline after a trailing comment is bundled into a shape_gap (` # note }\n`)
+    # that starts with a space, not a newline, so the boundary was missed and the next
+    # statement merged into the block. The comment tail lives in the gap between the two
+    # statements (like a standalone comment line), so it is not part of either statement.
+    let result = "if true { 1 } # note }\nlet b = 2" | split-statements
+
+    assert equal ($result | length) 2
+    assert equal ($result | get statement) ['if true { 1 }', 'let b = 2']
+}
+
+@test
 def "split-statements handles empty input" [] {
     let result = '' | split-statements
 
