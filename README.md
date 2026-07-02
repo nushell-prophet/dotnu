@@ -77,39 +77,9 @@ dotnu embeds-update --help
 
 While it is easy to write scripts in an editor, there are several convenience helper commands that facilitate populating script files from the terminal.
 
-#### `dotnu embeds-setup`
-
-Define or change the capture file (add `--auto-commit` to auto-commit snapshots).
-
-```nushell
-dotnu embeds-setup --help
-# => Set environment variables to operate with embeds
-# =>
-# => Usage:
-# =>   > embeds-setup {flags} (path)
-# =>
-# => Flags:
-# =>   -h, --help: Display the help message for this command
-# =>   --auto-commit
-# =>
-# => Command Type:
-# =>   > custom
-# =>
-# => Parameters:
-# =>   path <path>:  (optional)
-# =>
-# => Input/output types:
-# =>   ╭───┬───────┬────────╮
-# =>   │ # │ input │ output │
-# =>   ├───┼───────┼────────┤
-# =>   │ 0 │ any   │ any    │
-# =>   ╰───┴───────┴────────╯
-# =>
-```
-
 #### `dotnu embed-add`
 
-Capture only the pipeline you run it on; useful for fine-grained examples.
+Capture only the pipeline you run it on; useful for fine-grained examples. Pass `--capture-path` to point at a capture file; it is remembered for later calls in the same session.
 
 ```nushell
 dotnu embed-add --help
@@ -120,6 +90,7 @@ dotnu embed-add --help
 # =>
 # => Flags:
 # =>   -h, --help: Display the help message for this command
+# =>   --capture-path <path>: capture file to append to; remembered for later calls in the session
 # =>   -p, --pipe-further: output input further to the pipeline
 # =>   --published: output the published representation into terminal
 # =>   --dry-run
@@ -439,13 +410,13 @@ List all exported definitions from a module file. Finds commands from `export de
 
 ```nushell
 dotnu list-module-exports dotnu/mod.nu | first 5
-# => ╭───┬───────────────╮
-# => │ 0 │ dependencies  │
-# => │ 1 │ embed-add     │
-# => │ 2 │ embeds-remove │
-# => │ 3 │ embeds-setup  │
-# => │ 4 │ embeds-update │
-# => ╰───┴───────────────╯
+# => ╭───┬─────────────────╮
+# => │ 0 │ dependencies    │
+# => │ 1 │ embed-add       │
+# => │ 2 │ embeds-remove   │
+# => │ 3 │ embeds-update   │
+# => │ 4 │ examples-update │
+# => ╰───┴─────────────────╯
 ```
 
 ### `dotnu list-module-interface`

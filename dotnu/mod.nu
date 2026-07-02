@@ -2,7 +2,6 @@ export use commands.nu [
     "dependencies"
     "embed-add"
     "embeds-remove"
-    "embeds-setup"
     "embeds-update"
     "examples-update"
     "expand-code"

@@ -23,8 +23,8 @@
 # }
 # | to nuon --indent 2
 {
-  public_api_count: 14,
-  tested_count: 13,
+  public_api_count: 13,
+  tested_count: 12,
   untested: [
     embed-add
   ]

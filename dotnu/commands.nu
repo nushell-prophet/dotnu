@@ -428,8 +428,6 @@ export def 'list-module-interface' [
     } else { }
 }
 
-# todo: make configuration like --autocommit in file itself
-
 # Inserts captured output back into the script at capture points
 export def 'embeds-update' [
     file?: path
@@ -812,37 +810,24 @@ export def execute-example [code: string file: path]: nothing -> string {
     $result.stdout | str trim
 }
 
-# Set environment variables to operate with embeds
-export def --env 'embeds-setup' [
-    path?: path
-    --auto-commit
-] {
-    $env.dotnu.embeds-capture-path = (
-        $path
-        | if $in == null {
-            get-dotnu-capture-path
-        } else {
-            str replace --regex '(\.nu)?$' '.nu' # make sure that the script has .nu extension
-        }
-        | path expand
-    )
-
-    if $auto_commit {
-        touch $env.dotnu.embeds-capture-path
-
-        git-autocommit-dotnu-capture
-
-        $env.dotnu.auto-commit = true
-    }
-}
-
 # Embed stdin together with its command into the file
-export def 'embed-add' [
+export def --env 'embed-add' [
+    --capture-path: path # capture file to append to; remembered for later calls in the session
     --pipe-further (-p) # output input further to the pipeline
     --published # output the published representation into terminal
     --dry-run
 ] {
     let input = $in
+
+    # Why: setting the path in this --env def makes it sticky for the rest of the session,
+    # so later bare `embed-add` calls reuse it without re-passing --capture-path.
+    if $capture_path != null {
+        $env.dotnu.embeds-capture-path = (
+            $capture_path
+            | str replace --regex '(\.nu)?$' '.nu' # make sure that the script has .nu extension
+            | path expand
+        )
+    }
 
     let path = get-dotnu-capture-path
 
@@ -863,10 +848,6 @@ export def 'embed-add' [
 
     let script_with_output = $"\n($command) | print $in\n($commented_input)"
 
-    if $env.dotnu?.auto-commit? == true {
-        git-autocommit-dotnu-capture
-    }
-
     if not $dry_run { $script_with_output | save --append $path }
 
     if $published { return $script_with_output }
@@ -885,13 +866,6 @@ export def 'get-dotnu-capture-path' [] {
 # Normalize Windows CRLF line endings to LF; pass through unchanged elsewhere.
 export def normalize-newlines []: string -> string {
     if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
-}
-
-export def 'git-autocommit-dotnu-capture' [] {
-    let path = get-dotnu-capture-path
-
-    git add $path
-    git commit --only $path -m 'dotnu capture autocommit'
 }
 
 export def 'get-command-from-hist' [] {

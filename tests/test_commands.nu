@@ -528,27 +528,6 @@ def "expand-code preserves blank lines the pipeline emits" [] {
 # simulated in a test environment. Testing skipped.
 
 # =============================================================================
-# Tests for embeds-setup
-# =============================================================================
-
-@test
-def "embeds-setup sets capture path in env" [] {
-    # Test without --auto-commit to avoid git operations
-    let test_path = ($nu.temp-dir | path join 'test-capture.nu')
-    embeds-setup $test_path
-
-    assert equal $env.dotnu.embeds-capture-path $test_path
-}
-
-@test
-def "embeds-setup adds .nu extension if missing" [] {
-    let test_path = ($nu.temp-dir | path join 'test-capture')
-    embeds-setup $test_path
-
-    assert ($env.dotnu.embeds-capture-path | str ends-with '.nu')
-}
-
-# =============================================================================
 # Tests for execute-and-parse-results
 # =============================================================================
 
