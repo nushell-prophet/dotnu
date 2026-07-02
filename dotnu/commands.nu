@@ -635,7 +635,7 @@ export def run-expand-pipeline [
 #
 # Uses ast-complete to accurately detect @example attributes, avoiding false positives
 # from @example inside strings or comments. The @ prefix appears as shape_gap.
-export def find-examples []: string -> table<original: string, code: string, result_line: string> {
+export def find-examples []: string -> table<original: string, code: string> {
     let source = $in
     let bytes = $source | encode utf8
     let tokens = $source | ast-complete
@@ -718,14 +718,12 @@ export def find-examples []: string -> table<original: string, code: string, res
             {
                 has_result: true
                 end_byte: $end_byte
-                result_line: "" # not used, kept for interface compatibility
             }
         } else {
             # No --result flag
             {
                 has_result: false
                 end_byte: $close_brace.end
-                result_line: ""
             }
         }
 
@@ -748,7 +746,6 @@ export def find-examples []: string -> table<original: string, code: string, res
         {
             original: $original
             code: $code
-            result_line: $result_info.result_line
         }
     }
     | compact
