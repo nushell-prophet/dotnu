@@ -75,12 +75,12 @@ export def 'set-x' [
     --quiet # don't print any messages
 ] {
     let regex = $regex | default "\n+\n"
-    let out_file = $file | str replace -r '(\.nu)?$' '_setx.nu'
+    let out_file = $file | str replace --regex '(\.nu)?$' '_setx.nu'
 
     open $file
     | normalize-newlines
     | str trim --char (char nl)
-    | split row -r $regex
+    | split row --regex $regex
     | each {|block|
         $block
         | escape-for-quotes
@@ -93,18 +93,18 @@ export def 'set-x' [
     | str join "\n"
     | $in + "\n"
     | if $echo { return $in } else {
-        save -f $out_file
+        save --force $out_file
 
         if not $quiet {
             print $'the file ($out_file) is produced. Source it'
         }
-        commandline edit -r $'source ($out_file)'
+        commandline edit --replace $'source ($out_file)'
     }
 }
 
 # Generate `.numd` from `.nu` divided into blocks by "\n\n"
 export def 'generate-numd' [] {
-    split row -r "\n+\n"
+    split row --regex "\n+\n"
     | each { $"```nu\n($in)\n```\n" }
     | to text
 }
@@ -136,7 +136,7 @@ export def 'extract-command-code' [
     }
 
     let filename = $output
-        | default $'($command | str trim -c '"' | str trim -c "'").nu'
+        | default $'($command | str trim --char '"' | str trim --char "'").nu'
 
     # here we use defined variables from the previously extracted command to a file
     let variables_from_prev_script = if ($filename | path exists) and not $clear_vars {
@@ -159,7 +159,7 @@ export def 'extract-command-code' [
     | if $echo {
         return $in
     } else {
-        save -f $filename
+        save --force $filename
 
         $" ^($code_editor) \"($filename)\"; commandline edit --replace ' source \"($filename)\"'"
         | commandline edit --replace $in
@@ -172,7 +172,7 @@ export def 'extract-command-code' [
 export def 'list-module-exports' [
     $path: path
 ]: nothing -> list<string> {
-    open $path -r
+    open $path --raw
     | extract-exported-commands
     | replace-main-with-module-name $path
     | if ($in | is-empty) {
@@ -188,7 +188,7 @@ export def 'list-module-exports' [
 export def 'list-module-interface' [
     $path: path
 ]: nothing -> list<string> {
-    open $path -r
+    open $path --raw
     | lines
     | where $it =~ '^(export )?def '
     | extract-command-name
@@ -231,11 +231,11 @@ export def 'embeds-update' [
     | reduce --fold ("\n" + $script) {|it|
         str replace ("\n" + $it.0 + "\n") ("\n" + $it.0 + $prevent_second_replacement + "\n" + $it.1 + "\n")
     }
-    | str replace -r '^\n' '' # strip the single leading newline added above
-    | str replace -a $prevent_second_replacement ''
-    | str replace -ar '\n{3,}' "\n\n"
-    | str replace -r "\n*$" "\n"
-    | if $echo or ($input != null) { } else { save -f $file }
+    | str replace --regex '^\n' '' # strip the single leading newline added above
+    | str replace --all $prevent_second_replacement ''
+    | str replace --all --regex '\n{3,}' "\n\n"
+    | str replace --regex "\n*$" "\n"
+    | if $echo or ($input != null) { } else { save --force $file }
 }
 
 # Execute @example blocks and update their --result values
@@ -277,15 +277,15 @@ export def 'examples-update' [
     let updated = $results | reduce --fold $content {|item acc|
             # Build new example by replacing just the result value in the original
             # Escape $ as $$ to prevent regex backreference interpretation
-            let escaped_result = $item.new_result | str replace -a '$' '$$'
+            let escaped_result = $item.new_result | str replace --all '$' '$$'
             let new_example = $item.original
-                | str replace -r '\} --result .+$' $"} --result ($escaped_result)"
+                | str replace --regex '\} --result .+$' $"} --result ($escaped_result)"
 
             $acc | str replace $item.original $new_example
         }
 
     $updated
-    | if $echo { } else { save -f $file }
+    | if $echo { } else { save --force $file }
 }
 
 # Find @example blocks with their code and result sections using AST parsing
@@ -421,7 +421,7 @@ export def execute-example [code: string file: path]: nothing -> any {
     let module_name = $dir | path basename
 
     # Strip module prefix from code if present (e.g., "dotnu dependencies" -> "dependencies")
-    let normalized_code = $code | str replace -r $'^($module_name) ' ''
+    let normalized_code = $code | str replace --regex $'^($module_name) ' ''
 
     # Build script: cd to parent, source file directly to access all functions
     let script = $"
@@ -430,7 +430,7 @@ export def execute-example [code: string file: path]: nothing -> any {
         ($normalized_code) | to nuon
     "
 
-    let result = do -i { ^$nu.current-exe -n -c $script } | complete
+    let result = do --ignore-errors { ^$nu.current-exe -n -c $script } | complete
     if $result.exit_code != 0 {
         # Return error info for caller to handle
         {error: ($result.stderr | str trim | default "unknown error")}
@@ -449,7 +449,7 @@ export def --env 'embeds-setup' [
         | if $in == null {
             get-dotnu-capture-path
         } else {
-            str replace -r '(\.nu)?$' '.nu' # make sure that the script has .nu extension
+            str replace --regex '(\.nu)?$' '.nu' # make sure that the script has .nu extension
         }
         | path expand
     )
@@ -478,12 +478,12 @@ export def 'embed-add' [
         get-command-from-hist | get previous
     } else {
         get-command-from-hist | get current
-        | str replace -r '(?s)\| ?dotnu embed-add.*$' ''
+        | str replace --regex '(?s)\| ?dotnu embed-add.*$' ''
     }
 
     let commented_input = $input
         | if $in == null { } else {
-            table -e --width 160
+            table --expand --width 160
             | comment-hash-colon
             | $"\n($in)\n"
         }
@@ -494,7 +494,7 @@ export def 'embed-add' [
         git-autocommit-dotnu-capture
     }
 
-    if not $dry_run { $script_with_output | save -a $path }
+    if not $dry_run { $script_with_output | save --append $path }
 
     if $published { return $script_with_output }
     if $pipe_further or $dry_run { return $input }
@@ -566,12 +566,12 @@ export def check-clean-working-tree [
     "let $a = null" | variable-definitions-to-record
 } --result {a: null}
 export def variable-definitions-to-record []: string -> record {
-    let script_with_variable_definitions = str replace -a ';' ";\n"
+    let script_with_variable_definitions = str replace --all ';' ";\n"
         | normalize-newlines
         | $in + (char nl)
 
     let parsed_vars = $script_with_variable_definitions
-        | parse -r 'let \$?(?<var>.*) ='
+        | parse --regex 'let \$?(?<var>.*) ='
 
     if ($parsed_vars | is-empty) {
         return {}
@@ -599,10 +599,10 @@ export def variable-definitions-to-record []: string -> record {
 export def 'extract-command-name' [
     module_path? # path to a nushell module file
 ] {
-    str replace -r '\[.*' ''
-    | str replace -r '^(export )?def ' ''
-    | str replace -ra '(--(env|wrapped) ?)' ''
-    | str replace -ra "\"|'|`" ''
+    str replace --regex '\[.*' ''
+    | str replace --regex '^(export )?def ' ''
+    | str replace --all --regex '(--(env|wrapped) ?)' ''
+    | str replace --all --regex "\"|'|`" ''
     | str trim
 }
 
@@ -615,10 +615,10 @@ export def replace-main-with-module-name [
         | path split
         | where $it != mod.nu
         | last
-        | str replace -r '\.nu$' ' '
+        | str replace --regex '\.nu$' ' '
 
     $input
-    | str replace -r '^main( |$)' $module_name
+    | str replace --regex '^main( |$)' $module_name
     | str trim
 }
 
@@ -637,9 +637,9 @@ export def escape-for-quotes []: string -> string {
 export def nu-completion-command-name [
     context: string
 ] {
-    $context | str replace -r '^.*? extract-command-code ' ''
+    $context | str replace --regex '^.*? extract-command-code ' ''
     | str trim | split row ' ' | first
-    | path expand | open $in -r | lines
+    | path expand | open $in --raw | lines
     | where $it =~ '^(export )?def '
     | each { extract-command-name }
 }
@@ -656,7 +656,7 @@ export def list-module-commands [
     --keep-builtins # keep builtin commands in the result page
     --definitions-only # output only commands' names definitions
 ] {
-    let script_content = open $module_path -r
+    let script_content = open $module_path --raw
         | normalize-newlines
     let all_tokens = $script_content | ast-complete
     let statements = $script_content | split-statements
@@ -742,7 +742,7 @@ export def list-module-commands [
 export def 'module-commands-code-to-record' [
     module_path: path # path to a Nushell module file
 ] {
-    open $module_path -r
+    open $module_path --raw
     | normalize-newlines
     | split-statements
     | where statement =~ '^(export )?def '
@@ -781,7 +781,7 @@ export def format-substitutions [
 export def 'join-next' [
     callees_to_merge
 ] {
-    join -l $callees_to_merge callee caller
+    join --left $callees_to_merge callee caller
     | select caller callee_ step filename_of_caller
     | rename caller callee
     | upsert step {|i| $i.step + 1 }
@@ -798,7 +798,7 @@ export def 'dummy-command' [
     let dummy_closure = {|function|
         let params = scope commands
             | where name == $command
-            | get -o signatures.0
+            | get --optional signatures.0
             | if $in == null {
                 error make --unspanned {msg: 'no command $command was found'}
             } else { }
@@ -815,7 +815,7 @@ export def 'dummy-command' [
             }
             | where parameter_name != null
             | each {|i|
-                let param = $i.parameter_name | str replace -a '-' '_' | str replace '$' ''
+                let param = $i.parameter_name | str replace --all '-' '_' | str replace '$' ''
 
                 let value = $i.parameter_default?
                     | default (if $i.parameter_type == 'switch' { false })
@@ -838,9 +838,9 @@ export def 'dummy-command' [
 
     view source $dummy_closure
     | lines | skip | drop | to text
-    | str replace -a '$command' $command
-    | str replace -a '$file' $file
-    | str replace -a '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
+    | str replace --all '$command' $command
+    | str replace --all '$file' $file
+    | str replace --all '$dotnu_vars_delim' $"'($dotnu_vars_delim)'"
     | $"source ($file)\n\n($in)"
 }
 
@@ -855,7 +855,7 @@ export def 'comment-hash-colon' [
 ] {
     let input = $in
     let closure = {|i|
-        $i | into string | ansi strip | str trim -c "\n" | str replace -arm '^' "# => "
+        $i | into string | ansi strip | str trim --char "\n" | str replace --all --regex --multiline '^' "# => "
     }
 
     if $source_code {
@@ -878,7 +878,7 @@ export def execute-and-parse-results [
     # Prints output that will be embedded back into the script
     let embed_in_script = {
 
-        let input = table -e
+        let input = table --expand
             | comment-hash-colon
 
         (capture-marker) + $input + "\n" + (capture-marker --close)
@@ -896,7 +896,7 @@ export def execute-and-parse-results [
         | each {
             if $in !~ '^\s*#' {
                 # don't search for `print $in` inside of commented lines
-                str replace -r $capture_point '| embed-in-script'
+                str replace --regex $capture_point '| embed-in-script'
             } else { }
         }
         | prepend $embed_in_script_src
@@ -905,7 +905,7 @@ export def execute-and-parse-results [
     if $script_path != null { $script_path | path dirname | cd $in }
 
     ^$nu.current-exe -n -c $script_updated
-    | parse -r ('(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close))
+    | parse --regex ('(?s)' + (capture-marker) + '(.*?)' + (capture-marker --close))
     # Parsing here presupposes capturing only the output of a script command,
     # so it won't be able to capture content inside custom command definitions correctly
     # (if they are executed more than once).
@@ -952,7 +952,7 @@ export def extract-exported-commands []: string -> list<string> {
         let idx = $match.index
         if $match.item.content == 'export def' {
             # Command name is next token
-            $tokens | get ($idx + 1) | get content | str trim -c "'" | str trim -c '"'
+            $tokens | get ($idx + 1) | get content | str trim --char "'" | str trim --char '"'
         } else {
             # export use: skip module path, get shape_string tokens from list
             $tokens
@@ -960,8 +960,8 @@ export def extract-exported-commands []: string -> list<string> {
             | take while { $in.shape in ['shape_string' 'shape_list'] }
             | where shape == 'shape_string'
             | get content
-            | str trim -c '"'
-            | str trim -c "'"
+            | str trim --char '"'
+            | str trim --char "'"
         }
     }
     | flatten
@@ -991,7 +991,7 @@ export def ast-complete []: string -> table {
 
     if ($tokens | is-empty) { return [] }
 
-    let gaps = [{end: 0}] ++ $tokens ++ [{start: ($source | str length -b)}]
+    let gaps = [{end: 0}] ++ $tokens ++ [{start: ($source | str length --utf-8-bytes)}]
         | window 2
         | where {|p| $p.0.end < $p.1.start }
         | each {|p|
@@ -1076,12 +1076,12 @@ export def split-statements []: string -> table<statement: string, start: int, e
     }
 
     # Capture final statement
-    let final_text = $bytes | bytes at $stmt_start..<($source | str length -b) | decode utf8 | str trim
+    let final_text = $bytes | bytes at $stmt_start..<($source | str length --utf-8-bytes) | decode utf8 | str trim
     if ($final_text | is-not-empty) {
         $statements = $statements | append {
                 statement: $final_text
                 start: $stmt_start
-                end: ($source | str length -b)
+                end: ($source | str length --utf-8-bytes)
             }
     }
 
