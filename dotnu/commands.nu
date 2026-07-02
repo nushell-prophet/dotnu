@@ -706,21 +706,20 @@ export def find-examples []: string -> table<original: string, code: string> {
                 | where shape not-in ["shape_whitespace" "shape_newline"]
             let first_token = $result_tokens | first
 
-            # For lists/records, find matching closing bracket
-            let end_byte = if $first_token.content == "[" or $first_token.content == "{" {
-                let close_char = if $first_token.content == "[" { "]" } else { "}" }
-                let open_char = $first_token.content
-                # Find matching close by tracking bracket depth
-                let close_token = $result_tokens | skip 1
-                    | reduce --fold {depth: 1 token: null} {|t acc|
+            # For lists/records, find the matching closing bracket by tracking
+            # depth. Multi-line brackets bundle surrounding whitespace into the
+            # token (e.g. "[\n    " and "\n]"), so match by leading/trailing char
+            # rather than exact content.
+            let open_char = if ($first_token.content | str starts-with "[") { "[" } else { "{" }
+            let close_char = if $open_char == "[" { "]" } else { "}" }
+            let end_byte = if ($first_token.content | str starts-with $open_char) {
+                # A token may both open and close (e.g. "[]"), so count each edge.
+                let close_token = $result_tokens
+                    | reduce --fold {depth: 0 token: null} {|t acc|
                         if $acc.token != null { $acc } else {
-                            let new_depth = if $t.content == $open_char {
-                                $acc.depth + 1
-                            } else if $t.content == $close_char {
-                                $acc.depth - 1
-                            } else {
-                                $acc.depth
-                            }
+                            let opened = if ($t.content | str starts-with $open_char) { 1 } else { 0 }
+                            let closed = if ($t.content | str ends-with $close_char) { 1 } else { 0 }
+                            let new_depth = $acc.depth + $opened - $closed
                             if $new_depth == 0 { {depth: 0 token: $t} } else { {depth: $new_depth token: null} }
                         }
                     }

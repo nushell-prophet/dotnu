@@ -738,6 +738,27 @@ def foo [] {}"
 }
 
 @test
+def "find-examples captures multi-line list result" [] {
+    # Genuinely multi-line list: opening/closing brackets bundle whitespace
+    # ("[\n    " / "\n]"), so exact-string bracket matching truncated the value
+    # at the opening bracket. This guards that regression.
+    let input = '@example "multi" { [9 9] } --result [
+    9
+    9
+]
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 1
+    let result_value = $result | first | get original | split row "--result" | last
+    # Full list captured: closing bracket present, not truncated at "["
+    assert ($result_value | str trim | str ends-with "]")
+    # Both list elements captured
+    assert equal ($result_value | split row "9" | length) 3
+}
+
+@test
 def "find-examples parses record result values" [] {
     let input = '@example "record" { {a: 1} } --result {a: 1}
 def foo [] {}'
