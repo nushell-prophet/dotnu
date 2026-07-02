@@ -903,7 +903,7 @@ def "split-statements splits on semicolons" [] {
     let result = 'let x = 1; let y = 2' | split-statements
 
     assert equal ($result | length) 2
-    assert equal ($result | get statement) ['let x = 1', 'let y = 2']
+    assert equal ($result | get statement) ['let x = 1' 'let y = 2']
 }
 
 @test
@@ -911,7 +911,7 @@ def "split-statements splits on newlines" [] {
     let result = "let a = 1\nlet b = 2" | split-statements
 
     assert equal ($result | length) 2
-    assert equal ($result | get statement) ['let a = 1', 'let b = 2']
+    assert equal ($result | get statement) ['let a = 1' 'let b = 2']
 }
 
 @test
@@ -942,7 +942,7 @@ def "split-statements splits after a trailing comment following a block" [] {
     let result = "if true { 1 } # note }\nlet b = 2" | split-statements
 
     assert equal ($result | length) 2
-    assert equal ($result | get statement) ['if true { 1 }', 'let b = 2']
+    assert equal ($result | get statement) ['if true { 1 }' 'let b = 2']
 }
 
 @test

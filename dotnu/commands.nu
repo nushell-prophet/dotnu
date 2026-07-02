@@ -716,8 +716,8 @@ export def find-examples []: string -> table<original: string, code: string> {
                 let close_token = $result_tokens
                     | reduce --fold {depth: 0 token: null} {|t acc|
                         if $acc.token != null { $acc } else {
-                            let opened = if ($t.content | str starts-with $open_char) { 1 } else { 0 }
-                            let closed = if ($t.content | str ends-with $close_char) { 1 } else { 0 }
+                            let opened = $t.content | str starts-with $open_char | into int
+                            let closed = $t.content | str ends-with $close_char | into int
                             let new_depth = $acc.depth + $opened - $closed
                             if $new_depth == 0 { {depth: 0 token: $t} } else { {depth: $new_depth token: null} }
                         }
