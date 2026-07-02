@@ -764,13 +764,11 @@ def "execute-example runs simple expression" [] {
 }
 
 @test
-def "execute-example returns error record on failure" [] {
+def "execute-example errors on failure" [] {
     let temp = $nu.temp-dir | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp
 
-    let result = execute-example 'nonexistent-command' $temp
-
-    assert equal ($result | describe) 'record<error: string>'
+    assert error { execute-example 'nonexistent-command' $temp }
 }
 
 @test

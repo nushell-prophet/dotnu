@@ -480,18 +480,17 @@ export def 'examples-update' [
 
     # Execute each example and collect results
     let results = $examples | each {|ex|
-            let result = execute-example $ex.code $file
-            if ($result | describe) == "record<error: string>" {
+            try {
+                {
+                    original: $ex.original
+                    new_result: (execute-example $ex.code $file)
+                }
+            } catch {|err|
                 # Skip failed examples - don't corrupt the file with error messages
                 print --stderr $"Warning: Example execution failed in ($file | path basename):"
                 print --stderr $"  Code: ($ex.code)"
-                print --stderr $"  Error: ($result.error | lines | first)"
+                print --stderr $"  Error: ($err.msg | lines | first)"
                 null
-            } else {
-                {
-                    original: $ex.original
-                    new_result: $result
-                }
             }
         }
         | compact
@@ -756,9 +755,9 @@ export def find-examples []: string -> table<original: string, code: string> {
     | where {|row| $row.code != '' }
 }
 
-# Execute example code and return the result as nuon
-# Returns null on execution failure
-export def execute-example [code: string file: path]: nothing -> any {
+# Execute example code and return the result as nuon.
+# Errors (via `error make`) when the code fails, so the caller can `try`/`catch` it.
+export def execute-example [code: string file: path]: nothing -> string {
     let abs_file = $file | path expand
     let dir = $abs_file | path dirname
     let parent_dir = $dir | path dirname
@@ -776,11 +775,9 @@ export def execute-example [code: string file: path]: nothing -> any {
 
     let result = do --ignore-errors { ^$nu.current-exe -n -c $script } | complete
     if $result.exit_code != 0 {
-        # Return error info for caller to handle
-        {error: ($result.stderr | str trim | default "unknown error")}
-    } else {
-        $result.stdout | str trim
+        error make --unspanned {msg: ($result.stderr | str trim | default "unknown error")}
     }
+    $result.stdout | str trim
 }
 
 # Set environment variables to operate with embeds
