@@ -20,11 +20,11 @@ export def 'dependencies' [
     --definitions-only # output only commands' names definitions
 ] {
     let callees_to_merge = $paths
-    | sort # ensure consistent order across platforms
-    | each {
-        list-module-commands $in --keep-builtins=$keep_builtins --definitions-only=$definitions_only
-    }
-    | flatten
+        | sort # ensure consistent order across platforms
+        | each {
+            list-module-commands $in --keep-builtins=$keep_builtins --definitions-only=$definitions_only
+        }
+        | flatten
 
     if $definitions_only { return $callees_to_merge }
 
@@ -48,10 +48,10 @@ export def 'dependencies' [
 export def 'filter-commands-with-no-tests' [] {
     let input = $in
     let covered_with_tests = $input
-    | where caller =~ 'test' or filename_of_caller =~ '^test.*\.nu$'
-    | get callee
-    | compact
-    | uniq
+        | where caller =~ 'test' or filename_of_caller =~ '^test.*\.nu$'
+        | get callee
+        | compact
+        | uniq
 
     $input
     | reject callee step
@@ -121,22 +121,22 @@ export def 'extract-command-code' [
     --code-editor = 'code' # code is my editor of choice to open the result file
 ] {
     let command = $command
-    | if $in =~ '\s' and $in !~ "^(\"|')" {
-        $'"($in)"'
-    } else { }
+        | if $in =~ '\s' and $in !~ "^(\"|')" {
+            $'"($in)"'
+        } else { }
 
     let dotnu_vars_delim = '#dotnu-vars-end'
 
     let extracted_command = dummy-command $command $module_path $dotnu_vars_delim
-    | nu -n -c $in
-    | split row $dotnu_vars_delim
+        | nu -n -c $in
+        | split row $dotnu_vars_delim
 
     if $extracted_command.1? == null {
         error make --unspanned {msg: $'no command `($command)` was found'}
     }
 
     let filename = $output
-    | default $'($command | str trim -c '"' | str trim -c "'").nu'
+        | default $'($command | str trim -c '"' | str trim -c "'").nu'
 
     # here we use defined variables from the previously extracted command to a file
     let variables_from_prev_script = if ($filename | path exists) and not $clear_vars {
@@ -214,14 +214,14 @@ export def 'embeds-update' [
     }
 
     let script = if $input == null { open $file } else { $input }
-    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
-    | embeds-remove
+        | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+        | embeds-remove
 
     let results = execute-and-parse-results $script --script_path=$file
 
     let replacements = $script
-    | find-capture-points
-    | zip $results
+        | find-capture-points
+        | zip $results
 
     let prevent_second_replacement = " # to-not-be-replaced-again"
 
@@ -245,7 +245,7 @@ export def 'examples-update' [
     --echo # output updates to stdout instead of saving
 ] {
     let content = open $file
-    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+        | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
 
     let examples = $content | find-examples
 
@@ -256,33 +256,33 @@ export def 'examples-update' [
 
     # Execute each example and collect results
     let results = $examples | each {|ex|
-        let result = execute-example $ex.code $file
-        if ($result | describe) == "record<error: string>" {
-            # Skip failed examples - don't corrupt the file with error messages
-            print --stderr $"Warning: Example execution failed in ($file | path basename):"
-            print --stderr $"  Code: ($ex.code)"
-            print --stderr $"  Error: ($result.error | lines | first)"
-            null
-        } else {
-            {
-                original: $ex.original
-                new_result: $result
+            let result = execute-example $ex.code $file
+            if ($result | describe) == "record<error: string>" {
+                # Skip failed examples - don't corrupt the file with error messages
+                print --stderr $"Warning: Example execution failed in ($file | path basename):"
+                print --stderr $"  Code: ($ex.code)"
+                print --stderr $"  Error: ($result.error | lines | first)"
+                null
+            } else {
+                {
+                    original: $ex.original
+                    new_result: $result
+                }
             }
         }
-    }
-    | compact
+        | compact
 
     # Replace each example's original block with updated version
     # Using full original text ensures unique matches even with duplicate results
     let updated = $results | reduce --fold $content {|item acc|
-        # Build new example by replacing just the result value in the original
-        # Escape $ as $$ to prevent regex backreference interpretation
-        let escaped_result = $item.new_result | str replace -a '$' '$$'
-        let new_example = $item.original
-        | str replace -r '\} --result .+$' $"} --result ($escaped_result)"
+            # Build new example by replacing just the result value in the original
+            # Escape $ as $$ to prevent regex backreference interpretation
+            let escaped_result = $item.new_result | str replace -a '$' '$$'
+            let new_example = $item.original
+                | str replace -r '\} --result .+$' $"} --result ($escaped_result)"
 
-        $acc | str replace $item.original $new_example
-    }
+            $acc | str replace $item.original $new_example
+        }
 
     $updated
     | if $echo { } else { save -f $file }
@@ -304,15 +304,15 @@ export def find-examples []: string -> table<original: string, code: string, res
     # Find @example: shape_gap ending with "@" followed by "example" token
     # The gap may include preceding newlines (e.g., "\n\n@")
     let example_indices = $tokens
-    | enumerate
-    | window 2
-    | where {|pair|
-        (
-            $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
-            and $pair.1.item.content == "example"
-        )
-    }
-    | each { $in.1.index } # Get index of "example" token
+        | enumerate
+        | window 2
+        | where {|pair|
+            (
+                $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
+                and $pair.1.item.content == "example"
+            )
+        }
+        | each { $in.1.index } # Get index of "example" token
 
     if ($example_indices | is-empty) {
         return []
@@ -324,8 +324,8 @@ export def find-examples []: string -> table<original: string, code: string, res
 
         # Find block tokens (shape_block) - opening and closing braces
         let block_tokens = $remaining
-        | enumerate
-        | where {|r| $r.item.shape == "shape_block" }
+            | enumerate
+            | where {|r| $r.item.shape == "shape_block" }
 
         if ($block_tokens | length) < 2 {
             # Malformed @example - skip
@@ -341,12 +341,12 @@ export def find-examples []: string -> table<original: string, code: string, res
 
         # Skip whitespace/newlines to find the flag
         let after_block_meaningful = $after_block
-        | where shape not-in ["shape_whitespace" "shape_newline"]
+            | where shape not-in ["shape_whitespace" "shape_newline"]
 
         let result_info = if ($after_block_meaningful | is-not-empty) and ($after_block_meaningful | first | get shape) == "shape_flag" and ($after_block_meaningful | first | get content) == "--result" {
             # Has --result flag - get the value token(s) (skip whitespace after flag)
             let result_tokens = $after_block_meaningful | skip 1
-            | where shape not-in ["shape_whitespace" "shape_newline"]
+                | where shape not-in ["shape_whitespace" "shape_newline"]
             let first_token = $result_tokens | first
 
             # For lists/records, find matching closing bracket
@@ -355,18 +355,18 @@ export def find-examples []: string -> table<original: string, code: string, res
                 let open_char = $first_token.content
                 # Find matching close by tracking bracket depth
                 let close_token = $result_tokens | skip 1
-                | reduce --fold {depth: 1 token: null} {|t, acc|
-                    if $acc.token != null { $acc } else {
-                        let new_depth = if $t.content == $open_char {
-                            $acc.depth + 1
-                        } else if $t.content == $close_char {
-                            $acc.depth - 1
-                        } else {
-                            $acc.depth
+                    | reduce --fold {depth: 1 token: null} {|t acc|
+                        if $acc.token != null { $acc } else {
+                            let new_depth = if $t.content == $open_char {
+                                $acc.depth + 1
+                            } else if $t.content == $close_char {
+                                $acc.depth - 1
+                            } else {
+                                $acc.depth
+                            }
+                            if $new_depth == 0 { {depth: 0 token: $t} } else { {depth: $new_depth token: null} }
                         }
-                        if $new_depth == 0 { {depth: 0 token: $t} } else { {depth: $new_depth token: null} }
                     }
-                }
                 $close_token.token.end
             } else {
                 $first_token.end
@@ -482,11 +482,11 @@ export def 'embed-add' [
     }
 
     let input_table = $input
-    | if $in == null { } else {
-        table -e --width 160
-        | comment-hash-colon
-        | $"\n($in)\n"
-    }
+        | if $in == null { } else {
+            table -e --width 160
+            | comment-hash-colon
+            | $"\n($in)\n"
+        }
 
     let script_with_output = $"\n($command) | print $in\n($input_table)"
 
@@ -562,22 +562,22 @@ export def check-clean-working-tree [
 } --result {a: null}
 export def variable-definitions-to-record []: string -> record {
     let script_with_variables_definitnions = str replace -a ';' ";\n"
-    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
-    | $in + (char nl)
+        | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+        | $in + (char nl)
 
     let parsed_vars = $script_with_variables_definitnions
-    | parse -r 'let \$?(?<var>.*) ='
+        | parse -r 'let \$?(?<var>.*) ='
 
     if ($parsed_vars | is-empty) {
         return {}
     }
 
     let variables_record = $parsed_vars
-    | get var
-    | uniq
-    | each { $'($in): $($in)' }
-    | str join ' '
-    | '{' + $in + '} | to nuon' # this way we ensure the proper formatting for bool, numeric and string vars
+        | get var
+        | uniq
+        | each { $'($in): $($in)' }
+        | str join ' '
+        | '{' + $in + '} | to nuon' # this way we ensure the proper formatting for bool, numeric and string vars
 
     let script = $script_with_variables_definitnions + $variables_record
 
@@ -606,11 +606,11 @@ export def replace-main-with-module-name [
 ] {
     let input = $in
     let module_name = $path
-    | path expand
-    | path split
-    | where $it != mod.nu
-    | last
-    | str replace -r '\.nu$' ' '
+        | path expand
+        | path split
+        | where $it != mod.nu
+        | last
+        | str replace -r '\.nu$' ' '
 
     $input
     | str replace -r '^main( |$)' $module_name
@@ -652,35 +652,35 @@ export def list-module-commands [
     --definitions-only # output only commands' names definitions
 ] {
     let script_content = open $module_path -r
-    | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
+        | if $nu.os-info.family == windows { str replace --all (char crlf) "\n" } else { }
     let all_tokens = $script_content | ast-complete
     let statements = $script_content | split-statements
 
     # Phase 1a: Find def statements using split-statements
     # Each statement has accurate byte ranges for scope detection
     let def_definitions = $statements
-    | where { $in.statement =~ '^(export )?def ' }
-    | insert caller { $in.statement | lines | first | extract-command-name | replace-main-with-module-name $module_path }
-    | select caller start end
+        | where { $in.statement =~ '^(export )?def ' }
+        | insert caller { $in.statement | lines | first | extract-command-name | replace-main-with-module-name $module_path }
+        | select caller start end
 
     # Phase 1b: Find attributes using ast-complete
     # The @ prefix appears as shape_gap, followed by the attribute token
     let attribute_definitions = $all_tokens
-    | enumerate
-    | window 2
-    | where {|pair|
-        $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
-    }
-    | each {|pair|
-        let attr_token = $pair.1.item
-        let at_start = $pair.0.item.end - 1 # @ is last char in the gap
-        {caller: ('@' + ($attr_token.content | split row ' ' | first)) start: $at_start}
-    }
-    | insert end null # attributes don't have scope ranges
+        | enumerate
+        | window 2
+        | where {|pair|
+            $pair.0.item.shape == "shape_gap" and ($pair.0.item.content | str ends-with "@")
+        }
+        | each {|pair|
+            let attr_token = $pair.1.item
+            let at_start = $pair.0.item.end - 1 # @ is last char in the gap
+            {caller: ('@' + ($attr_token.content | split row ' ' | first)) start: $at_start}
+        }
+        | insert end null # attributes don't have scope ranges
 
     let defined_defs = $def_definitions
-    | append $attribute_definitions
-    | insert filename_of_caller ($module_path | path basename)
+        | append $attribute_definitions
+        | insert filename_of_caller ($module_path | path basename)
 
     if $definitions_only or ($defined_defs | is-empty) {
         return ($defined_defs | select caller filename_of_caller)
@@ -692,40 +692,40 @@ export def list-module-commands [
     # For defs with end ranges, tokens must be within [start, end)
     # For attributes (end=null), use the old "start <=" logic
     let calls = $all_tokens
-    | each {|token|
-        # Find the definition this token belongs to
-        let matching_def = $defs_with_index
-        | where {|d|
-            if $d.end? != null {
-                # Def with scope: token must be within range
-                $d.start <= $token.start and $token.start < $d.end
+        | each {|token|
+            # Find the definition this token belongs to
+            let matching_def = $defs_with_index
+                | where {|d|
+                    if $d.end? != null {
+                        # Def with scope: token must be within range
+                        $d.start <= $token.start and $token.start < $d.end
+                    } else {
+                        # Attribute: use start-based matching (find last one before token)
+                        $d.start <= $token.start
+                    }
+                }
+                | last
+
+            if $matching_def == null {
+                $token | insert caller null | insert filename_of_caller null
             } else {
-                # Attribute: use start-based matching (find last one before token)
-                $d.start <= $token.start
+                $token | insert caller $matching_def.caller | insert filename_of_caller $matching_def.filename_of_caller
             }
         }
-        | last
-
-        if $matching_def == null {
-            $token | insert caller null | insert filename_of_caller null
-        } else {
-            $token | insert caller $matching_def.caller | insert filename_of_caller $matching_def.filename_of_caller
+        | where caller != null and caller !~ '^@' # exclude tokens inside attribute blocks
+        | where shape in ['shape_internalcall' 'shape_external']
+        | where content not-in (help commands | where command_type == 'keyword' | get name) # always exclude keywords (def, export def, etc.)
+        | if $keep_builtins { } else {
+            where content not-in (help commands | where command_type == 'built-in' | get name)
         }
-    }
-    | where caller != null and caller !~ '^@' # exclude tokens inside attribute blocks
-    | where shape in ['shape_internalcall' 'shape_external']
-    | where content not-in (help commands | where command_type == 'keyword' | get name) # always exclude keywords (def, export def, etc.)
-    | if $keep_builtins { } else {
-        where content not-in (help commands | where command_type == 'built-in' | get name)
-    }
-    | select caller content filename_of_caller
-    | rename --column {content: callee}
+        | select caller content filename_of_caller
+        | rename --column {content: callee}
 
     let defs_without_calls = $defined_defs
-    | where caller !~ '^@' # exclude attribute decorators from output
-    | select caller filename_of_caller
-    | where caller not-in ($calls.caller | uniq)
-    | insert callee null
+        | where caller !~ '^@' # exclude attribute decorators from output
+        | select caller filename_of_caller
+        | where caller not-in ($calls.caller | uniq)
+        | insert callee null
 
     $calls | append $defs_without_calls
 }
@@ -740,8 +740,8 @@ export def 'module-commands-code-to-record' [
     | where statement =~ '^(export )?def '
     | each {|s|
         let name = $s.statement | lines | first
-        | extract-command-name
-        | replace-main-with-module-name $module_path
+            | extract-command-name
+            | replace-main-with-module-name $module_path
         {$name: $s.statement}
     }
     | into record
@@ -789,41 +789,41 @@ export def 'dummy-command' [
     # for the command that will be executed in `nu -c`
     let dummy_closure = {|function|
         let params = scope commands
-        | where name == $command
-        | get -o signatures.0
-        | if $in == null {
-            error make --unspanned {msg: 'no command $command was found'}
-        } else { }
-        | values
-        | get 0
-        | each {
-            if ($in.parameter_type == 'rest') {
-                if ($in.parameter_name == '') {
-                    # if rest parameters named $rest, in the signatures it doesn't have a name
-                    upsert parameter_name 'rest'
-                } else { }
-                | default [] parameter_default
+            | where name == $command
+            | get -o signatures.0
+            | if $in == null {
+                error make --unspanned {msg: 'no command $command was found'}
             } else { }
-        }
-        | where parameter_name != null
-        | each {|i|
-            let param = $i.parameter_name | str replace -a '-' '_' | str replace '$' ''
+            | values
+            | get 0
+            | each {
+                if ($in.parameter_type == 'rest') {
+                    if ($in.parameter_name == '') {
+                        # if rest parameters named $rest, in the signatures it doesn't have a name
+                        upsert parameter_name 'rest'
+                    } else { }
+                    | default [] parameter_default
+                } else { }
+            }
+            | where parameter_name != null
+            | each {|i|
+                let param = $i.parameter_name | str replace -a '-' '_' | str replace '$' ''
 
-            let value = $i.parameter_default?
-            | default (if $i.parameter_type == 'switch' { false })
-            | to nuon # to handle nuls
+                let value = $i.parameter_default?
+                    | default (if $i.parameter_type == 'switch' { false })
+                    | to nuon # to handle nuls
 
-            $"let $($param) = ($value) # ($i.syntax_shape)"
-        }
-        | to text
+                $"let $($param) = ($value) # ($i.syntax_shape)"
+            }
+            | to text
 
         let main = view source $command
-        | lines
-        | upsert 0 {|i| '# ' + $i }
-        | drop
-        | append '# }'
-        | prepend $dotnu_vars_delim
-        | to text
+            | lines
+            | upsert 0 {|i| '# ' + $i }
+            | drop
+            | append '# }'
+            | prepend $dotnu_vars_delim
+            | to text
 
         "source '$file'\n\n" + $params + "\n\n" + $main
     }
@@ -871,28 +871,28 @@ export def execute-and-parse-results [
     let embed_in_script = {
 
         let input = table -e
-        | comment-hash-colon
+            | comment-hash-colon
 
         (capture-marker) + $input + "\n" + (capture-marker --close)
         | print
     }
 
     let embed_in_script_src = view source $embed_in_script
-    | 'def embed-in-script [] ' + $in
-    | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
-    | str replace 'capture-marker' $"'(capture-marker)'"
-    | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
+        | 'def embed-in-script [] ' + $in
+        | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
+        | str replace 'capture-marker' $"'(capture-marker)'"
+        | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
 
     let script_updated = $script
-    | lines
-    | each {
-        if $in !~ '^\s*#' {
-            # don't search for `print $in` inside of commented lines
-            str replace -r $capture_point '| embed-in-script'
-        } else { }
-    }
-    | prepend $embed_in_script_src
-    | str join "\n"
+        | lines
+        | each {
+            if $in !~ '^\s*#' {
+                # don't search for `print $in` inside of commented lines
+                str replace -r $capture_point '| embed-in-script'
+            } else { }
+        }
+        | prepend $embed_in_script_src
+        | str join "\n"
 
     if $script_path != null { $script_path | path dirname | cd $in }
 
@@ -984,12 +984,12 @@ export def ast-complete []: string -> table {
     if ($tokens | is-empty) { return [] }
 
     let gaps = [{end: 0}] ++ $tokens ++ [{start: ($source | str length -b)}]
-    | window 2
-    | where {|p| $p.0.end < $p.1.start }
-    | each {|p|
-        let content = $bytes | bytes at $p.0.end..<$p.1.start | decode utf8
-        {content: $content start: $p.0.end end: $p.1.start shape: (classify-gap $content)}
-    }
+        | window 2
+        | where {|p| $p.0.end < $p.1.start }
+        | each {|p|
+            let content = $bytes | bytes at $p.0.end..<$p.1.start | decode utf8
+            {content: $content start: $p.0.end end: $p.1.start shape: (classify-gap $content)}
+        }
 
     $tokens | select content start end shape | append $gaps | sort-by start
 }
@@ -1058,10 +1058,10 @@ export def split-statements []: string -> table<statement: string, start: int, e
             let stmt_text = $bytes | bytes at $stmt_start..<$token.start | decode utf8 | str trim
             if ($stmt_text | is-not-empty) {
                 $statements = $statements | append {
-                    statement: $stmt_text
-                    start: $stmt_start
-                    end: $token.start
-                }
+                        statement: $stmt_text
+                        start: $stmt_start
+                        end: $token.start
+                    }
             }
             $stmt_start = $token.end
         }
@@ -1071,10 +1071,10 @@ export def split-statements []: string -> table<statement: string, start: int, e
     let final_text = $bytes | bytes at $stmt_start..<($source | str length -b) | decode utf8 | str trim
     if ($final_text | is-not-empty) {
         $statements = $statements | append {
-            statement: $final_text
-            start: $stmt_start
-            end: ($source | str length -b)
-        }
+                statement: $final_text
+                start: $stmt_start
+                end: ($source | str length -b)
+            }
     }
 
     $statements
