@@ -6,7 +6,7 @@ session: 9b061696-a884-40ff-a2d6-dd91aa2cb639
 
 Full-file audit (2026-07-02). Items marked **[verified]** were reproduced live during the audit; the rest are read from the code. Order: embeds group first, then other verified bugs, then code reduction, then minor.
 
-## 1. embeds group (priority)
+~~## 1. embeds group (priority)~~ done
 
 ### 1.1 [verified] `embeds-update` rewrites unrelated blank lines — replace the string-splice with an index-based splice
 
@@ -46,7 +46,7 @@ The annotation prefix is hardcoded twice and must agree: `comment-hash-colon` wr
 
 On non-sqlite history it `print`s a message and returns nothing (`commands.nu:855-856`); the caller then dies on `get previous` with a confusing error far from the cause. Fail-fast: `error make` there.
 
-## 2. examples group
+~~## 2. examples group~~ done
 
 ### 2.1 [verified] `examples-update` silently skips multi-line `--result` values
 
@@ -64,7 +64,7 @@ It returns either a string or `{error: string}`, and the caller dispatches on `d
 
 The window-2 "shape_gap ends with `@`" pattern lives in `find-examples` (`commands.nu:629-638`) and again in `list-module-commands` (`commands.nu:996-1005`). Extract one helper (e.g. `find-attribute-tokens []: table -> table` over `ast-complete` output) used by both.
 
-## 3. parsing infrastructure
+~~## 3. parsing infrastructure~~ done
 
 ### 3.1 [verified] `split-statements`: braces inside comments corrupt depth tracking
 
@@ -74,15 +74,15 @@ This is upstream of `dependencies`, `scan-module-file` (so `extract-module-comma
 
 ## 4. extract-command-code group
 
-### 4.1 unquoted `source` paths break on spaces
+~~### 4.1 unquoted `source` paths break on spaces~~ done
 
 `commands.nu:167` (`$'source ($module_path)'`) and `commands.nu:1276` (`$"source ($file)..."`) emit unquoted paths; a path with a space produces a broken script. The template inside `dummy_closure` already quotes it (`commands.nu:1268`) — make the other two match.
 
-### 4.2 duplicated "no command found" check — one side is dead
+~~### 4.2 duplicated "no command found" check — one side is dead~~ done
 
 `dummy-command`'s generated script errors when the command is missing (`commands.nu:1235`), and `extract-command-code` re-checks via `$extracted_command.1? == null` (`commands.nu:147`). Determine which path actually fires when `nu -n -c` fails inside the pipeline and keep exactly one check (fail-fast at the source).
 
-### 4.3 `variable-definitions-to-record` swallows failures
+~~### 4.3 `variable-definitions-to-record` swallows failures~~ done
 
 `commands.nu:913-915` returns `{}` on any non-zero exit — a broken vars header in a previously extracted file silently loses the user's saved variables instead of reporting the parse failure.
 
@@ -105,8 +105,8 @@ This is upstream of `dependencies`, `scan-module-file` (so `extract-module-comma
 ## Suggested order
 
 1. ~~§5 dead code (pure deletion, zero risk)~~ done
-2. §3.1 split-statements comment fix (verified bug, affects most commands)
-3. §1.1–1.3 embeds-update splice rewrite + count assert (verified bugs, one coherent change)
-4. §2.1–2.2 examples-update regex + dead field
-5. §1.4–1.7, §2.3–2.4, §4.1–4.3 as small follow-ups
+2. ~~§3.1 split-statements comment fix (verified bug, affects most commands)~~ done
+3. ~~§1.1–1.3 embeds-update splice rewrite + count assert (verified bugs, one coherent change)~~ done
+4. ~~§2.1–2.2 examples-update regex + dead field~~ done
+5. ~~§1.4–1.7, §2.3–2.4, §4.1–4.3 as small follow-ups~~ done
 6. §4.4 only after a decision
