@@ -112,8 +112,8 @@ export def 'generate-numd' [] {
 # Extract command code from a module and save it as a `.nu` file that can be sourced.
 # By executing this `.nu` file, you'll have all the variables in your environment for debugging or development.
 export def 'extract-command-code' [
-    $module_path: path # path to a Nushell module file
-    $command: string@nu-completion-command-name # the name of the command to extract
+    module_path: path # path to a Nushell module file
+    command: string@nu-completion-command-name # the name of the command to extract
     --output: path # a file path to save the extracted command script
     --clear-vars # clear variables previously set in the extracted .nu file
     --echo # output the command to the terminal
@@ -170,7 +170,7 @@ export def 'extract-command-code' [
 #
 # Finds commands from `export def` and `export use [...commands]` patterns.
 export def 'list-module-exports' [
-    $path: path
+    path: path
 ]: nothing -> list<string> {
     open $path --raw
     | extract-exported-commands
@@ -186,7 +186,7 @@ export def 'list-module-exports' [
 # Finds `def main` and `def 'main subcommand'` patterns - the commands
 # available when you `use` the module.
 export def 'list-module-interface' [
-    $path: path
+    path: path
 ]: nothing -> list<string> {
     open $path --raw
     | lines
@@ -534,7 +534,7 @@ export def 'get-command-from-hist' [] {
 }
 
 export def check-clean-working-tree [
-    $module_path: path
+    module_path: path
 ] {
     cd ($module_path | path dirname)
 
@@ -607,7 +607,7 @@ export def 'extract-command-name' [
 }
 
 export def replace-main-with-module-name [
-    $path: path
+    path: path
 ] {
     let input = $in
     let module_name = $path
@@ -757,8 +757,8 @@ export def 'module-commands-code-to-record' [
 
 # Format example blocks (annotation, command, result) and a command description as `# `-prefixed comment lines
 export def format-substitutions [
-    $examples: table
-    $command_description: string
+    examples: table
+    command_description: string
 ] {
     $examples
     | each {|i|
@@ -789,9 +789,9 @@ export def 'join-next' [
 }
 
 export def 'dummy-command' [
-    $command: string
-    $file: path
-    $dotnu_vars_delim: string
+    command: string
+    file: path
+    dotnu_vars_delim: string
 ] {
     # the closure below is used as highlighted in an editor constructor
     # for the command that will be executed in `nu -c`
