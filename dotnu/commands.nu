@@ -10,6 +10,10 @@
 # So the two can't disagree on what a capture point is.
 const capture_point = '\|\s*print\s+\$in\s*$'
 
+# The embed annotation prefix. `comment-hash-colon` writes it; `embeds-remove` strips it —
+# a single const so the two can't drift apart.
+const annotation_prefix = '# => '
+
 # Check .nu module files to determine which commands depend on other commands.
 @example 'Analyze command dependencies in a module' {
     dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
@@ -1258,24 +1262,8 @@ export def 'dummy-command' [
 # => │ 0 │ b │
 # => ╰───┴───╯
 '
-export def 'comment-hash-colon' [
-    --source-code
-] {
-    let input = $in
-    let closure = {|i|
-        $i | into string | ansi strip | str trim --char "\n" | str replace --all --regex --multiline '^' "# => "
-    }
-
-    if $source_code {
-        view source $closure
-        | lines
-        | skip
-        | str replace '$i ' ''
-        | drop
-        | to text
-    } else {
-        do $closure $input
-    }
+export def 'comment-hash-colon' []: any -> string {
+    into string | ansi strip | str trim --char "\n" | str replace --all --regex --multiline '^' $annotation_prefix
 }
 
 # Extract captured output from a script file execution results
@@ -1284,21 +1272,18 @@ export def execute-and-parse-results [
     capture_indices: list<int> # line indices to instrument, from `find-capture-points`
     --script_path: path
 ] {
-    # Prints output that will be embedded back into the script
-    let embed_in_script = {
-
-        let input = table --expand
-            | comment-hash-colon
-
-        (capture-marker) + $input + "\n" + (capture-marker --close)
-        | print
-    }
-
-    let embed_in_script_src = view source $embed_in_script
-        | 'def embed-in-script [] ' + $in
-        | str replace '(capture-marker --close)' $"'(capture-marker --close)'"
-        | str replace 'capture-marker' $"'(capture-marker)'"
-        | str replace 'comment-hash-colon' (comment-hash-colon --source-code)
+    # `embed-in-script` comment-prefixes stdin and wraps it in capture markers so the parse
+    # step below can slice each capture point's output back out. It is generated as plain
+    # text — markers baked in as literals, `comment-hash-colon` (and the const it reads)
+    # prepended verbatim — so the script stands alone under `nu -n`.
+    let embed_in_script_src = [
+        $"const annotation_prefix = ($annotation_prefix | to nuon)"
+        (view source comment-hash-colon)
+        "def embed-in-script [] {"
+        "    let input = table --expand | comment-hash-colon"
+        $"    \"(capture-marker)\" + $input + \"\\n\" + \"(capture-marker --close)\" | print"
+        "}"
+    ] | str join (char nl)
 
     let script_updated = $script
         | lines
@@ -1333,7 +1318,7 @@ export def find-capture-points []: string -> table<index: int, line: string> {
 export def embeds-remove [] {
     normalize-newlines
     | lines
-    | where not ($it starts-with "# => ")
+    | where not ($it starts-with $annotation_prefix)
     | str join "\n"
     | $in + "\n" # Explicit LF with trailing newline for Windows compatibility
 }
