@@ -747,7 +747,7 @@ export def 'module-commands-code-to-record' [
     | into record
 }
 
-# prepare pairs of substitutions of old results and new results
+# Format example blocks (annotation, command, result) and a command description as `# `-prefixed comment lines
 export def format-substitutions [
     $examples
     $command_description
@@ -904,7 +904,7 @@ export def execute-and-parse-results [
     | get capture0
 }
 
-# Finds lines where embed-in-script is used in the script
+# Finds capture-point lines (uncommented lines ending in `| print $in`)
 export def find-capture-points [] {
     lines
     | where $it !~ '^\s*#' and $it =~ $capture_point
