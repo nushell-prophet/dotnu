@@ -811,8 +811,7 @@ export def --env 'embeds-setup' [
 export def 'embed-add' [
     --pipe-further (-p) # output input further to the pipeline
     --published # output the published representation into terminal
-    --dry_run
-    #todo: --
+    --dry-run
 ] {
     let input = $in
 
@@ -822,7 +821,8 @@ export def 'embed-add' [
         get-command-from-hist | get previous
     } else {
         get-command-from-hist | get current
-        | str replace --regex '(?s)\| ?dotnu embed-add.*$' ''
+        # `dotnu ` optional: with `use dotnu/commands.nu *` the call is a bare `embed-add`
+        | str replace --regex '(?s)\| ?(dotnu )?embed-add.*$' ''
     }
 
     let commented_input = $input
