@@ -1311,7 +1311,9 @@ export def capture-marker [
 export def extract-exported-commands [
     base_dir?: path # directory that `export use` paths are relative to
 ]: string -> list<string> {
-    let tokens = ast --flatten $in | flatten span
+    # Why: 0.114 rejects string pipeline input flowing into `ast`; capture $in first
+    let source = $in
+    let tokens = ast --flatten $source | flatten span
 
     $tokens
     | enumerate

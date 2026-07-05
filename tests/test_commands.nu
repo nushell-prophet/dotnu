@@ -1,4 +1,4 @@
-use std assert
+use std/assert
 use std/testing *
 
 # Import all functions from commands.nu (including internals not re-exported via mod.nu)

@@ -5,7 +5,7 @@
 # Thanks for your attention!
 
 def print-header [ ] {
-    str upcase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | lines | fill -a center --width ((term size).columns - 4) | table --index false
+    str uppercase | figlet -w 140 -f 'phm-largetype.flf' -C utf8 | lines | fill -a center --width ((term size).columns - 4) | table --index false
 };
 def add-gradient [] {
     let $input = $in
