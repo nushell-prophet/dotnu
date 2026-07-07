@@ -483,7 +483,7 @@ export def 'embeds-update' [
         if ($match | is-empty) {
             [$it.item]
         } else {
-            [$it.item] ++ ($match.0.capture | str trim --char "\n" | lines)
+            [$it.item] ++ ($match.0.capture | comment-hash-colon | lines)
         }
     }
     | flatten
@@ -1232,19 +1232,20 @@ export def execute-and-parse-results [
     capture_indices: list<int> # line indices to instrument, from `find-capture-points`
     --script_path: path
 ]: nothing -> table<index: int, capture: string> {
-    # `embed-in-script` comment-prefixes stdin and wraps it in capture markers so the parse
-    # step below can slice each capture point's output back out. Each capture is tagged with
+    # `embed-in-script` wraps stdin's rendered value in capture markers so the parse step
+    # below can slice each capture point's output back out. Each capture is tagged with
     # its source line index (baked into the `embed-in-script` call) so results are placed by
     # identity, not by execution order — two capture points running out of source order would
     # otherwise have their annotations swapped. Markers are emitted as consts so the generated
-    # script stands alone under `nu -n`.
+    # script stands alone under `nu -n`. Captures stay raw here; `# => ` prefixing happens in
+    # the caller. Not `view source comment-hash-colon` injected into the child because: that
+    # string form resolves the name at runtime among top-level-visible commands, so it breaks
+    # whenever dotnu is imported without `*` (e.g. `use dotnu/`).
     let embed_in_script_src = [
-        $"const annotation_prefix = ($annotation_prefix | to nuon)"
         $"const capture_open = ((capture-marker) | to nuon)"
         $"const capture_close = ((capture-marker --close) | to nuon)"
-        (view source comment-hash-colon)
         "def embed-in-script [idx: int] {"
-        "    let input = table --expand | comment-hash-colon"
+        "    let input = table --expand | into string"
         '    $capture_open + ($idx | into string) + ":" + $input + "\n" + $capture_close | print'
         "}"
     ] | str join (char nl)
