@@ -1030,3 +1030,47 @@ def "extract-module-command --vars preserves edited values on re-extraction" [] 
 
     rm --force $out
 }
+
+# =============================================================================
+# Public API smoke test
+# =============================================================================
+
+# Runs every mod.nu-exported command in a fresh `nu -n` child that imports only the
+# public API (`use dotnu/`) — the way users load dotnu. The star import at the top of
+# this file puts every internal command in this process's top-level scope, which masks
+# bugs in runtime name lookups (e.g. `view source <string>` resolves against
+# top-level-visible commands): such code passes every in-process test yet fails in a
+# user's session. Smoke only — asserts each command runs; unit and snapshot tests own
+# correctness.
+@test
+def "public api runs under prefixed import alone" [] {
+    let example_fixture = $nu.temp-dir | path join 'test-public-api-smoke-example.nu'
+    "@example 'add' { 1 + 1 } --result 2\nexport def dummy [] { 1 }" | save --force $example_fixture
+
+    # One entry per mod.nu export; null = not runnable headless (embed-add reads the
+    # interactive shell history)
+    let snippets = {
+        'dependencies': 'dotnu dependencies tests/assets/b/example-mod1.nu tests/assets/b/example-mod2.nu | ignore'
+        'embed-add': null
+        'embeds-remove': "'1 + 1' | dotnu embeds-remove | ignore"
+        'embeds-update': "'1 + 1 | print $in' | dotnu embeds-update | ignore"
+        'examples-update': $"dotnu examples-update ($example_fixture) --echo | ignore"
+        'expand-code': "\"#** [1 2] | to text\n#**end\" | dotnu expand-code | ignore"
+        'extract-module-command': 'dotnu extract-module-command tests/assets/module-embed greet-loud | ignore'
+        'filter-commands-with-no-tests': 'dotnu dependencies tests/assets/b/example-mod1.nu | dotnu filter-commands-with-no-tests | ignore'
+        'generate-numd': "'ls' | dotnu generate-numd | ignore"
+        'list-module-exports': 'dotnu list-module-exports tests/assets/b/example-mod1.nu | ignore'
+        'list-module-interface': 'dotnu list-module-interface tests/assets/b/example-mod1.nu | ignore'
+        'module-commands-code-to-record': 'dotnu module-commands-code-to-record tests/assets/b/example-mod1.nu | ignore'
+        'set-x': 'dotnu set-x tests/assets/set-x-demo.nu --echo --quiet | ignore'
+    }
+
+    # A command added to mod.nu without a smoke entry here fails loudly
+    let public = open dotnu/mod.nu | parse --regex '"(?<name>[^"]+)"' | get name
+    assert equal ($snippets | columns | sort) ($public | sort) 'every mod.nu export needs a smoke snippet in this test'
+
+    let body = $snippets | values | compact | str join "\n"
+    let result = ^$nu.current-exe -n -c $"use dotnu/\n($body)" | complete
+    rm --force $example_fixture
+    assert equal $result.exit_code 0 $"public-API smoke run failed:\n($result.stderr)"
+}
