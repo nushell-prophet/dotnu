@@ -37,7 +37,7 @@ use dotnu
 
 The `| print $in` suffix acts as a simple `print` in native Nushell and as a capture marker for dotnu, so scripts remain valid and functional even when run without loading the `dotnu` module.
 
-<!-- numd-gen-start: use ../numd/numd; use dotnu; numd doc 'dotnu embeds-update' -->
+<!-- numd-gen-start: use numd; use dotnu; numd doc 'dotnu embeds-update' -->
 ### `dotnu embeds-update`
 
 Inserts captured output back into the script at capture points
@@ -47,7 +47,7 @@ The main command of the embeds family: takes a script, rewrites every `print $in
 Run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
 
 ```nushell no-run
-dotnu embeds-update <file?>    # `nothing -> string`, `string -> nothing`
+dotnu embeds-update (file)    # `string -> nothing`, `string -> string`, `nothing -> string`, `nothing -> nothing`
 ```
 
 **Parameters:**
@@ -63,15 +63,15 @@ dotnu embeds-update <file?>    # `nothing -> string`, `string -> nothing`
 
 While it is easy to write scripts in an editor, there are several convenience helper commands that facilitate populating script files from the terminal.
 
-<!-- numd-gen-start: numd doc 'dotnu embed-add' --header-level 4 -->
 #### `dotnu embed-add`
 
+<!-- numd-gen-start: numd doc 'dotnu embed-add' --no-header -->
 Embed stdin together with its command into the file
 
 Captures only the pipeline you run it on — useful for fine-grained examples.
 
 ```nushell no-run
-dotnu embed-add    # `any -> any`
+dotnu embed-add
 ```
 
 **Flags:**
@@ -82,13 +82,13 @@ dotnu embed-add    # `any -> any`
 - `--dry-run`
 <!-- numd-gen-end -->
 
-<!-- numd-gen-start: numd doc 'dotnu embeds-remove' --header-level 4 -->
 #### `dotnu embeds-remove`
 
+<!-- numd-gen-start: numd doc 'dotnu embeds-remove' --no-header -->
 Removes annotation lines starting with "# => " from the script
 
 ```nushell no-run
-dotnu embeds-remove    # `any -> any`
+dotnu embeds-remove
 ```
 <!-- numd-gen-end -->
 
@@ -127,7 +127,7 @@ Like `embeds-update`, you can run it on a file path (`dotnu expand-code file.nu`
 Check .nu module files to determine which commands depend on other commands.
 
 ```nushell no-run
-dotnu dependencies <...paths>    # `any -> any`
+dotnu dependencies ...(paths)
 ```
 
 **Parameters:**
@@ -166,7 +166,7 @@ Filter commands after `dotnu dependencies` that aren't used by any test command.
 Test commands are detected by: name contains 'test' OR file matches 'test*.nu'
 
 ```nushell no-run
-dotnu filter-commands-with-no-tests    # `any -> any`
+dotnu filter-commands-with-no-tests
 ```
 
 **Examples:**
@@ -194,7 +194,7 @@ Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new scrip
 that will print the code of each block before executing it, and print the timings of each block's execution.
 
 ```nushell no-run
-dotnu set-x <file>    # `any -> any`
+dotnu set-x <file>
 ```
 
 **Parameters:**
@@ -268,7 +268,7 @@ Generate `.numd` from `.nu` divided into blocks by "\n\n"
 Pipe a `.nu` script into this command to convert it into `.numd` format (markdown with code blocks).
 
 ```nushell no-run
-dotnu generate-numd    # `any -> any`
+dotnu generate-numd
 ```
 <!-- numd-gen-end -->
 
@@ -357,7 +357,7 @@ dotnu list-module-interface tests/assets/b/example-mod1.nu
 Extract all commands from a module as a record of {command_name: source_code}
 
 ```nushell no-run
-dotnu module-commands-code-to-record <module_path>    # `any -> any`
+dotnu module-commands-code-to-record <module_path>
 ```
 
 **Parameters:**
