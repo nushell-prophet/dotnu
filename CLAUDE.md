@@ -26,6 +26,8 @@ nu toolkit.nu release --major   # major bump
 
 **Important**: Always use `nu toolkit.nu test` (not `test-unit` or `test-integration` separately). The combined command provides proper test output and summary.
 
+**Output mode is auto-detected.** On a terminal you get the human view — only the non-passing tests (with the assertion on failure), then a `N passed, M failed` summary. Piped or redirected (agents, CI) you get machine-readable JSON. This uses `is-terminal --stdout`, not `$nu.is-interactive` (which is false for any `nu toolkit.nu ...` script run, so it can't tell agent from human). Force with `--json` / `--pretty`; `--all` also lists passing tests. JSON rows are `{type, name, status: 'passed'|'failed'|'changed', file, message}` — `message` holds the assertion text on failure. The JSON channel always carries every row; the failures-only trim is human-view only.
+
 ```bash
 # Check test coverage - requires both source AND test files
 nu -c 'use dotnu/; ["dotnu/*.nu" "tests/test_commands.nu" "toolkit.nu"] | each { glob $in } | flatten | dotnu dependencies ...$in | dotnu filter-commands-with-no-tests'
