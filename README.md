@@ -37,7 +37,23 @@ use dotnu
 
 The `| print $in` suffix acts as a simple `print` in native Nushell and as a capture marker for dotnu, so scripts remain valid and functional even when run without loading the `dotnu` module.
 
-<!-- numd-gen: use ../numd/numd; use dotnu; numd doc 'dotnu embeds-update' -->
+<!-- numd-gen-start: use ../numd/numd; use dotnu; numd doc 'dotnu embeds-update' -->
+### `dotnu embeds-update`
+
+Inserts captured output back into the script at capture points
+
+```nushell no-run
+dotnu embeds-update <file?>    # `nothing -> string`, `string -> nothing`
+```
+
+**Parameters:**
+
+- `file?: path`
+
+**Flags:**
+
+- `--echo` — output updates to stdout
+<!-- numd-gen-end -->
 
 The main command. It takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
 
@@ -47,11 +63,34 @@ You can run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or 
 
 While it is easy to write scripts in an editor, there are several convenience helper commands that facilitate populating script files from the terminal.
 
-<!-- numd-gen: numd doc 'dotnu embed-add' --header-level 4 -->
+<!-- numd-gen-start: numd doc 'dotnu embed-add' --header-level 4 -->
+#### `dotnu embed-add`
+
+Embed stdin together with its command into the file
+
+```nushell no-run
+dotnu embed-add    # `any -> any`
+```
+
+**Flags:**
+
+- `--capture-path: path` — capture file to append to; remembered for later calls in the session
+- `--pipe-further (-p)` — output input further to the pipeline
+- `--published` — output the published representation into terminal
+- `--dry-run`
+<!-- numd-gen-end -->
 
 Capture only the pipeline you run it on; useful for fine-grained examples. Pass `--capture-path` to point at a capture file; it is remembered for later calls in the same session.
 
-<!-- numd-gen: numd doc 'dotnu embeds-remove' --header-level 4 -->
+<!-- numd-gen-start: numd doc 'dotnu embeds-remove' --header-level 4 -->
+#### `dotnu embeds-remove`
+
+Removes annotation lines starting with "# => " from the script
+
+```nushell no-run
+dotnu embeds-remove    # `any -> any`
+```
+<!-- numd-gen-end -->
 
 Strip all captured output, leaving clean code.
 
@@ -84,13 +123,103 @@ Like `embeds-update`, you can run it on a file path (`dotnu expand-code file.nu`
 
 ## Dependency Analysis
 
-<!-- numd-gen: numd doc 'dotnu dependencies' -->
+<!-- numd-gen-start: numd doc 'dotnu dependencies' -->
+### `dotnu dependencies`
 
-<!-- numd-gen: numd doc 'dotnu filter-commands-with-no-tests' -->
+Check .nu module files to determine which commands depend on other commands.
+
+```nushell no-run
+dotnu dependencies <...paths>    # `any -> any`
+```
+
+**Parameters:**
+
+- `...paths: path` — paths to nushell module files
+
+**Flags:**
+
+- `--keep-builtins` — keep builtin commands in the result page
+- `--definitions-only` — output only commands' names definitions
+
+**Examples:**
+
+Analyze command dependencies in a module
+
+```nushell no-run
+dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
+# => ╭───┬──────────┬────────────────────┬──────────┬──────╮
+# => │ # │  caller  │ filename_of_caller │  callee  │ step │
+# => ├───┼──────────┼────────────────────┼──────────┼──────┤
+# => │ 0 │ question │ ask.nu             │          │    0 │
+# => │ 1 │ hello    │ hello.nu           │          │    0 │
+# => │ 2 │ say      │ mod.nu             │ hello    │    0 │
+# => │ 3 │ say      │ mod.nu             │ hi       │    0 │
+# => │ 4 │ say      │ mod.nu             │ question │    0 │
+# => │ 5 │ hi       │ mod.nu             │          │    0 │
+# => │ 6 │ test-hi  │ test-hi.nu         │ hi       │    0 │
+# => ╰───┴──────────┴────────────────────┴──────────┴──────╯
+```
+<!-- numd-gen-end -->
+
+<!-- numd-gen-start: numd doc 'dotnu filter-commands-with-no-tests' -->
+### `dotnu filter-commands-with-no-tests`
+
+Filter commands after `dotnu dependencies` that aren't used by any test command.
+Test commands are detected by: name contains 'test' OR file matches 'test*.nu'
+
+```nushell no-run
+dotnu filter-commands-with-no-tests    # `any -> any`
+```
+
+**Examples:**
+
+Find commands not covered by tests
+
+```nushell no-run
+dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
+# => ╭───┬──────────┬────────────────────╮
+# => │ # │  caller  │ filename_of_caller │
+# => ├───┼──────────┼────────────────────┤
+# => │ 0 │ question │ ask.nu             │
+# => │ 1 │ hello    │ hello.nu           │
+# => │ 2 │ say      │ mod.nu             │
+# => ╰───┴──────────┴────────────────────╯
+```
+<!-- numd-gen-end -->
 
 ## Script Profiling
 
-<!-- numd-gen: numd doc 'dotnu set-x' -->
+<!-- numd-gen-start: numd doc 'dotnu set-x' -->
+### `dotnu set-x`
+
+Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
+that will print the code of each block before executing it, and print the timings of each block's execution.
+
+```nushell no-run
+dotnu set-x <file>    # `any -> any`
+```
+
+**Parameters:**
+
+- `file: path` — path to `.nu` file
+
+**Flags:**
+
+- `--regex: string` — regex to split on blocks (default: '\n+\n' - blank lines)
+- `--echo` — output script to terminal
+- `--quiet` — don't print any messages
+
+**Examples:**
+
+Generate script with timing instrumentation
+
+```nushell no-run
+set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
+# => mut $prev_ts = ( date now )
+# => print ("> sleep 0.5sec" | nu-highlight)
+# => sleep 0.5sec
+```
+<!-- numd-gen-end -->
 
 Example with a simple script:
 
@@ -133,7 +262,15 @@ dotnu set-x $filename --echo | lines | table -i false
 
 ## Utilities
 
-<!-- numd-gen: numd doc 'dotnu generate-numd' -->
+<!-- numd-gen-start: numd doc 'dotnu generate-numd' -->
+### `dotnu generate-numd`
+
+Generate `.numd` from `.nu` divided into blocks by "\n\n"
+
+```nushell no-run
+dotnu generate-numd    # `any -> any`
+```
+<!-- numd-gen-end -->
 
 Pipe a `.nu` script into this command to convert it into `.numd` format (markdown with code blocks).
 
@@ -216,5 +353,16 @@ dotnu list-module-interface tests/assets/b/example-mod1.nu
 # => ╰───┴──────╯
 ```
 
-<!-- numd-gen: numd doc 'dotnu module-commands-code-to-record' -->
+<!-- numd-gen-start: numd doc 'dotnu module-commands-code-to-record' -->
+### `dotnu module-commands-code-to-record`
 
+Extract all commands from a module as a record of {command_name: source_code}
+
+```nushell no-run
+dotnu module-commands-code-to-record <module_path>    # `any -> any`
+```
+
+**Parameters:**
+
+- `module_path: path` — path to a Nushell module file
+<!-- numd-gen-end -->
