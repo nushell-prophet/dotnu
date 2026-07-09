@@ -42,6 +42,10 @@ The `| print $in` suffix acts as a simple `print` in native Nushell and as a cap
 
 Inserts captured output back into the script at capture points
 
+The main command of the embeds family: takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
+
+Run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
+
 ```nushell no-run
 dotnu embeds-update <file?>    # `nothing -> string`, `string -> nothing`
 ```
@@ -55,10 +59,6 @@ dotnu embeds-update <file?>    # `nothing -> string`, `string -> nothing`
 - `--echo` — output updates to stdout
 <!-- numd-gen-end -->
 
-The main command. It takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
-
-You can run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
-
 ### Helper commands
 
 While it is easy to write scripts in an editor, there are several convenience helper commands that facilitate populating script files from the terminal.
@@ -67,6 +67,8 @@ While it is easy to write scripts in an editor, there are several convenience he
 #### `dotnu embed-add`
 
 Embed stdin together with its command into the file
+
+Captures only the pipeline you run it on — useful for fine-grained examples.
 
 ```nushell no-run
 dotnu embed-add    # `any -> any`
@@ -80,8 +82,6 @@ dotnu embed-add    # `any -> any`
 - `--dry-run`
 <!-- numd-gen-end -->
 
-Capture only the pipeline you run it on; useful for fine-grained examples. Pass `--capture-path` to point at a capture file; it is remembered for later calls in the same session.
-
 <!-- numd-gen-start: numd doc 'dotnu embeds-remove' --header-level 4 -->
 #### `dotnu embeds-remove`
 
@@ -91,8 +91,6 @@ Removes annotation lines starting with "# => " from the script
 dotnu embeds-remove    # `any -> any`
 ```
 <!-- numd-gen-end -->
-
-Strip all captured output, leaving clean code.
 
 ## Expand Code — Generate Code from Directives
 
@@ -267,12 +265,12 @@ dotnu set-x $filename --echo | lines | table -i false
 
 Generate `.numd` from `.nu` divided into blocks by "\n\n"
 
+Pipe a `.nu` script into this command to convert it into `.numd` format (markdown with code blocks).
+
 ```nushell no-run
 dotnu generate-numd    # `any -> any`
 ```
 <!-- numd-gen-end -->
-
-Pipe a `.nu` script into this command to convert it into `.numd` format (markdown with code blocks).
 
 ```nushell
 "sleep 0.5sec\n\nsleep 0.7sec" | dotnu generate-numd

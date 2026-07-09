@@ -145,6 +145,8 @@ export def 'set-x' [
 }
 
 # Generate `.numd` from `.nu` divided into blocks by "\n\n"
+#
+# Pipe a `.nu` script into this command to convert it into `.numd` format (markdown with code blocks).
 export def 'generate-numd' [] {
     split row --regex "\n+\n"
     | each { $"```nu\n($in)\n```\n" }
@@ -440,6 +442,10 @@ export def 'list-module-interface' [
 }
 
 # Inserts captured output back into the script at capture points
+#
+# The main command of the embeds family: takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
+#
+# Run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
 export def 'embeds-update' [
     file?: path
     --echo # output updates to stdout
@@ -822,6 +828,8 @@ export def execute-example [code: string file: path]: nothing -> string {
 }
 
 # Embed stdin together with its command into the file
+#
+# Captures only the pipeline you run it on — useful for fine-grained examples.
 export def --env 'embed-add' [
     --capture-path: path # capture file to append to; remembered for later calls in the session
     --pipe-further (-p) # output input further to the pipeline
