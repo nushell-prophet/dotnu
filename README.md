@@ -52,7 +52,7 @@ dotnu embeds-update (file)    # `string -> nothing`, `string -> string`, `nothin
 
 **Parameters:**
 
-- `file?: path`
+- `(file): path`
 
 **Flags:**
 
@@ -182,6 +182,38 @@ dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-n
 # => │ 1 │ hello    │ hello.nu           │
 # => │ 2 │ say      │ mod.nu             │
 # => ╰───┴──────────┴────────────────────╯
+```
+<!-- numd-gen-end -->
+
+## Static Checks
+
+<!-- numd-gen-start: numd doc 'dotnu diagnose' -->
+### `dotnu diagnose`
+
+Check a .nu file with `nu --ide-check` and resolve each diagnostic to a line number,
+the source line, and the exact flagged text. Raw `--ide-check` floods stdout with type
+hints and reports spans as byte offsets; this keeps only real diagnostics and makes
+them actionable.
+
+```nushell no-run
+dotnu diagnose <file>
+```
+
+**Parameters:**
+
+- `file: path` — path to `.nu` file
+
+**Examples:**
+
+Find static errors in a script
+
+```nushell no-run
+diagnose tests/assets/diagnose-demo.nu
+# => ╭───┬──────┬──────────┬─────────────────────┬──────────────────┬────────────╮
+# => │ # │ line │ severity │       message       │      source      │    span    │
+# => ├───┼──────┼──────────┼─────────────────────┼──────────────────┼────────────┤
+# => │ 0 │    2 │ Error    │ Variable not found. │ print $undefined │ $undefined │
+# => ╰───┴──────┴──────────┴─────────────────────┴──────────────────┴────────────╯
 ```
 <!-- numd-gen-end -->
 
@@ -331,13 +363,13 @@ List all exported definitions from a module file. Finds commands from `export de
 
 ```nushell
 dotnu list-module-exports dotnu/mod.nu | first 5
-# => ╭───┬─────────────────╮
-# => │ 0 │ dependencies    │
-# => │ 1 │ embed-add       │
-# => │ 2 │ embeds-remove   │
-# => │ 3 │ embeds-update   │
-# => │ 4 │ examples-update │
-# => ╰───┴─────────────────╯
+# => ╭───┬───────────────╮
+# => │ 0 │ dependencies  │
+# => │ 1 │ diagnose      │
+# => │ 2 │ embed-add     │
+# => │ 3 │ embeds-remove │
+# => │ 4 │ embeds-update │
+# => ╰───┴───────────────╯
 ```
 
 ### `dotnu list-module-interface`

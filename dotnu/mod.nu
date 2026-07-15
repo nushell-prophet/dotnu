@@ -1,5 +1,6 @@
 export use commands.nu [
     "dependencies"
+    "diagnose"
     "embed-add"
     "embeds-remove"
     "embeds-update"

@@ -292,6 +292,28 @@ def "filter-commands-with-no-tests passes an empty dependencies result through" 
 }
 
 # =============================================================================
+# Tests for diagnose
+# =============================================================================
+
+@test
+def "diagnose resolves span to line number and source" [] {
+    let result = diagnose tests/assets/diagnose-demo.nu
+
+    assert equal $result [{
+        line: 2
+        severity: "Error"
+        message: "Variable not found."
+        source: "print $undefined"
+        span: "$undefined"
+    }]
+}
+
+@test
+def "diagnose returns empty for a clean file" [] {
+    assert equal (diagnose tests/assets/diagnose-clean.nu) []
+}
+
+# =============================================================================
 # Tests for generate-numd
 # =============================================================================
 
@@ -1051,6 +1073,7 @@ def "public api runs under prefixed import alone" [] {
     # interactive shell history)
     let snippets = {
         'dependencies': 'dotnu dependencies tests/assets/b/example-mod1.nu tests/assets/b/example-mod2.nu | ignore'
+        'diagnose': 'dotnu diagnose tests/assets/diagnose-demo.nu | ignore'
         'embed-add': null
         'embeds-remove': "'1 + 1' | dotnu embeds-remove | ignore"
         'embeds-update': "'1 + 1 | print $in' | dotnu embeds-update | ignore"

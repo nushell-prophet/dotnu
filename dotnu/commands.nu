@@ -102,6 +102,35 @@ export def 'filter-commands-with-no-tests' [] {
     | where caller not-in $covered_with_tests
 }
 
+# Check a .nu file with `nu --ide-check` and resolve each diagnostic to a line number,
+# the source line, and the exact flagged text. Raw `--ide-check` floods stdout with type
+# hints and reports spans as byte offsets; this keeps only real diagnostics and makes
+# them actionable.
+@example 'Find static errors in a script' {
+    diagnose tests/assets/diagnose-demo.nu
+} --result [[line, severity, message, source, span]; [2, "Error", "Variable not found.", "print $undefined", "$undefined"]]
+export def 'diagnose' [
+    file: path # path to `.nu` file
+] {
+    let content = open --raw $file # raw keeps byte positions aligned with --ide-check spans
+    let source_lines = $content | lines
+
+    nu --ide-check 10 $file | lines | each { from json }
+    | where type == "diagnostic"
+    | each {|d|
+        let line_num = $content | str substring 0..<$d.span.start | split row "\n" | length
+        {
+            line: $line_num
+            severity: $d.severity
+            message: $d.message
+            # An empty span right after the final newline points one past the last line
+            source: ($source_lines | get --optional ($line_num - 1) | default '' | str trim)
+            span: ($content | str substring $d.span.start..<$d.span.end) # ..< matches the exclusive span.end
+        }
+    }
+    | uniq # identical diagnostics repeat (common with mutable capture errors)
+}
+
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
 @example 'Generate script with timing instrumentation' {
