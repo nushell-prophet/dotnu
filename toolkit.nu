@@ -82,7 +82,9 @@ def machine-mode [--json --pretty]: nothing -> bool {
 def collect-unit-results []: nothing -> table {
     use ../nutest/nutest
 
-    nutest run-tests --path tests/ --match-suites 'test_commands' --returns table --display nothing
+    # Why: no --match-suites filter — nutest's own discovery glob already picks up only
+    # `test_*.nu` / `*_test.nu`, and naming one suite let test_examples.nu rot unnoticed.
+    nutest run-tests --path tests/ --returns table --display nothing
     | each {|row|
         let status = if $row.result == 'PASS' { 'passed' } else { 'failed' }
         let message = if $status == 'failed' {
