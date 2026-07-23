@@ -66,7 +66,7 @@ export def 'dependencies' [
 # Filter commands after `dotnu dependencies` that aren't used by any test command.
 # Test commands are detected by: name contains 'test' OR file matches 'test*.nu'
 @example 'Find commands not covered by tests' {
-    dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
+    dotnu dependencies ...(glob tests/assets/module-say/say/*.nu) | dotnu filter-commands-with-no-tests
 } --result [[caller filename_of_caller]; [question "ask.nu"] [hello "hello.nu"] [say "mod.nu"]]
 export def 'filter-commands-with-no-tests' [] {
     let input = $in
@@ -107,7 +107,7 @@ export def 'filter-commands-with-no-tests' [] {
 # hints and reports spans as byte offsets; this keeps only real diagnostics and makes
 # them actionable.
 @example 'Find static errors in a script' {
-    diagnose tests/assets/diagnose-demo.nu
+    dotnu diagnose tests/assets/diagnose-demo.nu
 } --result [[line, severity, message, source, span]; [2, "Error", "Variable not found.", "print $undefined", "$undefined"]]
 export def 'diagnose' [
     file: path # path to `.nu` file
@@ -134,7 +134,7 @@ export def 'diagnose' [
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
 @example 'Generate script with timing instrumentation' {
-    set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
+    dotnu set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
 } --result 'mut $prev_ts = ( date now )
 print ("> sleep 0.5sec" | nu-highlight)
 sleep 0.5sec

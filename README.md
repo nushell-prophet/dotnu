@@ -174,7 +174,7 @@ dotnu filter-commands-with-no-tests
 Find commands not covered by tests
 
 ```nushell no-run
-dependencies ...(glob tests/assets/module-say/say/*.nu) | filter-commands-with-no-tests
+dotnu dependencies ...(glob tests/assets/module-say/say/*.nu) | dotnu filter-commands-with-no-tests
 # => ╭───┬──────────┬────────────────────╮
 # => │ # │  caller  │ filename_of_caller │
 # => ├───┼──────────┼────────────────────┤
@@ -208,7 +208,7 @@ dotnu diagnose <file>
 Find static errors in a script
 
 ```nushell no-run
-diagnose tests/assets/diagnose-demo.nu
+dotnu diagnose tests/assets/diagnose-demo.nu
 # => ╭───┬──────┬──────────┬─────────────────────┬──────────────────┬────────────╮
 # => │ # │ line │ severity │       message       │      source      │    span    │
 # => ├───┼──────┼──────────┼─────────────────────┼──────────────────┼────────────┤
@@ -244,7 +244,7 @@ dotnu set-x <file>
 Generate script with timing instrumentation
 
 ```nushell no-run
-set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
+dotnu set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
 # => mut $prev_ts = ( date now )
 # => print ("> sleep 0.5sec" | nu-highlight)
 # => sleep 0.5sec
