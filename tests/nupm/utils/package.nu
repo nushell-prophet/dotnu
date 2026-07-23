@@ -1,3 +1,4 @@
+use dirs.nu PACKAGE_FILENAME
 # Open nupm.nuon
 export def open-package-file [dir: path] {
     if not ($dir | path exists) {
@@ -6,11 +7,11 @@ export def open-package-file [dir: path] {
         )
     }
 
-    let package_file = $dir | path join "nupm.nuon"
+    let package_file = $dir | path join $PACKAGE_FILENAME
 
     if not ($package_file | path exists) {
         throw-error "package_file_not_found" (
-            $'Could not find "nupm.nuon" in ($dir) or any parent directory.'
+            $'Could not find "($PACKAGE_FILENAME)" in ($dir) or any parent directory.'
         )
     }
 
@@ -19,7 +20,7 @@ export def open-package-file [dir: path] {
     log debug "checking package file for missing required keys"
     let required_keys = [$. $.name $.version $.type]
     let missing_keys = $required_keys
-        | where {|key| ($package | get -i $key) == null}
+        | where {|key| ($package | get -o $key) == null}
     if not ($missing_keys | is-empty) {
         throw-error "invalid_package_file" (
             $"($package_file) is missing the following required keys:"
@@ -27,13 +28,15 @@ export def open-package-file [dir: path] {
         )
     }
 
+    # TODO: Verify types of each field
+
     $package
 }
 
 # Lists files of a package
 #
 # This will be useful for file integrity checks
-export def list-package-files [pkg_dir: path, pkg: record] -> list<path> {
+export def list-package-files [pkg_dir: path, pkg: record]: nothing -> list<oneof<path, list<path>>> {
     let activation = match $pkg.type {
         'module' => $'use ($pkg.name)'
         'script' => {
@@ -45,9 +48,11 @@ export def list-package-files [pkg_dir: path, pkg: record] -> list<path> {
 
     let src = $"
         ($activation)
+        let pkg_dir = echo ($pkg_dir) | path split
         view files
-        | where \($it.filename | str starts-with ($pkg_dir)\)
+        | where \($it.filename | path split | take \($pkg_dir | length\)\) == $pkg_dir
         | get filename
+        | path expand
         | to nuon"
 
     mut files = []
@@ -60,9 +65,9 @@ export def list-package-files [pkg_dir: path, pkg: record] -> list<path> {
         }
     }
 
-    $files ++= ($pkg.scripts?
+    $files ++= [($pkg.scripts?
         | default []
-        | each {|script| $pkg_dir | path join $script})
+        | each {|script| $pkg_dir | path join $script})]
 
     $files
 }
