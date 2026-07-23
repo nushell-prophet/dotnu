@@ -432,11 +432,11 @@ def "list-module-exports resolves export use forms" [] {
 @test
 def "embeds-update updates embeds in piped script" [] {
     # Script needs newlines around capture points for replacement to work
-    let script = "\n'hello' | str upcase | print $in\n"
+    let script = "\n'hello' | str uppercase | print $in\n"
     let result = $script | embeds-update
 
     # Should contain the original command
-    assert ($result =~ 'str upcase')
+    assert ($result =~ 'str uppercase')
     # Should contain the embedded output
     assert ($result =~ '# => HELLO')
 }
@@ -444,7 +444,7 @@ def "embeds-update updates embeds in piped script" [] {
 @test
 def "embeds-update annotates a capture point on the first line" [] {
     # No leading newline before the capture point
-    let script = "'hello' | str upcase | print $in\n"
+    let script = "'hello' | str uppercase | print $in\n"
     let result = $script | embeds-update
 
     assert ($result =~ '# => HELLO')

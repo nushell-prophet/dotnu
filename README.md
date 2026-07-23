@@ -354,7 +354,7 @@ dotnu extract-module-command tests/assets/module-embed greet-loud --vars
 # => let $upper = false
 # => #dotnu-vars-end
 # =>     let msg = $"(greet-word) (subject)!"
-# =>     if $upper { $msg | str upcase } else { $msg }
+# =>     if $upper { $msg | str uppercase } else { $msg }
 ```
 
 ### `dotnu list-module-exports`
