@@ -60,7 +60,7 @@ dotnu/
 
 ### Key Implementation Details
 
-**AST-based attribute detection** (`commands.nu:499-508`): Uses `nu --ide-ast` to detect `@test`, `@example` decorators accurately, preventing false positives from `@something` inside strings.
+**AST-based attribute detection** (`find-attribute-tokens`): Uses the `ast --flatten` token stream (via `ast-complete`) to detect `@test`, `@example` decorators accurately, preventing false positives from `@something` inside strings.
 
 **Dependency tracking algorithm**:
 1. Line-based parsing finds `def` statements with byte offsets

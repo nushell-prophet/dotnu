@@ -750,7 +750,7 @@ export def find-examples []: string -> table<original: string, code: string> {
             | enumerate
             | where {|r| $r.item.shape == "shape_block" }
 
-        # Not "the first two block tokens": `nu --ide-ast` gives `(` and `)` the
+        # Not "the first two block tokens": `ast --flatten` gives `(` and `)` the
         # shape_block shape too, so an example calling `(glob ...)` resolved its
         # closing brace to that `(`, never found --result, and was dropped with no
         # warning. Match by content and depth-count instead, like --result below.
