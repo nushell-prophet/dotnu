@@ -1030,9 +1030,17 @@ export def escape-for-quotes []: string -> string {
 # Command names to exclude from call analysis: keywords always, built-ins too
 # unless `--keep-builtins`. Single source of truth so `list-module-commands` and
 # `dependencies` can't disagree on what counts as excluded.
+#
+# Why the child process: `help commands` reports the *caller's* scope, and a shadowed
+# built-in vanishes from it entirely — a custom `print` drops the built-in `print` row,
+# so `print` stops counting as excluded and starts showing up as a dependency edge.
+# The same files would then yield a different answer depending on who called. nutest
+# does exactly this (`export def print` to capture test output). Asking a clean `nu -n`
+# instead costs one spawn (~7ms over the in-process call) and buys a deterministic result.
 export def excluded-command-names [--keep-builtins]: nothing -> list<string> {
     let excluded_types = if $keep_builtins { ['keyword'] } else { ['keyword' 'built-in'] }
-    help commands | where command_type in $excluded_types | get name
+    ^$nu.current-exe -n -c $"help commands | where command_type in ($excluded_types | to nuon) | get name | to nuon"
+    | from nuon
 }
 
 # Extract table with information on which commands use which commands

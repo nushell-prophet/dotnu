@@ -199,6 +199,16 @@ def "dependencies returns table with expected columns" [] {
 }
 
 @test
+def "dependencies ignores built-ins shadowed in the calling scope" [] {
+    # nutest shadows `print` with its own capturing command, so this test body runs in a
+    # scope where `help commands` no longer reports `print` as a built-in. The answer must
+    # not depend on that: `test-hi` calls `print`, and that must stay out of the result.
+    let result = dependencies ...(glob tests/assets/module-say/say/*.nu)
+
+    assert equal ($result | where callee == 'print') []
+}
+
+@test
 def "dependencies handles module-say example" [] {
     let result = dependencies ...(glob tests/assets/module-say/say/*.nu)
 

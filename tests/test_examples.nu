@@ -4,11 +4,9 @@ use std/testing *
 # Each test here re-runs an `@example` block from dotnu/commands.nu and checks it still
 # produces its recorded `--result` — the promise the README makes to a reader.
 #
-# The example code runs in a fresh `nu -n` child that imports only the public API, the
-# same way `execute-example` records the results. Not in-process because: nutest shadows
-# `print` with its own capturing command, and `dependencies` asks `help commands` which
-# names are built-in — so an in-process run reports a bogus `test-hi -> print` edge that
-# no user would ever see.
+# The example code runs in a fresh `nu -n` child that imports only the public API — the
+# same way `execute-example` records the results, so what is checked here is what a
+# reader of the README would actually get.
 def run-example [code: string]: nothing -> any {
     let result = ^$nu.current-exe -n -c $"use dotnu/\n($code) | to nuon" | complete
     assert equal $result.exit_code 0 $"example failed:\n($result.stderr)"
