@@ -88,7 +88,13 @@ def collect-unit-results []: nothing -> table {
     | each {|row|
         let status = if $row.result == 'PASS' { 'passed' } else { 'failed' }
         let message = if $status == 'failed' {
-            let msgs = $row.output | each {|o| $o.msg? } | compact
+            # Why: a failing assertion yields records with `msg`, but a failure at the suite
+            # level — nutest can't even parse the suite command it generates — yields plain
+            # strings. Reading `.msg?` off a string aborted the whole run with
+            # `incompatible_path_access`, hiding the error that actually caused it.
+            let msgs = $row.output | each {|o|
+                if ($o | describe --detailed | get type) == 'record' { $o.msg? } else { $o | to text | ansi strip }
+            } | compact
             if ($msgs | is-empty) { null } else { $msgs | str join '; ' }
         } else { null }
         {type: 'unit' name: $row.test status: $status file: null message: $message}
