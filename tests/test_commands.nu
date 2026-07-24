@@ -808,6 +808,15 @@ def "execute-example runs simple expression" [] {
 }
 
 @test
+def "execute-example runs code that names the module more than once" [] {
+    # Why: the prefix used to be stripped textually, and only at the start — a second
+    # `<module> <cmd>` later in the pipeline died as an unknown external command.
+    let result = execute-example 'say hi there | append (say hi again)' tests/assets/module-say/say/mod.nu
+
+    assert equal $result '["hi there!", "hi again!"]'
+}
+
+@test
 def "execute-example errors on failure" [] {
     let temp = $nu.temp-dir | path join 'test-execute-example.nu'
     'export def dummy [] { 1 }' | save -f $temp

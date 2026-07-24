@@ -852,16 +852,21 @@ export def execute-example [code: string file: path]: nothing -> string {
     let abs_file = $file | path expand
     let dir = $abs_file | path dirname
     let parent_dir = $dir | path dirname
-    let module_name = $dir | path basename
 
-    # Strip module prefix from code if present (e.g., "dotnu dependencies" -> "dependencies")
-    let normalized_code = $code | str replace --regex $'^($module_name) ' ''
+    # Why import twice: `source` brings the file's commands in under their bare names
+    # (what the internal examples call), `use` brings the public ones in under the
+    # `dotnu <cmd>` form the public examples are written in. Not a textual strip of the
+    # prefix, which is what this used to do: an example can name the module more than
+    # once (`dotnu dependencies ... | dotnu filter-commands-with-no-tests`), and only
+    # the leading occurrence was stripped — the rest died as an unknown external command.
+    let module_import = if ($dir | path join 'mod.nu' | path exists) { $"use '($dir)'" } else { '' }
 
     # Build script: cd to parent, source file directly to access all functions
     let script = $"
         cd '($parent_dir)'
         source '($abs_file)'
-        ($normalized_code) | to nuon
+        ($module_import)
+        ($code) | to nuon
     "
 
     let result = do --ignore-errors { ^$nu.current-exe -n -c $script } | complete
