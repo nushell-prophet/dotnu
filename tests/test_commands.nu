@@ -689,6 +689,33 @@ def foo [] {}'
 }
 
 @test
+def "find-examples keeps an example whose code has parentheses" [] {
+    # Why: `(` and `)` carry shape_block too, so taking the first two block tokens
+    # made the `(` the closing brace and silently dropped the example.
+    let input = '@example "parens" {
+    1 + (2 * 3)
+} --result 7
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result | length) 1
+    assert equal ($result.code.0) '1 + (2 * 3)'
+}
+
+@test
+def "find-examples keeps an example whose code nests a closure" [] {
+    let input = '@example "closure" {
+    [1 2] | each {|x| $x + 1 }
+} --result [2 3]
+def foo [] {}'
+
+    let result = $input | find-examples
+
+    assert equal ($result.code.0) '[1 2] | each {|x| $x + 1 }'
+}
+
+@test
 def "find-examples handles empty input" [] {
     let result = '' | find-examples
 

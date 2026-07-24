@@ -750,16 +750,31 @@ export def find-examples []: string -> table<original: string, code: string> {
             | enumerate
             | where {|r| $r.item.shape == "shape_block" }
 
-        if ($block_tokens | length) < 2 {
-            # Malformed @example - skip
-            return null
-        }
+        # Not "the first two block tokens": `nu --ide-ast` gives `(` and `)` the
+        # shape_block shape too, so an example calling `(glob ...)` resolved its
+        # closing brace to that `(`, never found --result, and was dropped with no
+        # warning. Match by content and depth-count instead, like --result below.
+        let open_block = $block_tokens | where {|b| $b.item.content | str starts-with "{" } | first
+        if $open_block == null { return null }
 
-        let open_brace = $block_tokens | first | get item
-        let close_brace = $block_tokens | get 1 | get item
+        let close_block = $block_tokens
+            | where index > $open_block.index
+            | reduce --fold {depth: 1 block: null} {|b acc|
+                if $acc.block != null { $acc } else {
+                    let opened = $b.item.content | str starts-with "{" | into int
+                    let closed = $b.item.content | str ends-with "}" | into int
+                    let depth = $acc.depth + $opened - $closed
+                    if $depth == 0 { {depth: 0 block: $b} } else { {depth: $depth block: null} }
+                }
+            }
+            | get block
+        if $close_block == null { return null }
+
+        let open_brace = $open_block.item
+        let close_brace = $close_block.item
 
         # Check for --result flag after the closing brace
-        let close_brace_idx = $block_tokens | get 1 | get index
+        let close_brace_idx = $close_block.index
         let after_block = $remaining | skip ($close_brace_idx + 1)
 
         # Skip whitespace/newlines to find the flag
