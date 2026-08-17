@@ -1162,7 +1162,8 @@ export def module-files [
             name: ($expanded | path basename)
             source: $expanded
             is_dir: true
-            files: (glob ($expanded | path join '**' '*.nu') | sort)
+            # Why: on Windows `path join` yields `\`, which glob reads as an escape character
+            files: (glob ($expanded | path join '**' '*.nu' | str replace --all '\' '/') | sort)
         }
     } else {
         {
