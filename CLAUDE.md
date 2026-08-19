@@ -51,10 +51,14 @@ dotnu/
 
 **mod.nu** exports these public commands:
 - `dependencies` - Analyze command call chains
+- `diagnose` - Resolve `nu --ide-check` diagnostics to line numbers, source lines and the flagged text
+- `examples-update` - Run `@example` blocks and refresh their `--result` values
+- `expand-code` - Generate code lines from `#**` directive comments (the inverse of `embeds-update`)
 - `extract-module-command` - Extract command with its dependency cascade from a module into one self-contained script (runtime, via `view source`); `--vars`/`--set-vars` emit a debug scaffold with the target's parameters as editable `let` bindings and its body unwrapped
 - `filter-commands-with-no-tests` - Find untested commands
 - `list-module-exports` - List all exported definitions (export def + export use)
 - `list-module-interface` - List module's callable interface (main commands)
+- `module-commands-code-to-record` - Extract every command of a module as a `{command_name: source_code}` record
 - `embeds-*` / `embed-add` - Literate programming tools
 - `set-x` / `generate-numd` - Script profiling
 
@@ -63,7 +67,7 @@ dotnu/
 **AST-based attribute detection** (`find-attribute-tokens`): Uses the `ast --flatten` token stream (via `ast-complete`) to detect `@test`, `@example` decorators accurately, preventing false positives from `@something` inside strings.
 
 **Dependency tracking algorithm**:
-1. Line-based parsing finds `def` statements with byte offsets
+1. `split-statements` (built on `ast-complete`) finds `def` statements with byte ranges
 2. AST parsing identifies attribute decorators
 3. Range-based lookup associates calls with defining scopes
 4. `generate` streams recursive dependency chains
@@ -73,10 +77,12 @@ dotnu/
 ```
 tests/
 ├── test_commands.nu    # Unit tests (nutest framework)
+├── test_examples.nu    # Unit tests that execute the `@example` blocks
 ├── assets/             # Test fixtures
 │   ├── b/              # Module dependency examples
 │   └── module-say/     # Real-world module example
-└── output-yaml/        # Integration test outputs
+├── ast-cases/          # Embed scripts documenting AST behavior (not run by the suite)
+└── output-yaml/        # Integration test snapshots (yaml and nuon)
 ```
 
 Unit tests use `@test` decorator. Integration tests compare command output against fixture files.
@@ -85,12 +91,12 @@ Unit tests use `@test` decorator. Integration tests compare command output again
 
 - **nutest**: Testing framework (cloned in CI from https://github.com/vyadh/nutest.git)
 - **numd**: Optional, for markdown integration
-- **std library**: Uses `std/iter` (scan) and `std/testing` (assert)
+- **std library**: Tests use `std/assert` (assert) and `std/testing` (the `@test` attribute)
 
 ## Conventions
 
 - **Naming**: All commands use kebab-case
 - **Exports**: All commands in `commands.nu` are exported; `mod.nu` controls public API
 - **Internal commands**: Exported from `commands.nu` but not listed in `mod.nu`
-- **Test detection**: Commands named `test*` or in `test*.nu` files
+- **Test detection**: Command name contains `test`, or the file matches `test*.nu`
 - **Documentation**: `@example` decorators with `--result` for expected output
