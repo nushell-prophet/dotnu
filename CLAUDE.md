@@ -24,9 +24,15 @@ nu toolkit.nu release --minor   # minor bump
 nu toolkit.nu release --major   # major bump
 ```
 
-**Important**: Always use `nu toolkit.nu test` (not `test-unit` or `test-integration` separately). The combined command provides proper test output and summary.
+**Important**: Always use `nu toolkit.nu test` (not `test-unit` or `test-integration` separately).
+The combined command provides proper test output and summary.
 
-**Output mode is auto-detected.** On a terminal you get the human view — only the non-passing tests (with the assertion on failure), then a `N passed, M failed` summary. Piped or redirected (agents, CI) you get machine-readable JSON. This uses `is-terminal --stdout`, not `$nu.is-interactive` (which is false for any `nu toolkit.nu ...` script run, so it can't tell agent from human). Force with `--json` / `--pretty`; `--all` also lists passing tests. JSON rows are `{type, name, status: 'passed'|'failed'|'changed', file, message}` — `message` holds the assertion text on failure. The JSON channel always carries every row; the failures-only trim is human-view only.
+**Output mode is auto-detected.** On a terminal you get the human view — only the non-passing tests (with the assertion on failure), then a `N passed, M failed` summary.
+Piped or redirected (agents, CI) you get machine-readable JSON.
+This uses `is-terminal --stdout`, not `$nu.is-interactive` (which is false for any `nu toolkit.nu ...` script run, so it can't tell agent from human).
+Force with `--json` / `--pretty`; `--all` also lists passing tests.
+JSON rows are `{type, name, status: 'passed'|'failed'|'changed', file, message}` — `message` holds the assertion text on failure.
+The JSON channel always carries every row; the failures-only trim is human-view only.
 
 ```bash
 # Check test coverage - requires both source AND test files
@@ -43,7 +49,9 @@ dotnu/
 └── commands.nu     # All implementation (all commands exported)
 ```
 
-**Export convention**: All commands in `commands.nu` are exported by default (for internal use, testing, and development). The public API is managed through `mod.nu`, which selectively re-exports only the user-facing commands. To add a command to the public API, add it to the list in `mod.nu`.
+**Export convention**: All commands in `commands.nu` are exported by default (for internal use, testing, and development).
+The public API is managed through `mod.nu`, which selectively re-exports only the user-facing commands.
+To add a command to the public API, add it to the list in `mod.nu`.
 
 **Imports**:
 - `use dotnu/` - import public API commands
@@ -85,7 +93,8 @@ tests/
 └── output-yaml/        # Integration test snapshots (yaml and nuon)
 ```
 
-Unit tests use `@test` decorator. Integration tests compare command output against fixture files.
+Unit tests use `@test` decorator.
+Integration tests compare command output against fixture files.
 
 ## Dependencies
 
