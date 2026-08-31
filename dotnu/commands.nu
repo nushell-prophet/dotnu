@@ -232,22 +232,31 @@ export def extract-module-command [
 
     let env_files = $scan | where kind == 'export-env' | get file | uniq
     if not $allow_export_env and ($env_files | is-not-empty) {
-        error make --unspanned {
+        error make {
             msg: (
                 "importing this module would run `export-env` blocks from:\n"
                 + ($env_files | str join (char nl))
-                + "\nInspect them, then rerun with `--allow-export-env` to accept that."
             )
+            label: {
+                text: "this module contains `export-env`"
+                span: (metadata $module_path).span
+            }
+            help: "Inspect those blocks, then rerun with `--allow-export-env` to accept that."
         }
     }
 
     let local_uses = $scan | where kind == 'use' and resolved_use != null
     if not $module.is_dir and ($local_uses | is-not-empty) {
-        error make --unspanned {
+        error make {
             msg: (
                 "a single-file module with local imports can't be extracted — the imported files are outside the module:\n"
                 + ($local_uses.statement | str join (char nl))
             )
+            label: {
+                text: "this file imports local modules"
+                span: (metadata $module_path).span
+            }
+            help: "Point this at the module directory instead, so the imported files come along."
         }
     }
 
@@ -312,8 +321,14 @@ export def extract-module-command [
     let names = $sources | get name
     let target = $command_name | if $in == 'main' { $module.name } else { }
     if $target not-in $names {
-        error make --unspanned {
-            msg: $"no command `($target)` among the module commands: ($names | str join ', ')"
+        error make {
+            msg: $"no command `($target)` in this module"
+            label: {
+                text: "not among the module commands"
+                span: (metadata $command_name).span
+            }
+            help: $"Available commands: ($names | str join ', ')"
+            code: 'dotnu::extract_module_command::unknown_command'
         }
     }
 
