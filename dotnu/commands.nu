@@ -15,6 +15,8 @@ const capture_point = '\|\s*print\s+\$in\s*$'
 const annotation_prefix = '# => '
 
 # Check .nu module files to determine which commands depend on other commands.
+@category dotnu
+@search-terms "callers" "callees" "call-graph" "uses"
 @example 'Analyze command dependencies in a module' {
     dotnu dependencies ...(glob tests/assets/module-say/say/*.nu)
 } --result [{caller: question, filename_of_caller: "ask.nu", callee: null, step: 0}, {caller: hello, filename_of_caller: "hello.nu", callee: null, step: 0}, {caller: say, callee: hello, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: hi, filename_of_caller: "mod.nu", step: 0}, {caller: say, callee: question, filename_of_caller: "mod.nu", step: 0}, {caller: hi, filename_of_caller: "mod.nu", callee: null, step: 0}, {caller: test-hi, callee: hi, filename_of_caller: "test-hi.nu", step: 0}]
@@ -65,6 +67,8 @@ export def 'dependencies' [
 
 # Filter commands after `dotnu dependencies` that aren't used by any test command.
 # Test commands are detected by: name contains 'test' OR file matches 'test*.nu'
+@category dotnu
+@search-terms "coverage" "untested" "uncovered"
 @example 'Find commands not covered by tests' {
     dotnu dependencies ...(glob tests/assets/module-say/say/*.nu) | dotnu filter-commands-with-no-tests
 } --result [[caller, filename_of_caller]; [question, "ask.nu"], [hello, "hello.nu"], [say, "mod.nu"]]
@@ -106,6 +110,8 @@ export def 'filter-commands-with-no-tests' [] {
 # the source line, and the exact flagged text. Raw `--ide-check` floods stdout with type
 # hints and reports spans as byte offsets; this keeps only real diagnostics and makes
 # them actionable.
+@category dotnu
+@search-terms "ide-check" "lint" "check" "errors"
 @example 'Find static errors in a script' {
     dotnu diagnose tests/assets/diagnose-demo.nu
 } --result [[line, severity, message, source, span]; [2, Error, "Variable not found.", "print $undefined", "$undefined"]]
@@ -133,6 +139,8 @@ export def 'diagnose' [
 
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
+@category dotnu
+@search-terms "trace" "timing" "instrument" "set -x"
 @example 'Generate script with timing instrumentation' {
     dotnu set-x tests/assets/set-x-demo.nu --echo | lines | first 3 | to text
 } --result "mut $prev_ts = ( date now )
@@ -176,6 +184,8 @@ export def 'set-x' [
 # Generate `.numd` from `.nu` divided into blocks by "\n\n"
 #
 # Pipe a `.nu` script into this command to convert it into `.numd` format (markdown with code blocks).
+@category dotnu
+@search-terms "markdown" "numd" "convert"
 export def 'generate-numd' [] {
     split row --regex "\n+\n"
     | each { $"```nu\n($in)\n```\n" }
@@ -206,6 +216,8 @@ export def 'generate-numd' [] {
 # attributes (`@example`) are dropped by `view source`; commands exposed with a submodule
 # prefix (`use sub.nu` without `*` or an item list) land in the output as plain `def`
 # because their prefixed names can't be matched back to the static scan.
+@category dotnu
+@search-terms "unbundle" "inline" "standalone" "scaffold"
 export def extract-module-command [
     module_path: path # path to a module directory or a single .nu module file
     command_name: string # exposed name of the command to extract (`main` means the module itself)
@@ -447,6 +459,8 @@ export def extract-module-command [
 #
 # Finds commands from `export def` and `export use` patterns, including bare
 # and glob re-exports (resolved by reading the referenced submodule).
+@category dotnu
+@search-terms "public" "api" "export use"
 export def 'list-module-exports' [
     path: path
 ]: nothing -> list<string> {
@@ -459,6 +473,8 @@ export def 'list-module-exports' [
 #
 # Finds `def main` and `def 'main subcommand'` patterns - the commands
 # available when you `use` the module.
+@category dotnu
+@search-terms "main" "subcommands" "api"
 export def 'list-module-interface' [
     path: path
 ]: nothing -> list<string> {
@@ -475,6 +491,8 @@ export def 'list-module-interface' [
 # The main command of the embeds family: takes a script, rewrites every `print $in` line so its output is easy to parse, runs the modified script, captures what each marked line prints, and then replaces the old `# =>` blocks in the original file with the fresh output.
 #
 # Run it on a file path (e.g., `dotnu embeds-update dotnu-capture.nu`) or pipe a script into it (e.g., `"ls | print $in" | dotnu embeds-update`).
+@category dotnu
+@search-terms "capture" "annotate" "literate" "output"
 export def 'embeds-update' [
     file?: path
     --echo # output updates to stdout
@@ -529,6 +547,8 @@ export def 'embeds-update' [
 
 # Execute @example blocks and update their --result values
 # Similar to embeds-update but for @example attributes
+@category dotnu
+@search-terms "example" "result" "docs" "refresh"
 export def 'examples-update' [
     file: path # path to .nu file with @example blocks
     --echo # output updates to stdout instead of saving
@@ -586,6 +606,8 @@ export def 'examples-update' [
 #
 # The directive and end marker are never touched, so re-running only refreshes the lines
 # between them — keeping generated code in sync with whatever the pipeline reads.
+@category dotnu
+@search-terms "generate" "codegen" "directive"
 export def 'expand-code' [
     file?: path # .nu file to expand in place; omit to pipe the script in and get the result back
     --echo # output the result to stdout instead of saving to the file
@@ -879,6 +901,8 @@ export def execute-example [code: string file: path]: nothing -> string {
 # Embed stdin together with its command into the file
 #
 # Captures only the pipeline you run it on — useful for fine-grained examples.
+@category dotnu
+@search-terms "capture" "append" "literate"
 export def --env 'embed-add' [
     --capture-path: path # capture file to append to; remembered for later calls in the session
     --pipe-further (-p) # output input further to the pipeline
@@ -1136,6 +1160,8 @@ export def list-module-commands [
 }
 
 # Extract all commands from a module as a record of {command_name: source_code}
+@category dotnu
+@search-terms "source" "bodies" "view source"
 export def 'module-commands-code-to-record' [
     module_path: path # path to a Nushell module file
 ] {
@@ -1347,6 +1373,8 @@ export def find-capture-points []: string -> table<index: int, line: string> {
 }
 
 # Removes annotation lines starting with "# => " from the script
+@category dotnu
+@search-terms "strip" "clean" "annotations"
 export def embeds-remove [] {
     normalize-newlines
     | lines
