@@ -13,4 +13,5 @@ export use commands.nu [
     "list-module-interface"
     "module-commands-code-to-record"
     "set-x"
+    "style let-layout"
 ]

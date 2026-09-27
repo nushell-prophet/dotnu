@@ -64,6 +64,7 @@ To add a command to the public API, add it to the list in `mod.nu`.
 - `expand-code` - Generate code lines from `#**` directive comments (the inverse of `embeds-update`)
 - `extract-module-command` - Extract command with its dependency cascade from a module into one self-contained script (runtime, via `view source`); `--vars`/`--set-vars` emit a debug scaffold with the target's parameters as editable `let` bindings and its body unwrapped
 - `filter-commands-with-no-tests` - Find untested commands
+- `style let-layout` - Find a run of `let`s with no blank line before the next statement, and a `let` pipeline whose `|` is not indented 4 spaces past the `let`; `--fix` inserts the blank lines
 - `list-module-exports` - List all exported definitions (export def + export use)
 - `list-module-interface` - List module's callable interface (main commands)
 - `module-commands-code-to-record` - Extract every command of a module as a `{command_name: source_code}` record

@@ -324,6 +324,176 @@ def "diagnose returns empty for a clean file" [] {
 }
 
 # =============================================================================
+# Tests for style let-layout
+# =============================================================================
+
+@test
+def "find-let-gaps counts each let that runs into the next statement" [] {
+    let cases = [
+        [code want];
+        ["let x = 1\nprint $x" 1]
+        ["let x = 1\n\nprint $x" 0]
+        ["let x = ls\n    | length\nprint $x" 1]
+        ["let x = ls\n    # note\n    | length\n\nprint $x" 0]
+        ["let a = 1; print $a" 0]
+        ["def f [] {\n    let a = 1\n    foo | each {|x|\n        let y = $x\n        bar $y\n    }\n}" 2]
+        ["let s = \"let q = 1\nfoo\"\n\nbar" 0]
+        ["let a = [\n  1\n]\nfoo" 1]
+        ["let a = [\n  1\n]\n    | where true\n\nfoo" 0]
+        ["let a = 1\n# why\nlet b = 2\n\nfoo" 0]
+        ["let a = 1\n# why\nfoo" 1]
+        ["mut a = 1\n$a += 1" 1]
+        ["let m = match 1 {\n  1 => 'a'\n  _ => 'b'\n}\nfoo" 1]
+        ["for x in [1 2] { let y = $x; bar }" 0]
+        ["def f [\n  a: int # a ( comment\n] {\n  let x = 1\n  foo\n}" 1]
+        ["each {|r|\n  let x = $r\n  {a: $x}\n}" 1]
+        ["let x = 1\r\n\r\nfoo\r\n" 0]
+        ["let x = 1\r\nfoo\r\n" 1]
+        ["let x = ls |\n    length\n\nfoo" 0]
+        ["let x = ls | # note\n    length\nfoo" 1]
+        ["let x = 1\n# about foo\n\nfoo" 0]
+        ["let x = 1\n# about foo\n\n# more\nfoo" 0]
+    ]
+
+    let wrong = $cases | where {|c| ($c.code | find-let-gaps | length) != $c.want }
+
+    assert equal $wrong []
+}
+
+@test
+def "find-let-gaps flags each let continuation not 4 spaces past the let" [] {
+    let cases = [
+        [code want];
+        ["let x = ls\n    | length" []]
+        ["let x = ls\n| length" [11]]
+        ["let x = ls\n  | length" [13]]
+        ["let x = ls\n        | length" [19]]
+        ["let x = ls\n| where true\n| length" [11 24]]
+        ["let x = ls\n# note\n| length" [18]]
+        ["let a = [\n    1\n]\n| where true" [18]]
+        ["let a = [\n    1\n]\n    | where true" []]
+        ["let t = (\n    ls\n    | length\n)" []]
+        ["let u = ls | each {|r|\n    $r\n    | get name\n}" []]
+        ["ls\n| length" []]
+        ["def f [] {\n    let x = ls\n    | length\n}" [30]]
+    ]
+
+    let wrong = $cases
+        | insert got {|c| $c.code | find-let-gaps | where kind == indent | get start }
+        | where {|c| $c.got != $c.want }
+
+    assert equal $wrong []
+}
+
+@test
+def "style let-layout fix inserts the blank line once" [] {
+    let file = $nu.temp-dir | path join $"let-gaps-(random uuid).nu"
+
+    "def f [] {\n    let x = 1\n    # why\n    print $x\n}\n" | save $file
+    let found = style let-layout $file --fix
+    let fixed = open --raw $file
+    let again = style let-layout $file --fix
+
+    rm $file
+    assert equal $found [{file: $file kind: gap line: 4 let_line: 2 source: "print $x"}]
+    assert equal $fixed "def f [] {\n    let x = 1\n\n    # why\n    print $x\n}\n"
+    assert equal $again []
+}
+
+@test
+def "style let-layout fix puts the blank line after a pipeline split at a trailing pipe" [] {
+    let file = $nu.temp-dir | path join $"let-gaps-(random uuid).nu"
+
+    "let x = ls |\n    length\nprint $x\n" | save $file
+    let found = style let-layout $file --fix
+    let fixed = open --raw $file
+
+    rm $file
+    assert equal $found.line [3]
+    assert equal $fixed "let x = ls |\n    length\n\nprint $x\n"
+}
+
+@test
+def "style let-layout fix keeps the CRLF line endings of a file" [] {
+    let file = $nu.temp-dir | path join $"let-gaps-(random uuid).nu"
+
+    "let x = 1\r\nfoo\r\n" | save --raw $file
+    let found = style let-layout $file --fix
+    let fixed = open --raw $file
+    let again = style let-layout $file
+
+    rm $file
+    assert equal $found.line [2]
+    assert equal $fixed "let x = 1\r\n\r\nfoo\r\n"
+    assert equal $again []
+}
+
+@test
+def "style let-layout fix leaves an indent row for the user" [] {
+    let file = $nu.temp-dir | path join $"let-gaps-(random uuid).nu"
+
+    "let x = ls\n| length\nprint $x\n" | save $file
+    let found = style let-layout $file --fix
+    let fixed = open --raw $file
+
+    rm $file
+    assert equal $found.kind [gap indent]
+    assert equal $found.let_line [2 1]
+    assert equal $fixed "let x = ls\n| length\n\nprint $x\n"
+}
+
+@test
+def "style let-layout fix names an indent row by its line in the saved file" [] {
+    let file = $nu.temp-dir | path join $"let-gaps-(random uuid).nu"
+
+    "let a = 1\nfoo\nlet x = ls\n| length\n" | save $file
+    let found = style let-layout $file --fix | where kind == indent
+    let saved = open --raw $file | lines
+
+    rm $file
+    assert equal $found.line [5]
+    assert equal ($saved | get 4) "| length"
+}
+
+@test
+def "style let-layout names the file of each row" [] {
+    let rows = style let-layout tests/assets/let-layout-demo.nu tests/assets/let-layout-demo.nu
+
+    assert equal $rows.file [tests/assets/let-layout-demo.nu tests/assets/let-layout-demo.nu]
+}
+
+@test
+def "style let-layout with no files returns an empty table" [] {
+    assert equal (style let-layout) []
+}
+
+@test
+def "style let-layout fixes nothing when a later file does not parse" [] {
+    let good = $nu.temp-dir | path join $"let-gaps-(random uuid).nu"
+    let bad = $nu.temp-dir | path join $"let-gaps-(random uuid).nu"
+
+    "let x = 1\nprint $x\n" | save $good
+    "let a = (\nfoo\n" | save $bad
+    let result = try { style let-layout $good $bad --fix; 'no error' } catch {|e| $e.msg }
+    let after = open --raw $good
+
+    rm $good $bad
+    assert ($result ends-with "does not parse")
+    assert equal $after "let x = 1\nprint $x\n"
+}
+
+@test
+def "style let-layout refuses a file that does not parse" [] {
+    let file = $nu.temp-dir | path join $"let-gaps-(random uuid).nu"
+
+    "let a = (\nfoo\n" | save $file
+    let result = try { style let-layout $file; 'no error' } catch {|e| $e.msg }
+
+    rm $file
+    assert ($result ends-with "does not parse")
+}
+
+# =============================================================================
 # Tests for generate-numd
 # =============================================================================
 
@@ -1128,6 +1298,7 @@ def "public api runs under prefixed import alone" [] {
         'extract-module-command': 'dotnu extract-module-command tests/assets/module-embed greet-loud | ignore'
         'filter-commands-with-no-tests': 'dotnu dependencies tests/assets/b/example-mod1.nu | dotnu filter-commands-with-no-tests | ignore'
         'generate-numd': "'ls' | dotnu generate-numd | ignore"
+        'style let-layout': 'dotnu style let-layout tests/assets/let-layout-demo.nu | ignore'
         'list-module-exports': 'dotnu list-module-exports tests/assets/b/example-mod1.nu | ignore'
         'list-module-interface': 'dotnu list-module-interface tests/assets/b/example-mod1.nu | ignore'
         'module-commands-code-to-record': 'dotnu module-commands-code-to-record tests/assets/b/example-mod1.nu | ignore'

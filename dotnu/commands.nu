@@ -137,6 +137,239 @@ export def 'diagnose' [
     | uniq # identical diagnostics repeat (common with mutable capture errors)
 }
 
+# Find each run of `let`/`mut` statements that runs straight into the next statement,
+# with no blank line between, at any block depth (`kind: gap`), and each `|` continuing a
+# `let` pipeline that is not indented 4 spaces past the let's line, as topiary puts it
+# (`kind: indent`). `let_line` is the let's last line for a gap — the blank line goes after
+# it — and the line holding the `let` for an indent. `--fix` inserts the blank lines and
+# rewrites the files; indent rows are only reported. Topiary cannot enforce the gap rule:
+# it has no capture for a blank line, and a literal newline breaks its idempotence where
+# one is already there.
+# Under `--fix` a gap row names its lines as they were before the fix, and an indent row
+# names them as they are in the saved file.
+@category dotnu
+@example 'Find a let followed directly by a command' {
+    dotnu style let-layout tests/assets/let-layout-demo.nu
+} --result [[file, kind, line, let_line, source]; ["tests/assets/let-layout-demo.nu", gap, 3, 2, "print $x"]]
+export def 'style let-layout' [
+    ...files: path # `.nu` files to check; none gives an empty table
+    --fix # insert the missing blank lines and save the files; indent rows stay as they are
+]: nothing -> table<file: string, kind: string, line: int, let_line: int, source: string> {
+    # Why check every file first: a file that does not parse would stop the run halfway,
+    # with `--fix` already applied to the files before it.
+    for file in $files {
+        if not (nu-check ($file | path expand)) {
+            error make {
+                msg: $"($file) does not parse"
+                label: {text: "run `dotnu diagnose` on it first" span: (metadata $file).span}
+            }
+        }
+    }
+
+    $files
+    | each {|file|
+        let source = open --raw $file | decode utf8
+        let gaps = $source | find-let-gaps
+        let blank_at = $gaps | where kind == gap | get insert_at
+
+        if not $fix or ($blank_at | is-empty) { return ($source | let-gaps-rows $file $gaps) }
+
+        let fixed = $source | insert-blank-lines $blank_at
+
+        $fixed | save --force --raw $file
+        # Why rescan: an indent row is left for the user, so it names a line of the file as
+        # saved, and each blank line inserted above it moved it down.
+        $source
+        | let-gaps-rows $file ($gaps | where kind == gap)
+        | append ($fixed | let-gaps-rows $file ($fixed | find-let-gaps | where kind == indent))
+    }
+    | flatten
+}
+
+# The report rows of `style let-layout` for the `find-let-gaps` rows of one file's text
+export def let-gaps-rows [file: string gaps: table]: string -> table {
+    let bytes = $in | encode utf8
+    let source_lines = $in | lines
+
+    $gaps
+    | each {|g|
+        let line = $bytes | line-of-byte $g.start
+
+        {
+            file: $file
+            kind: $g.kind
+            line: $line
+            let_line: ($bytes | line-of-byte $g.let_at)
+            source: ($source_lines | get ($line - 1) | str trim)
+        }
+    }
+}
+
+# 1-based line number of a byte offset
+export def line-of-byte [offset: int]: binary -> int {
+    ($in | bytes at 0..<$offset | bytes index-of --all 0x[0a] | length) + 1
+}
+
+# Byte offsets of each statement that follows a `let`/`mut` with no blank line between
+# (`kind: gap`), and of each `|` continuing a let pipeline at the wrong indent
+# (`kind: indent`). For a gap, `insert_at` is the newline ending the let's last line — the
+# check and `--fix` both look there, so they cannot disagree. `let_at` is the byte that
+# names the let's line in the report. A newline ends a statement unless the next significant
+# token is a `|` continuing the pipeline; a `;` ends one too, but a statement on the same
+# line as its `let` is left alone.
+@example 'A let followed by a command' {
+    "let x = 1\nprint $x" | find-let-gaps
+} --result [[kind, insert_at, start, let_at]; [gap, 9, 10, 9]]
+@example 'A blank line, a pipe continuation, or a semicolon is fine' {
+    "let x = ls\n    | length\n\nprint $x\nlet y = 1; print $y" | find-let-gaps
+} --result []
+@example 'A let continuation at the indent of the let' {
+    "let x = ls\n| length\n\nprint $x" | find-let-gaps
+} --result [[kind, insert_at, start, let_at]; [indent, null, 11, 0]]
+export def find-let-gaps []: string -> table<kind: string, insert_at: any, start: int, let_at: int> {
+    let bytes = $in | encode utf8
+    let tokens = $in | ast-complete
+    let count = $tokens | length
+    # Why shape_newline: its `\n` takes the same path as one inside a gap token.
+    let structural = [shape_block shape_closure shape_list shape_record shape_table shape_gap shape_newline]
+    # Tokens that can follow a newline and decide whether it ends the statement.
+    let significant = $tokens
+        | enumerate
+        | where item.shape not-in [shape_whitespace shape_newline]
+        | where not ($it.item.shape == shape_gap and ($it.item.content | str replace --all --regex '#.*' '' | str trim | is-empty))
+        | each { {index: $in.index shape: $in.item.shape} }
+    let significant_count = $significant | length
+
+    # The frame of the innermost block: the last finished statement and the open one.
+    mut prev: any = null
+    mut cur: any = null
+    mut stack = []
+    mut gaps = []
+    mut ahead = 0
+
+    for i in 0..<$count {
+        let t = $tokens | get $i
+
+        while $ahead < $significant_count and ($significant | get $ahead | get index) <= $i { $ahead += 1 }
+        # Why: a newline followed by `|` continues the pipeline instead of ending it.
+        let pipe_next = $ahead < $significant_count and ($significant | get $ahead | get shape) == shape_pipe
+
+        if $t.shape in [shape_whitespace shape_semicolon] {
+            if $t.shape == shape_semicolon and $cur != null {
+                $prev = $cur
+                $cur = null
+            }
+            continue
+        }
+
+        # Why strip comments: a block's opening token carries the comments that follow
+        # the brace, and a bracket inside a comment is not structure.
+        let text = if $t.shape in $structural { $t.content | str replace --all --regex '#.*' '' } else { '' }
+
+        let pipe_at = if $pipe_next { $tokens | get ($significant | get $ahead | get index) | get start }
+
+        if $t.shape in $structural {
+            for c in ($text | split chars) {
+                if $c in ['{' '[' '('] {
+                    if $cur == null {
+                        $gaps = $gaps | append ($bytes | let-gap $prev $t.start false)
+                        $cur = {start: $t.start end: $t.end is_let: false pipe_end: false}
+                    }
+
+                    $stack = $stack | append {prev: $prev cur: $cur}
+                    $prev = null
+                    $cur = null
+                } else if $c in ['}' ']' ')'] and ($stack | is-not-empty) {
+                    let frame = $stack | last
+
+                    $stack = $stack | drop
+                    $prev = $frame.prev
+                    $cur = $frame.cur | update end $t.end | update pipe_end false
+                } else if $c == "\n" and $cur != null {
+                    if $pipe_next {
+                        $gaps = $gaps | append ($bytes | let-indent $cur $pipe_at)
+                    } else if not $cur.pipe_end {
+                        $prev = $cur
+                        $cur = null
+                    }
+                }
+            }
+            continue
+        }
+
+        if $cur == null {
+            let is_let = $t.shape == shape_internalcall and $t.content in [let mut]
+
+            $gaps = $gaps | append ($bytes | let-gap $prev $t.start $is_let)
+            $cur = {start: $t.start end: $t.end is_let: $is_let pipe_end: false}
+        } else {
+            # Why pipe_end: a `|` that ends a line continues the pipeline on the next one.
+            $cur = $cur | update end $t.end | update pipe_end ($t.shape == shape_pipe)
+        }
+    }
+
+    # Why uniq: comment lines between a let and its `|` put several newlines before one pipe.
+    $gaps | uniq
+}
+
+# The gap row for a statement starting at `start`, when `prev` is a let that runs
+# straight into it; an empty list otherwise, so the caller can always append.
+export def let-gap [prev: any start: int is_let: bool]: binary -> list<record<kind: string, insert_at: int, start: int, let_at: int>> {
+    if $prev == null or not $prev.is_let or $is_let { return [] }
+
+    let between = $in | bytes at $prev.end..<$start
+    let newline = $between | bytes index-of 0x[0a]
+
+    if $newline < 0 { return [] }
+
+    # Why anywhere: a comment line may sit between the let and a blank line.
+    if ($between | decode utf8) =~ '\n[ \t]*\r?\n' { return [] }
+
+    let insert_at = $prev.end + $newline
+
+    [{kind: gap insert_at: $insert_at start: $start let_at: $insert_at}]
+}
+
+# The indent row for the `|` at `pipe_at` continuing the statement `cur`, when `cur` is a
+# let and the pipe is not 4 spaces deeper than the let's line; an empty list otherwise.
+export def let-indent [cur: record pipe_at: int]: binary -> list<record<kind: string, insert_at: nothing, start: int, let_at: int>> {
+    if not $cur.is_let { return [] }
+
+    let bytes = $in
+
+    if ($bytes | indent-at $pipe_at) == ($bytes | indent-at $cur.start) + 4 { return [] }
+
+    [{kind: indent insert_at: null start: $pipe_at let_at: $cur.start}]
+}
+
+# Leading spaces and tabs of the line holding a byte offset
+export def indent-at [offset: int]: binary -> int {
+    let line_start = ($in | bytes at 0..<$offset | bytes index-of --end 0x[0a]) + 1
+
+    $in
+    | bytes at $line_start..<$offset
+    | decode utf8
+    | parse --regex '^(?<ws>[ \t]*)'
+    | get 0.ws
+    | str length
+}
+
+# Insert an empty line after each byte offset, which must point at a newline.
+export def insert-blank-lines [offsets: list<int>]: string -> string {
+    let bytes = $in | encode utf8
+
+    $offsets
+    | sort --reverse
+    | reduce --fold $bytes {|offset acc|
+        # Why copy the line ending: a bare `\n` inside a CRLF file mixes the endings.
+        let crlf = $offset > 0 and ($acc | bytes at ($offset - 1)..<$offset) == 0x[0d]
+        let ending = if $crlf { 0x[0d0a] } else { 0x[0a] }
+
+        bytes build ($acc | bytes at 0..$offset) $ending ($acc | bytes at ($offset + 1)..)
+    }
+    | decode utf8
+}
+
 # Open a regular .nu script. Divide it into blocks by "\n\n". Generate a new script
 # that will print the code of each block before executing it, and print the timings of each block's execution.
 @category dotnu

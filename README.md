@@ -217,6 +217,46 @@ dotnu diagnose tests/assets/diagnose-demo.nu
 ```
 <!-- numd-gen-end -->
 
+<!-- numd-gen-start: numd doc 'dotnu style let-layout' -->
+### `dotnu style let-layout`
+
+Find each run of `let`/`mut` statements that runs straight into the next statement,
+with no blank line between, at any block depth (`kind: gap`), and each `|` continuing a
+`let` pipeline that is not indented 4 spaces past the let's line, as topiary puts it
+(`kind: indent`). `let_line` is the let's last line for a gap — the blank line goes after
+it — and the line holding the `let` for an indent. `--fix` inserts the blank lines and
+rewrites the files; indent rows are only reported. Topiary cannot enforce the gap rule:
+it has no capture for a blank line, and a literal newline breaks its idempotence where
+one is already there.
+Under `--fix` a gap row names its lines as they were before the fix, and an indent row
+names them as they are in the saved file.
+
+```nushell no-run
+dotnu style let-layout ...(files)    # `nothing -> table<file: string, kind: string, line: int, let_line: int, source: string>`
+```
+
+**Parameters:**
+
+- `...files: path` — `.nu` files to check; none gives an empty table
+
+**Flags:**
+
+- `--fix` — insert the missing blank lines and save the files; indent rows stay as they are
+
+**Examples:**
+
+Find a let followed directly by a command
+
+```nushell no-run
+dotnu style let-layout tests/assets/let-layout-demo.nu
+# => ╭───┬─────────────────────────────────┬──────┬──────┬──────────┬──────────╮
+# => │ # │              file               │ kind │ line │ let_line │  source  │
+# => ├───┼─────────────────────────────────┼──────┼──────┼──────────┼──────────┤
+# => │ 0 │ tests/assets/let-layout-demo.nu │ gap  │    3 │        2 │ print $x │
+# => ╰───┴─────────────────────────────────┴──────┴──────┴──────────┴──────────╯
+```
+<!-- numd-gen-end -->
+
 ## Script Profiling
 
 <!-- numd-gen-start: numd doc 'dotnu set-x' -->
