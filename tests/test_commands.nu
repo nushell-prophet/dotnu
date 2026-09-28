@@ -459,7 +459,10 @@ def "style let-layout fix names an indent row by its line in the saved file" [] 
 def "style let-layout names the file of each row" [] {
     let rows = style let-layout tests/assets/let-layout-demo.nu tests/assets/let-layout-demo.nu
 
-    assert equal $rows.file [tests/assets/let-layout-demo.nu tests/assets/let-layout-demo.nu]
+    # Why path join: a `path` argument comes back with the native separator, `\` on Windows.
+    let demo = [tests assets let-layout-demo.nu] | path join
+
+    assert equal $rows.file [$demo $demo]
 }
 
 @test

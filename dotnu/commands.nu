@@ -149,8 +149,8 @@ export def 'diagnose' [
 # names them as they are in the saved file.
 @category dotnu
 @example 'Find a let followed directly by a command' {
-    dotnu style let-layout tests/assets/let-layout-demo.nu
-} --result [[file, kind, line, let_line, source]; ["tests/assets/let-layout-demo.nu", gap, 3, 2, "print $x"]]
+    cd tests/assets; dotnu style let-layout let-layout-demo.nu
+} --result [[file, kind, line, let_line, source]; ["let-layout-demo.nu", gap, 3, 2, "print $x"]]
 export def 'style let-layout' [
     ...files: path # `.nu` files to check; none gives an empty table
     --fix # insert the missing blank lines and save the files; indent rows stay as they are

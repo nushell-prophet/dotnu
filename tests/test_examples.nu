@@ -43,8 +43,8 @@ sleep 0.5sec
 # Find a let followed directly by a command
 @test
 def "dotnu style let-layout example 1" [] {
-    let actual = run-example 'dotnu style let-layout tests/assets/let-layout-demo.nu'
-    let expected = [[file kind line let_line source]; ["tests/assets/let-layout-demo.nu" gap 3 2 "print $x"]]
+    let actual = run-example 'cd tests/assets; dotnu style let-layout let-layout-demo.nu'
+    let expected = [[file kind line let_line source]; ["let-layout-demo.nu" gap 3 2 "print $x"]]
 
     assert equal $actual $expected
 }
